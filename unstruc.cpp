@@ -213,8 +213,9 @@ bool set_i(Grid * grid) {
 	int i_e = 0;
 	for (int i = 0; i < grid->elements.size(); i++) {
 		if (!grid->elements[i]) continue;
-		grid->elements[i]->i = i_e;
 		name_mask[grid->elements[i]->name_i] = true;
+		if (!is3D(grid->elements[i])) continue;
+		grid->elements[i]->i = i_e;
 		i_e++;
 	}
 	grid->n_elems = i_e;
@@ -281,14 +282,14 @@ bool toSU2(Grid * grid) {
 		if (name->dim != 2) continue;
 		cout << "MARKER_TAG= " << name->name << endl;
 		cout << "MARKER_ELEMS= " << name_count[i] << endl;
-		for (int i = 0; i < grid->elements.size(); i++) {
-			if (!is2D(grid->elements[i])) continue;
-			e = grid->elements[i];
+		for (int j = 0; j < grid->elements.size(); j++) {
+			if (!is2D(grid->elements[j])) continue;
+			e = grid->elements[j];
+			if (e->name_i != i) continue;
 			cout << e->type;
-			for (int j = 0; j < e->len; j++) {
-				cout << " " << (**e->points[j]).i;
+			for (int k = 0; k < e->len; k++) {
+				cout << " " << (**e->points[k]).i;
 			}
-			cout << " " << i;
 			cout << endl;
 		}
 	}
