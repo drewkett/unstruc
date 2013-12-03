@@ -1,0 +1,4 @@
+rule cc
+  command = clang++ -g $in -o $out
+
+build unstruc : cc unstruc.cpp
