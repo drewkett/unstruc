@@ -7,9 +7,16 @@
 #include <algorithm>
 using namespace std;
 
-#define TOL 1.e-7
+#define TOL 3.e-8
+enum Shapes { LINE = 3,
+			  TRI = 5,
+			  QUAD = 9,
+			  TETRA = 10,
+			  HEXA = 12,
+			  WEDGE = 13,
+			  PYRAMID = 14};
 
-void NotImplemented() {
+inline void NotImplemented() {
 	cerr << "Not Implemented Yet" << endl;
 	exit(1);
 }
@@ -76,23 +83,23 @@ struct Element
 		i = -1;
 		s = NULL;
 		switch (T) {
-			case 5:
+			case TRI:
 				len = 3;
 				points = new Point**[len];
 				break;
-			case 9:
+			case QUAD:
 				len = 4;
 				points = new Point**[len];
 				break;
-			case 12:
+			case HEXA:
 				len = 8;
 				points = new Point**[len];
 				break;
-			case 13:
+			case WEDGE:
 				len = 6;
 				points = new Point**[len];
 				break;
-			case 14:
+			case PYRAMID:
 				len = 5;
 				points = new Point**[len];
 				break;
@@ -105,8 +112,8 @@ struct Element
 bool is2D(Element * e) {
 	if (!e) return false;
 	switch (e->type) {
-		case 5:
-		case 9:
+		case TRI:
+		case QUAD:
 			return true;
 		default:
 			return false;
@@ -116,10 +123,10 @@ bool is2D(Element * e) {
 bool is3D(Element * e) {
 	if (!e) return false;
 	switch (e->type) {
-		case 10:
-		case 12:
-		case 13:
-		case 14:
+		case TETRA:
+		case HEXA:
+		case WEDGE:
+		case PYRAMID:
 			return true;
 		default:
 			return false;
@@ -234,6 +241,7 @@ bool set_i(Grid * grid) {
 }
 
 bool toSU2(Grid * grid) {
+	std::cout.precision(15);
 	Point * p;
 	Element * e;
 	Name * name;
@@ -293,13 +301,6 @@ bool toSU2(Grid * grid) {
 			cout << endl;
 		}
 	}
-	//cout << "$PhysicalNames" << endl;
-	//cout << grid->names.size() << endl;
-	//for (int i = 0; i < grid->names.size(); i++) {
-	//	name = grid->names[i];
-	//	cout << name->dim << " " << i+1 << " \"" << name->name << "\"" << endl;
-	//}
-	//cout << "$EndPhysicalNames" << endl;
 	return true;
 }
 
@@ -326,15 +327,14 @@ bool toGMSH(Grid * grid) {
 		e = grid->elements[i];
 		cout << e->i+1;
 		switch (e->type) {
-			case 9:
+			case QUAD:
 				cout << " 3";
 				break;
-			case 12:
+			case HEXA:
 				cout << " 5";
 				break;
 			default:
-				cerr << "Unknown ElType " << e->type << endl;
-				exit(1);
+				NotImplemented("ElType for GMSH");
 		}
 		cout << " " << 2 << " " << e->name_i+1 << " " << e->name_i+1;
 		for (int j = 0; j < e->len; j++) {
@@ -363,7 +363,7 @@ bool canCollapse(Element * e) {
 }
 
 Element * collapseTri(Element * e) {
-	if (e->type != 5) {
+	if (e->type != TRI) {
 		cerr << "Wrong element type for collapseTri" << e->type << endl;
 		exit(1);
 	}
@@ -375,44 +375,40 @@ Element * collapseTri(Element * e) {
 	return NULL;
 }
 
+Element * triFromQuad(Element * e,int i1, int i2, int i3) {
+	Element * e_new = new Element(TRI);
+	e_new->points[0] = e->points[i1];
+	e_new->points[1] = e->points[i2];
+	e_new->points[2] = e->points[i3];
+	e_new->name_i = e->name_i;
+	return e_new;
+}
+
 Element * collapseQuad(Element * e) {
-	if (e->type != 9) {
+	if (e->type != QUAD) {
 		cerr << "Wrong element type for collapseQuad" << e->type << endl;
 		exit(1);
 	}
 	if (canCollapse(e)) {
-		Point ***pts = new Point**[3];
 		if (*e->points[0] == *e->points[1]) {
-			pts[0] = e->points[0];
-			pts[1] = e->points[2];
-			pts[2] = e->points[3];
+			*e = *triFromQuad(e,0,2,3);
 		} else if (*e->points[1] == *e->points[2]) {
-			pts[0] = e->points[0];
-			pts[1] = e->points[1];
-			pts[2] = e->points[3];
+			*e = *triFromQuad(e,0,1,3);
 		} else if (*e->points[2] == *e->points[3]) {
-			pts[0] = e->points[0];
-			pts[1] = e->points[1];
-			pts[2] = e->points[2];
+			*e = *triFromQuad(e,0,1,2);
 		} else if (*e->points[3] == *e->points[0]) {
-			pts[0] = e->points[0];
-			pts[1] = e->points[1];
-			pts[2] = e->points[2];
+			*e = *triFromQuad(e,0,1,2);
 		} else {
 			dump(e);
 			throw 1;
 		}
-		delete e->points;
-		e->type = 5;
-		e->len = 3;
-		e->points = pts;
 		collapseTri(e);
 	}
 	return NULL;
 }
 
 Element * pyramidFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
-	Element * e_new = new Element(14);
+	Element * e_new = new Element(PYRAMID);
 	e_new->points[0] = e->points[i1];
 	e_new->points[1] = e->points[i2];
 	e_new->points[2] = e->points[i3];
@@ -423,7 +419,7 @@ Element * pyramidFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
 }
 
 Element * wedgeFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5, int i6) {
-	Element * e_new = new Element(13);
+	Element * e_new = new Element(WEDGE);
 	e_new->points[0] = e->points[i1];
 	e_new->points[1] = e->points[i2];
 	e_new->points[2] = e->points[i3];
@@ -435,7 +431,7 @@ Element * wedgeFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5, int 
 }
 
 Element * collapsePyramid(Element * e) {
-	if (e->type != 14) {
+	if (e->type != PYRAMID) {
 		cerr << "Wrong element type for collapsePyramid" << e->type << endl;
 		exit(1);
 	}
@@ -444,7 +440,7 @@ Element * collapsePyramid(Element * e) {
 }
 
 Element * collapseWedge(Element * e) {
-	if (e->type != 13) {
+	if (e->type != WEDGE) {
 		cerr << "Wrong element type for collapseWedge" << e->type << endl;
 		exit(1);
 	}
@@ -453,7 +449,7 @@ Element * collapseWedge(Element * e) {
 }
 
 Element * collapseHexa(Element * e) {
-	if (e->type != 12) {
+	if (e->type != HEXA) {
 		cerr << "Wrong element type for collapseHexa" << e->type << endl;
 		exit(1);
 	}
@@ -604,14 +600,13 @@ Element * collapseHexa(Element * e) {
 
 Element * collapse(Element * e) {
 	switch (e->type) {
-		case 9:
+		case QUAD:
 			return collapseQuad(e);
-		case 12:
+		case HEXA:
 			return collapseHexa(e);
-		default:
-			cerr << "Unknown element type " << e->type << endl;
-			exit(1);
 	}
+	NotImplemented("Collapse for ElType");
+	return NULL;
 };
 
 struct Block {
@@ -641,11 +636,14 @@ struct Block {
 	};
 };
 
-int main ()
+int main (int argc, char* argv[])
 {
+	if (argc != 2) {
+		Error("One argument required");
+	}
 	ifstream f;
 	cerr << "Opening Block" << endl;
-	f.open("block/300.xyz",ios::in|ios::binary);
+	f.open(argv[1],ios::in|ios::binary);
 	int n_blocks,offset=0;
 	f.read((char *) &n_blocks,4);
 	int dim[n_blocks][3];
@@ -653,7 +651,6 @@ int main ()
 		f.read((char *) &dim[i],12);
 	}
 	Grid grid;
-	//n_blocks = 3;
 	Block * blks[n_blocks];
 	Name * name;
 	Point * p;
@@ -694,7 +691,7 @@ int main ()
 		for (int i = 0; i < dim[ib][0]-1; i++) {
 			for (int j = 0; j < dim[ib][1]-1; j++) {
 				for (int k = 0; k < dim[ib][2]-1; k++) {
-					Element * e = new Element(12);
+					Element * e = new Element(HEXA);
 					e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 					e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
 					e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
@@ -715,7 +712,7 @@ int main ()
 		int k = 0;
 		for (int i = 0; i < dim[ib][0]-1; i++) {
 			for (int j = 0; j < dim[ib][1]-1; j++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
@@ -731,7 +728,7 @@ int main ()
 		k = dim[ib][2]-1;
 		for (int i = 0; i < dim[ib][0]-1; i++) {
 			for (int j = 0; j < dim[ib][1]-1; j++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
@@ -747,7 +744,7 @@ int main ()
 		int j = 0;
 		for (int i = 0; i < dim[ib][0]-1; i++) {
 			for (int k = 0; k < dim[ib][2]-1; k++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i+1,j,k+1)];
@@ -763,7 +760,7 @@ int main ()
 		j = dim[ib][1]-1;
 		for (int i = 0; i < dim[ib][0]-1; i++) {
 			for (int k = 0; k < dim[ib][2]-1; k++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i+1,j,k+1)];
@@ -779,7 +776,7 @@ int main ()
 		int i = 0;
 		for (int j = 0; j < dim[ib][1]-1; j++) {
 			for (int k = 0; k < dim[ib][2]-1; k++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
@@ -795,7 +792,7 @@ int main ()
 		i = dim[ib][0]-1;
 		for (int j = 0; j < dim[ib][1]-1; j++) {
 			for (int k = 0; k < dim[ib][2]-1; k++) {
-				Element * e = new Element(9);
+				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
 				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
 				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
@@ -827,7 +824,7 @@ int main ()
 			}
 		}
 	}
-	cerr << n << " Merged" << endl;
+	cerr << n << " Points Merged" << endl;
 	for (int i=0; i < grid.elements.size(); i++) {
 		set_s(grid.elements[i]);
 	}
@@ -853,7 +850,7 @@ int main ()
 			grid.elements[i] = NULL;
 		}
 	}
-	cerr << n << " Deleted" << endl;
+	cerr << n << " Faces Deleted" << endl;
 	bool collapsed;
 	n = 0;
 	int n2 = 0;
@@ -870,8 +867,8 @@ int main ()
 			}
 		}
 	}
-	cerr << n << " Collapsed" << endl;
-	cerr << n2 << " Created on Collapse" << endl;
+	cerr << n << " Elements Collapsed" << endl;
+	cerr << n2 << " Elements Created on Collapse" << endl;
 	int wing_i,sym_i,far_i;
 	name = new Name();
 	name->dim = 2;
