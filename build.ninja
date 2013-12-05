@@ -3,4 +3,4 @@ rule cc
 #rule cc
 #  command = gcc -g $in -o $out -O2
 
-build unstruc : cc error.cpp point.cpp element.cpp unstruc.cpp
+build unstruc : cc grid.cpp error.cpp point.cpp element.cpp unstruc.cpp
