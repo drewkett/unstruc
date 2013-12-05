@@ -1,5 +1,6 @@
 #include <vector>
 #include <deque>
+#include <string>
 
 struct Element;
 struct Point;
@@ -7,7 +8,7 @@ struct Point;
 struct Name {
 	int dim;
 	int i;
-	char name[20];
+	std::string name;
 };
 
 struct Grid {
@@ -26,3 +27,4 @@ void set_s_elements(Grid * grid);
 void merge_points(Grid * grid, double tol);
 void delete_inner_faces(Grid * grid);
 void collapse_elements(Grid * grid);
+void sortElementsByName(Grid * grid);

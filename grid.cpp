@@ -3,6 +3,7 @@
 #include "point.h"
 
 #include <iostream>
+#include <algorithm>
 
 void set_s_points(Grid * grid) {
 	for (int i = 0; i < grid->points.size(); i++) {
@@ -114,4 +115,8 @@ void collapse_elements(Grid * grid) {
 	}
 	std::cerr << n << " Elements Collapsed" << std::endl;
 	std::cerr << n2 << " Elements Created on Collapse" << std::endl;
+};
+
+void sortElementsByName(Grid * grid){
+	sort(grid->elements.begin(),grid->elements.end(),compareElementByName);
 };

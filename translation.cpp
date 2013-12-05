@@ -4,6 +4,7 @@
 #include "grid.h"
 #include "element.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -21,8 +22,7 @@ TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 			name = new Name();
 			name->dim = 2;
 			std::istringstream iss(line);
-			iss >> s;
-			strncpy(name->name, s.c_str(), 20);
+			iss >> name->name;
 			tt->names.push_back(name);
 			std::cerr << s;
 			while (! iss.eof()) {

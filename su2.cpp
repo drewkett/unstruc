@@ -5,14 +5,15 @@
 #include "point.h"
 
 #include <iostream>
+#include <stdlib.h>
 
 bool toSU2(Grid * grid) {
 	std::cout.precision(15);
+	Name * name;
 	Point * p;
 	Element * e;
-	Name * name;
 	set_i(grid);
-	sort(grid->elements.begin(),grid->elements.end(),compareElementByName);
+	sortElementsByName(grid);
 	std::cout << "NDIME= " << 3 << std::endl;
 	std::cout << std::endl;
 	std::cout << "NELEM= " << grid->n_elems << std::endl;

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 	points = new Point[size1*size2*size3];
@@ -37,6 +38,7 @@ Grid * toGrid(MultiBlock * mb) {
 	Grid * grid = new Grid();
 	int offset = 0;
 	Name * name;
+	std::stringstream ss;
 	Element * e;
 	Block * blk;
 	int si,sj,sk;
@@ -55,7 +57,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 3;
-		sprintf(name->name,"Block%d",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1;
+		ss >> name->name;
 		grid->names.push_back(name);
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
@@ -76,7 +81,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceI1",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceI1";
+		ss >> name->name;
 		grid->names.push_back(name);
 		int i = 0;
 		for (int j = 0; j < sj-1; j++) {
@@ -92,7 +100,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceI2",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceI2";
+		ss >> name->name;
 		grid->names.push_back(name);
 		i = si-1;
 		for (int j = 0; j < sj-1; j++) {
@@ -108,7 +119,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceJ1",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceJ1";
+		ss >> name->name;
 		grid->names.push_back(name);
 		int j = 0;
 		for (int i = 0; i < si-1; i++) {
@@ -124,7 +138,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceJ2",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceJ2";
+		ss >> name->name;
 		grid->names.push_back(name);
 		j = sj-1;
 		for (int i = 0; i < si-1; i++) {
@@ -140,7 +157,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceK1",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceK1";
+		ss >> name->name;
 		grid->names.push_back(name);
 		int k = 0;
 		for (int i = 0; i < si-1; i++) {
@@ -156,7 +176,10 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceK2",ib+1);
+		ss.str("");
+		ss.clear();
+		ss << "Block" << ib+1 << " FaceK2";
+		ss >> name->name;
 		grid->names.push_back(name);
 		k = sk-1;
 		for (int i = 0; i < si-1; i++) {
