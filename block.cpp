@@ -60,7 +60,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1;
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
@@ -84,7 +84,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceI1";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		int i = 0;
 		for (int j = 0; j < sj-1; j++) {
@@ -103,7 +103,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceI2";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		i = si-1;
 		for (int j = 0; j < sj-1; j++) {
@@ -122,7 +122,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceJ1";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		int j = 0;
 		for (int i = 0; i < si-1; i++) {
@@ -141,7 +141,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceJ2";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		j = sj-1;
 		for (int i = 0; i < si-1; i++) {
@@ -160,7 +160,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceK1";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		int k = 0;
 		for (int i = 0; i < si-1; i++) {
@@ -179,7 +179,7 @@ Grid * toGrid(MultiBlock * mb) {
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceK2";
-		ss >> name->name;
+		name->name = ss.str();
 		grid->names.push_back(name);
 		k = sk-1;
 		for (int i = 0; i < si-1; i++) {
