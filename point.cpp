@@ -28,7 +28,7 @@ bool comparePPoint(Point ** p1, Point ** p2) {
 };
 
 bool close(Point * p1, Point * p2, double tol) {
-	return abs(p1->s - p2->s) < 3*tol;
+	return fabs(p1->s - p2->s) < 3*tol;
 };
 
 bool same(Point * p1, Point * p2, double tol) {
