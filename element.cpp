@@ -81,6 +81,7 @@ void dump(Element * e) {
 };
 
 void set_s(Element * e) {
+	if (!e) return;
 	e->s = (*e->points[0]);
 	for (int i=1; i < e->len; i++) {
 		if ((*e->points[i]) < e->s) {
