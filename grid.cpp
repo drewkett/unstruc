@@ -53,6 +53,7 @@ bool set_i(Grid * grid) {
 
 void merge_points(Grid * grid, double tol) {
 	int n = 0;
+	std::cerr << tol << std::endl;
 	for (int i = 0; i < grid->ppoints.size()-1; i++) {
 		if (!grid->ppoints[i]) continue;
 		for (int j = i+1; j < grid->ppoints.size(); j++) {
@@ -65,6 +66,7 @@ void merge_points(Grid * grid, double tol) {
 			}
 		}
 	}
+	std::cerr << grid->points.size() << " Points" << std::endl;
 	std::cerr << n << " Points Merged" << std::endl;
 }
 
@@ -90,6 +92,7 @@ void delete_inner_faces(Grid * grid) {
 			grid->elements[i] = NULL;
 		}
 	}
+	std::cerr << grid->elements.size() << " Elements" << std::endl;
 	std::cerr << n << " Faces Deleted" << std::endl;
 }
 

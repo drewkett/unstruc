@@ -45,8 +45,6 @@ int main (int argc, char* argv[])
 	MultiBlock * mb = ReadPlot3D(blockfile);
 	Grid * grid = toGrid(mb);
 	Element * e;
-	cerr << grid->points.size() << " Points" << endl;
-	cerr << grid->elements.size() << " Elements" << endl;
 	set_s_points(grid);
 	sort(grid->ppoints.begin(),grid->ppoints.end(),comparePPoint);
 	merge_points(grid,TOL);

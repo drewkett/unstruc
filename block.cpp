@@ -5,6 +5,7 @@
 #include "grid.h"
 
 #include <stdlib.h>
+#include <iostream>
 
 Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 	points = new Point[size1*size2*size3];
@@ -45,8 +46,8 @@ Grid * toGrid(MultiBlock * mb) {
 		sj = blk->size2;
 		sk = blk->size3;
 		for (int i = 0; i < si; i++) {
-			for (int j = 0; j < 2; j++) {
-				for (int k = 0; k < 3; k++) {
+			for (int j = 0; j < sj; j++) {
+				for (int k = 0; k < sk; k++) {
 					grid->points.push_back(blk->at(i,j,k));
 					grid->ppoints.push_back(&grid->points.back());
 				}

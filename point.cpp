@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <fstream>
+#include <cmath>
+#include <algorithm>
 
 void dump(Point * p) {
 	std::cerr << p << " -> Point " << p->x << " " << p->y << " " << p->z << std::endl;
@@ -30,5 +32,5 @@ bool close(Point * p1, Point * p2, double tol) {
 };
 
 bool same(Point * p1, Point * p2, double tol) {
-	return (abs(p1->x - p2->x) < tol) && (abs(p1->y - p2->y) < tol) && (abs(p1->z - p2->z) < tol);
+	return (fabs(p1->x - p2->x) < tol) && (fabs(p1->y - p2->y) < tol) && (fabs(p1->z - p2->z) < tol);
 };
