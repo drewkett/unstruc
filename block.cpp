@@ -4,7 +4,6 @@
 #include "element.h"
 #include "grid.h"
 
-#include <stdlib.h>
 #include <iostream>
 #include <sstream>
 

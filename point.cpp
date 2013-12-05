@@ -1,10 +1,7 @@
 #include "point.h"
+
 #include <iostream>
-#include <algorithm>
-#include <stdlib.h>
-#include <fstream>
 #include <cmath>
-#include <algorithm>
 
 void dump(Point * p) {
 	std::cerr << p << " -> Point " << p->x << " " << p->y << " " << p->z << std::endl;

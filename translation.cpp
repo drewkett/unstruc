@@ -8,7 +8,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <vector>
 
 TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 	std::ifstream f;

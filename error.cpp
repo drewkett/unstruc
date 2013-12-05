@@ -1,8 +1,8 @@
 #include "error.h"
-#include <fstream>
+
 #include <iostream>
 #include <string>
-#include <stdlib.h>
+#include <cstdlib>
 
 void Fatal() {
 	std::cerr << "Fatal Error" << std::endl;

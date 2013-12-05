@@ -5,7 +5,6 @@
 #include "point.h"
 
 #include <iostream>
-#include <stdlib.h>
 
 bool toSU2(Grid * grid) {
 	std::cout.precision(15);
