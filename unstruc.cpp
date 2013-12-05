@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -8,189 +7,14 @@
 #include <cmath>
 #include <stdlib.h>
 #include <algorithm>
+
+#include "error.h"
+#include "point.h"
+#include "element.h"
 using namespace std;
 
+
 #define TOL 3.e-8
-enum Shapes { LINE = 3,
-			  TRI = 5,
-			  QUAD = 9,
-			  TETRA = 10,
-			  HEXA = 12,
-			  WEDGE = 13,
-			  PYRAMID = 14};
-
-inline void NotImplemented() {
-	cerr << "Not Implemented Yet" << endl;
-	exit(1);
-}
-
-void Error(string s) {
-	cerr << "Error : " << s << endl;
-	exit(1);
-}
-
-void NotImplemented(string s) {
-	cerr << "Not Implemented Yet : " << s << endl;
-	exit(1);
-}
-
-struct Point
-{
-	double x,y,z,s,i;
-};
-
-void dump(Point * p) {
-	cerr << p << " -> Point " << p->x << " " << p->y << " " << p->z << endl;
-};
-
-void dump(Point ** p) {
-	cerr << p << " -> ";
-	dump(*p);
-};
-
-void set_s(Point * p) {
-	p->s = p->x + p->y + p->z;
-}
-
-bool comparePoint(Point * p1, Point * p2) {
-	return p1->s < p2->s;
-};
-
-bool comparePPoint(Point ** p1, Point ** p2) {
-	return comparePoint(*p1,*p2);
-};
-
-bool close(Point * p1, Point * p2) {
-	return abs(p1->s - p2->s) < 3*TOL;
-};
-
-bool same(Point * p1, Point * p2) {
-	return (abs(p1->x - p2->x) < TOL) && (abs(p1->y - p2->y) < TOL) && (abs(p1->z - p2->z) < TOL);
-};
-
-struct Element
-{
-	int type;
-	int len;
-	int name_i;
-	int i;
-	Point * s;
-	Point *** points;
-	Element(int T,int N,Point *** pts) : type(T), len(N), points(pts) {
-		name_i = -1;
-		i = -1;
-		s = NULL;
-	}
-	Element(int T) : type(T) {
-		name_i = -1;
-		i = -1;
-		s = NULL;
-		switch (T) {
-			case TRI:
-				len = 3;
-				points = new Point**[len];
-				break;
-			case QUAD:
-				len = 4;
-				points = new Point**[len];
-				break;
-			case HEXA:
-				len = 8;
-				points = new Point**[len];
-				break;
-			case WEDGE:
-				len = 6;
-				points = new Point**[len];
-				break;
-			case PYRAMID:
-				len = 5;
-				points = new Point**[len];
-				break;
-			default:
-				NotImplemented("Element Type");
-		}
-	}
-};
-
-bool is2D(Element * e) {
-	if (!e) return false;
-	switch (e->type) {
-		case TRI:
-		case QUAD:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool is3D(Element * e) {
-	if (!e) return false;
-	switch (e->type) {
-		case TETRA:
-		case HEXA:
-		case WEDGE:
-		case PYRAMID:
-			return true;
-		default:
-			return false;
-	}
-}
-
-void dump(Element * e) {
-	cerr << e << " -> Element " << e->type << endl;
-	for (int i=0; i < e->len; i++) {
-		dump(e->points[i]);
-	}
-};
-
-void set_s(Element * e) {
-	e->s = (*e->points[0]);
-	for (int i=1; i < e->len; i++) {
-		if ((*e->points[i]) < e->s) {
-			e->s = *e->points[i];
-		}
-	}
-}
-
-bool compareElement(Element * e1, Element * e2) {
-	return e1->s < e2->s;
-}
-
-bool compareElementByName(Element * e1, Element * e2) {
-	if (!e1) return false;
-	if (!e2) return true;
-	return e1->name_i < e2->name_i;
-}
-
-bool close(Element * e1, Element * e2) {
-	return e1->s == e2->s;
-};
-
-bool same(Element * e1, Element * e2) {
-	if (e1->type != e2->type) return false;
-	bool br;
-	for (int i = 0; i < e1->len; i++) {
-		br = false;
-		for (int j = 0; j < e2->len; j++) {
-			if (*e1->points[i] == *e2->points[j]) {
-				br = true;
-				break;
-			}
-		}
-		if (!br) return false;
-	}
-	for (int j = 0; j < e2->len; j++) {
-		br = false;
-		for (int i = 0; i < e1->len; i++) {
-			if (*e1->points[i] == *e2->points[j]) {
-				br = true;
-				break;
-			}
-		}
-		if (!br) return false;
-	}
-	return true;
-};
 
 struct Name {
 	int dim;
@@ -358,268 +182,12 @@ bool toGMSH(Grid * grid) {
 	return true;
 }
 
-bool canCollapse(Element * e) {
-	for (int i = 0; i < e->len-1; i++) {
-		for (int j = i+1; j < e->len; j++) {
-			if (*e->points[i] == *e->points[j]) return true;
-		}
-	}
-	return false;
-}
-
-Element * collapseTri(Element * e) {
-	if (e->type != TRI) {
-		cerr << "Wrong element type for collapseTri" << e->type << endl;
-		exit(1);
-	}
-	if (canCollapse(e)) {
-		e = NULL;
-		cerr << "Collapsing Tri" << endl;
-		exit(1);
-	}
-	return NULL;
-}
-
-Element * triFromQuad(Element * e,int i1, int i2, int i3) {
-	Element * e_new = new Element(TRI);
-	e_new->points[0] = e->points[i1];
-	e_new->points[1] = e->points[i2];
-	e_new->points[2] = e->points[i3];
-	e_new->name_i = e->name_i;
-	return e_new;
-}
-
-Element * collapseQuad(Element * e) {
-	if (e->type != QUAD) {
-		cerr << "Wrong element type for collapseQuad" << e->type << endl;
-		exit(1);
-	}
-	if (canCollapse(e)) {
-		if (*e->points[0] == *e->points[1]) {
-			*e = *triFromQuad(e,0,2,3);
-		} else if (*e->points[1] == *e->points[2]) {
-			*e = *triFromQuad(e,0,1,3);
-		} else if (*e->points[2] == *e->points[3]) {
-			*e = *triFromQuad(e,0,1,2);
-		} else if (*e->points[3] == *e->points[0]) {
-			*e = *triFromQuad(e,0,1,2);
-		} else {
-			dump(e);
-			throw 1;
-		}
-		collapseTri(e);
-	}
-	return NULL;
-}
-
-Element * pyramidFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
-	Element * e_new = new Element(PYRAMID);
-	e_new->points[0] = e->points[i1];
-	e_new->points[1] = e->points[i2];
-	e_new->points[2] = e->points[i3];
-	e_new->points[3] = e->points[i4];
-	e_new->points[4] = e->points[i5];
-	e_new->name_i = e->name_i;
-	return e_new;
-}
-
-Element * wedgeFromHexa(Element * e,int i1, int i2, int i3, int i4, int i5, int i6) {
-	Element * e_new = new Element(WEDGE);
-	e_new->points[0] = e->points[i1];
-	e_new->points[1] = e->points[i2];
-	e_new->points[2] = e->points[i3];
-	e_new->points[3] = e->points[i4];
-	e_new->points[4] = e->points[i5];
-	e_new->points[5] = e->points[i6];
-	e_new->name_i = e->name_i;
-	return e_new;
-}
-
-Element * collapsePyramid(Element * e) {
-	if (e->type != PYRAMID) {
-		cerr << "Wrong element type for collapsePyramid" << e->type << endl;
-		exit(1);
-	}
-	if (canCollapse(e)) NotImplemented("Pyramid Collapse");
-	return NULL;
-}
-
-Element * collapseWedge(Element * e) {
-	if (e->type != WEDGE) {
-		cerr << "Wrong element type for collapseWedge" << e->type << endl;
-		exit(1);
-	}
-	if (canCollapse(e)) NotImplemented("Wedge Collapse");
-	return NULL;
-}
-
-Element * collapseHexa(Element * e) {
-	if (e->type != HEXA) {
-		cerr << "Wrong element type for collapseHexa" << e->type << endl;
-		exit(1);
-	}
-	Element *e_new, *e_new2;
-	if (canCollapse(e)) {
-        if (*e->points[0] == *e->points[1]) {
-			if (*e->points[2] == *e->points[3]) {
-				*e = *wedgeFromHexa(e,0,4,5,3,7,6);
-				return collapseWedge(e);
-			} else if (*e->points[4] == *e->points[5]) {
-				*e = *wedgeFromHexa(e,1,2,3,5,6,7);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,2,5,6,3,4,7);
-				e_new2 = pyramidFromHexa(e,2,5,4,3,0);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[1] == *e->points[2]) {
-			if (*e->points[0] == *e->points[3]) {
-				*e = *wedgeFromHexa(e,1,5,6,0,4,7);
-				return collapseWedge(e);
-			} else if (*e->points[5] == *e->points[6]) {
-				*e = *wedgeFromHexa(e,2,3,0,6,7,4);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,3,6,7,0,5,4);
-				e_new2 = pyramidFromHexa(e,3,6,5,0,1);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[2] == *e->points[3]) {
-			if (*e->points[6] == *e->points[7]) {
-				*e = *wedgeFromHexa(e,3,0,1,7,4,5);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,0,7,4,1,6,5);
-				e_new2 = pyramidFromHexa(e,0,7,6,1,2);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[3] == *e->points[0]) {
-			if (*e->points[7] == *e->points[4]) {
-				*e = *wedgeFromHexa(e,0,1,2,4,5,6);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,1,4,5,2,7,6);
-				e_new2 = pyramidFromHexa(e,1,4,7,2,3);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[0] == *e->points[4]) {
-			if (*e->points[1] == *e->points[5]) {
-				*e = *wedgeFromHexa(e,0,3,7,1,2,6);
-				return collapseWedge(e);
-			} else if (*e->points[3] == *e->points[7]) {
-				*e = *wedgeFromHexa(e,3,2,6,0,1,5);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,1,2,3,5,6,7);
-				e_new2 = pyramidFromHexa(e,3,1,5,7,0);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[1] == *e->points[5]) {
-			if (*e->points[2] == *e->points[6]) {
-				*e = *wedgeFromHexa(e,1,0,4,2,3,7);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,2,3,0,6,7,4);
-				e_new2 = pyramidFromHexa(e,0,2,6,4,1);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[2] == *e->points[6]) {
-			if (*e->points[3] == *e->points[7]) {
-				*e = *wedgeFromHexa(e,2,1,5,3,0,4);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,3,0,1,7,4,5);
-				e_new2 = pyramidFromHexa(e,1,3,7,5,2);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[3] == *e->points[7]) {
-			e_new = wedgeFromHexa(e,0,1,2,4,5,6);
-			e_new2 = pyramidFromHexa(e,2,0,4,6,3);
-			if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-			if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-			*e = *e_new;
-			return e_new2;
-		} else if (*e->points[4] == *e->points[5]) {
-			if (*e->points[6] == *e->points[7]) {
-				*e = *wedgeFromHexa(e,1,0,4,2,3,7);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,0,3,7,1,2,6);
-				e_new2 = pyramidFromHexa(e,0,1,6,7,4);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[5] == *e->points[6]) {
-			if (*e->points[7] == *e->points[4]) {
-				*e = *wedgeFromHexa(e,2,1,5,3,0,4);
-				return collapseWedge(e);
-			} else {
-				e_new = wedgeFromHexa(e,1,0,4,2,3,7);
-				e_new2 = pyramidFromHexa(e,1,2,7,4,5);
-				if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-				if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-				*e = *e_new;
-				return e_new2;
-			}
-		} else if (*e->points[6] == *e->points[7]) {
-			e_new = wedgeFromHexa(e,2,1,5,3,0,4);
-			e_new2 = pyramidFromHexa(e,2,3,4,5,6);
-			if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-			if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-			*e = *e_new;
-			return e_new2;
-		} else if (*e->points[7] == *e->points[4]) {
-			e_new = wedgeFromHexa(e,3,2,6,0,1,5);
-			e_new2 = pyramidFromHexa(e,3,0,5,6,7);
-			if (collapseWedge(e_new)) NotImplemented("Return from Wedge Collapse 1");
-			if (collapsePyramid(e_new2)) NotImplemented("Return from Wedge Collapse 2");
-			*e = *e_new;
-			return e_new2;
-		}
-	}
-	return NULL;
-}
-
-Element * collapse(Element * e) {
-	switch (e->type) {
-		case QUAD:
-			return collapseQuad(e);
-		case HEXA:
-			return collapseHexa(e);
-	}
-	NotImplemented("Collapse for ElType");
-	return NULL;
-};
-
 struct Block {
 	int size1, size2, size3;
 	Point * points;
 	Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 		points = new Point[size1*size2*size3];
-	}
+	};
 	Point * at(int i, int j, int k) {
 		return &(points[i*(size2*size3) + j*size3 + k]);
 	};
@@ -673,7 +241,7 @@ TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 		}
 		f.close();
 	} else {
-		Error("Could not open file");
+		Fatal("Could not open file");
 	}
 	return tt;
 }
@@ -681,7 +249,7 @@ TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 int main (int argc, char* argv[])
 {
 	if (argc < 2) {
-		Error("One argument required");
+		Fatal("One argument required");
 	}
 	int i = 1;
 	char * blockfile = NULL;
@@ -690,11 +258,11 @@ int main (int argc, char* argv[])
 		if (argv[i][0] == '-') {
 			if (string(argv[i]) == "-t") {
 				i++;
-				if (i == argc) Error("Must filename option to -t");
+				if (i == argc) Fatal("Must filename option to -t");
 				translationfile  = argv[i];
 			}
 		} else {
-			if (blockfile) Error("blockname defined twice");
+			if (blockfile) Fatal("blockname defined twice");
 			blockfile = argv[i];
 		}
 		i++;
@@ -887,8 +455,8 @@ int main (int argc, char* argv[])
 		if (!grid.ppoints[i]) continue;
 		for (int j = i+1; j < grid.ppoints.size(); j++) {
 			if (!grid.ppoints[j]) continue;
-			if (!close(*grid.ppoints[i],*grid.ppoints[j])) break;
-			if (same(*grid.ppoints[i],*grid.ppoints[j])) {
+			if (!close(*grid.ppoints[i],*grid.ppoints[j],TOL)) break;
+			if (same(*grid.ppoints[i],*grid.ppoints[j],TOL)) {
 				*grid.ppoints[j] = *grid.ppoints[i];
 				grid.ppoints[j] = NULL;
 				n++;
