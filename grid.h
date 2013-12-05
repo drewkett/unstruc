@@ -1,4 +1,5 @@
 #include <vector>
+#include <deque>
 
 struct Element;
 struct Point;
@@ -10,13 +11,18 @@ struct Name {
 };
 
 struct Grid {
-	std::vector <Point *> points;
-	std::vector <Point **> ppoints;
-	std::vector <Element *> elements;
-	std::vector <Name *> names;
+	std::deque <Point *> points;
+	std::deque <Point **> ppoints;
+	std::deque <Element *> elements;
+	std::deque <Name *> names;
 	int n_points;
 	int n_elems;
 	int n_names;
 };
 
 bool set_i(Grid * grid);
+void set_s_points(Grid * grid);
+void set_s_elements(Grid * grid);
+void merge_points(Grid * grid, double tol);
+void delete_inner_faces(Grid * grid);
+void collapse_elements(Grid * grid);
