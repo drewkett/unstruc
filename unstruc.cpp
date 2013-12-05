@@ -1,5 +1,8 @@
 
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <string.h>
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -284,10 +287,12 @@ bool toSU2(Grid * grid) {
 		name_count[e->name_i]++;
 	}
 	cout << "NMARK= " << n_names << endl;
+	cerr << "MARKERS:" << endl;
 	for (int i = 0; i < grid->names.size(); i++) {
 		if (!grid->names[i]) continue;
 		name = grid->names[i];
 		if (name->dim != 2) continue;
+		cerr << i << " : " << name->name << endl;
 		cout << "MARKER_TAG= " << name->name << endl;
 		cout << "MARKER_ELEMS= " << name_count[i] << endl;
 		for (int j = 0; j < grid->elements.size(); j++) {
@@ -636,19 +641,75 @@ struct Block {
 	};
 };
 
+struct TranslationTable {
+	vector <Name *> names;
+	vector <int> index;
+	TranslationTable(int n) : names(0), index(n,-1) {};
+};
+
+TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
+	ifstream f;
+	Name * name;
+	TranslationTable * tt = new TranslationTable(7*n_blocks);
+	string line, s;
+	cerr << "Reading Translation File '" << filename << "'" << endl;
+	f.open(filename,ios::in);
+	if (f.is_open()) {
+		while (getline(f,line)) {
+			name = new Name();
+			name->dim = 2;
+			istringstream iss(line);
+			iss >> s;
+			strncpy(name->name, s.c_str(), 20);
+			tt->names.push_back(name);
+			cerr << s;
+			while (! iss.eof()) {
+				iss >> s;
+				//if (iss.eof()) break;
+				cerr << " " << s;
+				tt->index[atoi(s.c_str())] = tt->names.size()-1;
+			}
+			cerr << endl;
+		}
+		f.close();
+	} else {
+		Error("Could not open file");
+	}
+	return tt;
+}
+
 int main (int argc, char* argv[])
 {
-	if (argc != 2) {
+	if (argc < 2) {
 		Error("One argument required");
+	}
+	int i = 1;
+	char * blockfile = NULL;
+	char * translationfile = NULL;
+	while (i < argc) {
+		if (argv[i][0] == '-') {
+			if (string(argv[i]) == "-t") {
+				i++;
+				if (i == argc) Error("Must filename option to -t");
+				translationfile  = argv[i];
+			}
+		} else {
+			if (blockfile) Error("blockname defined twice");
+			blockfile = argv[i];
+		}
+		i++;
 	}
 	ifstream f;
 	cerr << "Opening Block" << endl;
-	f.open(argv[1],ios::in|ios::binary);
+	f.open(blockfile,ios::in|ios::binary);
 	int n_blocks,offset=0;
 	f.read((char *) &n_blocks,4);
 	int dim[n_blocks][3];
+	cerr << n_blocks << " blocks" << endl;
+	cerr << "Dimensions: " << endl;
 	for (int i = 0; i < n_blocks; i++) {
 		f.read((char *) &dim[i],12);
+		cerr << dim[i][0] << " " << dim[i][1] << " " << dim[i][2] << endl;
 	}
 	Grid grid;
 	Block * blks[n_blocks];
@@ -659,6 +720,18 @@ int main (int argc, char* argv[])
 	int n_points = 0;
 	for (int ib = 0; ib < n_blocks; ib++) {
 		n_points += dim[ib][0]*dim[ib][1]*dim[ib][2];
+		if (dim[ib][0] > 10000) {
+			cerr << "Something is wrong with idir in block " << ib << endl;
+			exit(1);
+		}
+		if (dim[ib][1] > 10000) {
+			cerr << "Something is wrong with jdir in block " << ib << endl;
+			exit(1);
+		}
+		if (dim[ib][2] > 10000) {
+			cerr << "Something is wrong with kdir in block " << ib << endl;
+			exit(1);
+		}
 	}
 	grid.points.resize(n_points);
 	grid.ppoints.resize(n_points);
@@ -707,32 +780,32 @@ int main (int argc, char* argv[])
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceK1",ib+1);
+		sprintf(name->name,"Block%d FaceI1",ib+1);
 		grid.names.push_back(name);
-		int k = 0;
-		for (int i = 0; i < dim[ib][0]-1; i++) {
-			for (int j = 0; j < dim[ib][1]-1; j++) {
+		int i = 0;
+		for (int j = 0; j < dim[ib][1]-1; j++) {
+			for (int k = 0; k < dim[ib][2]-1; k++) {
 				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
-				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
-				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
-				e->points[3] = grid.ppoints[offset+blk->index(i,j+1,k)];
+				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
+				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
+				e->points[3] = grid.ppoints[offset+blk->index(i,j,k+1)];
 				e->name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceK2",ib+1);
+		sprintf(name->name,"Block%d FaceI2",ib+1);
 		grid.names.push_back(name);
-		k = dim[ib][2]-1;
-		for (int i = 0; i < dim[ib][0]-1; i++) {
-			for (int j = 0; j < dim[ib][1]-1; j++) {
+		i = dim[ib][0]-1;
+		for (int j = 0; j < dim[ib][1]-1; j++) {
+			for (int k = 0; k < dim[ib][2]-1; k++) {
 				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
-				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
-				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
-				e->points[3] = grid.ppoints[offset+blk->index(i,j+1,k)];
+				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
+				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
+				e->points[3] = grid.ppoints[offset+blk->index(i,j,k+1)];
 				e->name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -771,32 +844,32 @@ int main (int argc, char* argv[])
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceI1",ib+1);
+		sprintf(name->name,"Block%d FaceK1",ib+1);
 		grid.names.push_back(name);
-		int i = 0;
-		for (int j = 0; j < dim[ib][1]-1; j++) {
-			for (int k = 0; k < dim[ib][2]-1; k++) {
+		int k = 0;
+		for (int i = 0; i < dim[ib][0]-1; i++) {
+			for (int j = 0; j < dim[ib][1]-1; j++) {
 				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
-				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
-				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
-				e->points[3] = grid.ppoints[offset+blk->index(i,j,k+1)];
+				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
+				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
+				e->points[3] = grid.ppoints[offset+blk->index(i,j+1,k)];
 				e->name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
 		}
 		name = new Name();
 		name->dim = 2;
-		sprintf(name->name,"Block%d FaceI2",ib+1);
+		sprintf(name->name,"Block%d FaceK2",ib+1);
 		grid.names.push_back(name);
-		i = dim[ib][0]-1;
-		for (int j = 0; j < dim[ib][1]-1; j++) {
-			for (int k = 0; k < dim[ib][2]-1; k++) {
+		k = dim[ib][2]-1;
+		for (int i = 0; i < dim[ib][0]-1; i++) {
+			for (int j = 0; j < dim[ib][1]-1; j++) {
 				Element * e = new Element(QUAD);
 				e->points[0] = grid.ppoints[offset+blk->index(i,j,k)];
-				e->points[1] = grid.ppoints[offset+blk->index(i,j+1,k)];
-				e->points[2] = grid.ppoints[offset+blk->index(i,j+1,k+1)];
-				e->points[3] = grid.ppoints[offset+blk->index(i,j,k+1)];
+				e->points[1] = grid.ppoints[offset+blk->index(i+1,j,k)];
+				e->points[2] = grid.ppoints[offset+blk->index(i+1,j+1,k)];
+				e->points[3] = grid.ppoints[offset+blk->index(i,j+1,k)];
 				e->name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -815,9 +888,7 @@ int main (int argc, char* argv[])
 		for (int j = i+1; j < grid.ppoints.size(); j++) {
 			if (!grid.ppoints[j]) continue;
 			if (!close(*grid.ppoints[i],*grid.ppoints[j])) break;
-			if (*grid.ppoints[i] == *grid.ppoints[j]) {
-				continue;
-			} else if (same(*grid.ppoints[i],*grid.ppoints[j])) {
+			if (same(*grid.ppoints[i],*grid.ppoints[j])) {
 				*grid.ppoints[j] = *grid.ppoints[i];
 				grid.ppoints[j] = NULL;
 				n++;
@@ -869,51 +940,23 @@ int main (int argc, char* argv[])
 	}
 	cerr << n << " Elements Collapsed" << endl;
 	cerr << n2 << " Elements Created on Collapse" << endl;
-	int wing_i,sym_i,far_i;
-	name = new Name();
-	name->dim = 2;
-	sprintf(name->name,"WING");
-	grid.names.push_back(name);
-	wing_i = grid.names.size()-1;
-	name = new Name();
-	name->dim = 2;
-	sprintf(name->name,"SYMMETRY");
-	grid.names.push_back(name);
-	sym_i = grid.names.size()-1;
-	name = new Name();
-	name->dim = 2;
-	sprintf(name->name,"FARFIELD");
-	grid.names.push_back(name);
-	far_i = grid.names.size()-1;
-	for (int i = 0; i < grid.elements.size(); i++) {
-		e = grid.elements[i];
-		if (!e) continue;
-		switch (e->name_i) {
-			case 5:
-			case 12:
-			case 19:
-				e->name_i = wing_i;
-				break;
-			case 3:
-			case 10:
-			case 22:
-			case 23:
-				e->name_i = sym_i;
-				break;
-			case 6:
-			case 13:
-			case 20:
-			case 25:
-			case 27:
-				e->name_i = far_i;
-				break;
-			case 0:
-			case 7:
-			case 14:
-			case 21:
-				break;
-			default:
-				Error("Shouldn't happen");
+	if (translationfile) {
+		TranslationTable * transt = ReadTranslationFile(translationfile,n_blocks);
+		int offset = grid.names.size();
+		for (int i=0; i < transt->names.size(); i++) {
+			grid.names.push_back(transt->names[i]);
+		}
+		for (int i=0; i < transt->index.size(); i++) {
+			if (transt->index[i] == -1) {
+				transt->index[i] = i;
+			} else {
+				transt->index[i] += offset;
+			}
+		}
+		for (int i = 0; i < grid.elements.size(); i++) {
+			e = grid.elements[i];
+			if (!e) continue;
+			if (e->name_i != -1) e->name_i = transt->index[e->name_i];
 		}
 	}
 	toSU2(&grid);
