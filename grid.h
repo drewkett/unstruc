@@ -13,9 +13,9 @@ struct Name {
 
 struct Grid {
 	std::deque <Point *> points;
-	std::deque <Point **> ppoints;
-	std::deque <Element *> elements;
-	std::deque <Name *> names;
+	std::vector <Point **> ppoints;
+	std::vector <Element *> elements;
+	std::vector <Name *> names;
 	int n_points;
 	int n_elems;
 	int n_names;
