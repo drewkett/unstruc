@@ -16,26 +16,22 @@ TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 	std::string line, s;
 	std::cerr << "Reading Translation File '" << filename << "'" << std::endl;
 	f.open(filename,std::ios::in);
-	if (f.is_open()) {
-		while (getline(f,line)) {
-			name = new Name();
-			name->dim = 2;
-			std::istringstream iss(line);
-			iss >> name->name;
-			tt->names.push_back(name);
-			std::cerr << s;
-			while (! iss.eof()) {
-				iss >> s;
-				//if (iss.eof()) break;
-				std::cerr << " " << s;
-				tt->index[atoi(s.c_str())] = tt->names.size()-1;
-			}
-			std::cerr << std::endl;
+	if (!f.is_open()) Fatal("Could not open file");
+	while (getline(f,line)) {
+		name = new Name();
+		name->dim = 2;
+		std::istringstream iss(line);
+		iss >> name->name;
+		tt->names.push_back(name);
+		std::cerr << name->name;
+		while (! iss.eof()) {
+			iss >> s;
+			std::cerr << " " << s;
+			tt->index[atoi(s.c_str())] = tt->names.size()-1;
 		}
-		f.close();
-	} else {
-		Fatal("Could not open file");
+		std::cerr << std::endl;
 	}
+	f.close();
 	return tt;
 }
 
