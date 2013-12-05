@@ -52,9 +52,16 @@ bool set_i(Grid * grid) {
 	return true;
 }
 
+
+void sortPoints(Grid * grid){
+	std::cerr << "Sorting Points" << std::endl;
+	set_s_points(grid);
+	sort(grid->ppoints.begin(),grid->ppoints.end(),comparePPoint);
+};
+
 void merge_points(Grid * grid, double tol) {
+	std::cerr << "Merging Points" << std::endl;
 	int n = 0;
-	std::cerr << tol << std::endl;
 	for (int i = 0; i < grid->ppoints.size()-1; i++) {
 		if (!grid->ppoints[i]) continue;
 		for (int j = i+1; j < grid->ppoints.size(); j++) {
@@ -117,6 +124,14 @@ void collapse_elements(Grid * grid) {
 	std::cerr << n2 << " Elements Created on Collapse" << std::endl;
 };
 
+void sortElements(Grid * grid){
+	std::cerr << "Sorting Elements" << std::endl;
+	set_s_elements(grid);
+	sort(grid->elements.begin(),grid->elements.end(),compareElement);
+};
+
 void sortElementsByName(Grid * grid){
+	std::cerr << "Sorting Elements By Name" << std::endl;
+	set_s_elements(grid);
 	sort(grid->elements.begin(),grid->elements.end(),compareElementByName);
 };

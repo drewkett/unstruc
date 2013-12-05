@@ -1,23 +1,13 @@
 #include <iostream>
-#include <sstream>
 #include <string>
-#include <string.h>
-#include <fstream>
-#include <vector>
-#include <cmath>
-#include <stdlib.h>
-#include <algorithm>
 
 #include "error.h"
-#include "point.h"
-#include "element.h"
 #include "grid.h"
 #include "su2.h"
 #include "gmsh.h"
 #include "block.h"
 #include "translation.h"
 #include "plot3d.h"
-using namespace std;
 
 #define TOL 3.e-8
 
@@ -31,7 +21,7 @@ int main (int argc, char* argv[])
 	char * translationfile = NULL;
 	while (i < argc) {
 		if (argv[i][0] == '-') {
-			if (string(argv[i]) == "-t") {
+			if (std::string(argv[i]) == "-t") {
 				i++;
 				if (i == argc) Fatal("Must filename option to -t");
 				translationfile  = argv[i];
@@ -44,12 +34,9 @@ int main (int argc, char* argv[])
 	}
 	MultiBlock * mb = ReadPlot3D(blockfile);
 	Grid * grid = toGrid(mb);
-	Element * e;
-	set_s_points(grid);
-	sort(grid->ppoints.begin(),grid->ppoints.end(),comparePPoint);
+	sortPoints(grid);
 	merge_points(grid,TOL);
-	set_s_elements(grid);
-	sort(grid->elements.begin(),grid->elements.end(),compareElement);
+	sortElements(grid);
 	delete_inner_faces(grid);
 	collapse_elements(grid);
 	if (translationfile) {
