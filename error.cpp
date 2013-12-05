@@ -10,7 +10,7 @@ void Fatal() {
 }
 
 void Fatal(std::string s) {
-	std::cerr << "Fatal Error" << std::endl << s << std::endl;
+	std::cerr << s << std::endl << "Fatal Error" << std::endl;
 	exit(1);
 }
 
