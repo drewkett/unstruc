@@ -9,8 +9,9 @@
 MultiBlock * ReadPlot3D(char * filename) {
 	std::ifstream f;
 	MultiBlock * mb = new MultiBlock();
-	std::cerr << "Opening Block" << std::endl;
+	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename,std::ios::in|std::ios::binary);
+	if (!f.is_open()) Fatal("Could not open file");
 	int n_blocks;
 	f.read((char *) &n_blocks,4);
 	int dim[n_blocks][3];
