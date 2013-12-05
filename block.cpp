@@ -40,6 +40,7 @@ Grid * toGrid(MultiBlock * mb) {
 	std::stringstream ss;
 	Element * e;
 	Block * blk;
+	std::cerr << "Converting to unstructured grid" << std::endl;
 	int si,sj,sk;
 	for (int ib = 0; ib < size(mb); ib++) {
 		blk = mb->blocks[ib];
@@ -194,5 +195,7 @@ Grid * toGrid(MultiBlock * mb) {
 		}
 		offset += si*sj*sk;
 	}
+	std::cerr << grid->points.size() << " Points" << std::endl;
+	std::cerr << grid->elements.size() << " Elements" << std::endl;
 	return grid;
 }

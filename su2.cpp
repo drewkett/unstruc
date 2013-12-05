@@ -13,6 +13,8 @@ bool toSU2(Grid * grid) {
 	Element * e;
 	set_i(grid);
 	sortElementsByName(grid);
+	std::cerr << "Outputting SU2" << std::endl;
+	std::cerr << "Writing Elements" << std::endl;
 	std::cout << "NDIME= " << 3 << std::endl;
 	std::cout << std::endl;
 	std::cout << "NELEM= " << grid->n_elems << std::endl;
@@ -27,6 +29,7 @@ bool toSU2(Grid * grid) {
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
+	std::cerr << "Writing Points" << std::endl;
 	std::cout << "NPOIN= " << grid->n_points << std::endl;
 	for (int i = 0; i < grid->ppoints.size(); i++) {
 		if (!grid->ppoints[i]) continue;
@@ -49,8 +52,8 @@ bool toSU2(Grid * grid) {
 		e = grid->elements[i];
 		name_count[e->name_i]++;
 	}
+	std::cerr << "Writing Markers" << std::endl;
 	std::cout << "NMARK= " << n_names << std::endl;
-	std::cerr << "MARKERS:" << std::endl;
 	for (int i = 0; i < grid->names.size(); i++) {
 		if (!grid->names[i]) continue;
 		name = grid->names[i];
