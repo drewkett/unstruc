@@ -5,8 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-
-bool set_i(Grid * grid) {
+void set_i_points(Grid * grid) {
 	int i_p = 0;
 	for (int i = 0; i < grid->ppoints.size(); i++) {
 		if (!grid->ppoints[i]) continue;
@@ -14,6 +13,20 @@ bool set_i(Grid * grid) {
 		i_p++;
 	}
 	grid->n_points = i_p;
+}
+
+void set_i_elements(Grid * grid) {
+	int i_e = 0;
+	for (int i = 0; i < grid->elements.size(); i++) {
+		if (!grid->elements[i]) continue;
+		grid->elements[i]->i = i_e;
+		i_e++;
+	}
+	grid->n_elems = i_e;
+}
+
+void set_i(Grid * grid) {
+	set_i_points(grid);
 	bool* name_mask = new bool[grid->names.size()];
 	for (int i = 0; i < grid->names.size(); i++) {
 		name_mask[i] = false;
@@ -40,11 +53,15 @@ bool set_i(Grid * grid) {
 		}
 	}
 	grid->n_names = i_n;
-	return true;
 }
 
 
-void sort_points(Grid * grid){
+void sort_points_by_index(Grid * grid){
+	std::cerr << "Sorting Points By Index" << std::endl;
+	sort(grid->ppoints.begin(),grid->ppoints.end(),compare_ppoint_by_index);
+};
+
+void sort_points_by_location(Grid * grid){
 	Point * p;
 	std::cerr << "Sorting Points" << std::endl;
 	for (int i = 0; i < grid->points.size(); i++) {
@@ -80,7 +97,7 @@ void delete_inner_faces(Grid * grid) {
 		if (!ei or ei->dim != 2) continue;
 		bool kill = false;
 		for (int j = i+1; j < grid->elements.size(); j++) {
-			ei = grid->elements[i];
+			ej = grid->elements[j];
 			if (!ej or ej->dim != 2) continue;
 		    if (!close(ei,ej)) break;
 			if (same(ei,ej)) {
@@ -131,4 +148,9 @@ void sort_elements(Grid * grid){
 void sort_elements_by_name(Grid * grid){
 	std::cerr << "Sorting Elements By Name" << std::endl;
 	sort(grid->elements.begin(),grid->elements.end(),compare_element_by_name);
+};
+
+void sort_elements_by_index(Grid * grid){
+	std::cerr << "Sorting Elements By Name" << std::endl;
+	sort(grid->elements.begin(),grid->elements.end(),compare_element_by_index);
 };

@@ -34,11 +34,15 @@ int main (int argc, char* argv[])
 	}
 	MultiBlock * mb = ReadPlot3D(blockfile);
 	Grid * grid = to_grid(mb);
-	sort_points(grid);
+	set_i_points(grid);
+	sort_points_by_location(grid);
 	merge_points(grid,TOL);
+	sort_points_by_index(grid);
+	set_i_elements(grid);
 	sort_elements(grid);
 	delete_inner_faces(grid);
 	collapse_elements(grid);
+	sort_elements_by_index(grid);
 	if (translationfile) {
 		TranslationTable * transt = ReadTranslationFile(translationfile,size(mb));
 		applyTranslation(grid,transt);

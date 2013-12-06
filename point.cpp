@@ -12,11 +12,23 @@ void dump(Point ** p) {
 	dump(*p);
 };
 
+bool compare_point_by_index(Point * p1, Point * p2) {
+	return p1->i < p2->i;
+};
+
 bool compare_point(Point * p1, Point * p2) {
 	return p1->s < p2->s;
 };
 
+bool compare_ppoint_by_index(Point ** p1, Point ** p2) {
+	if (!p1) return false;
+	if (!p2) return true;
+	return compare_point_by_index(*p1,*p2);
+};
+
 bool compare_ppoint(Point ** p1, Point ** p2) {
+	if (!p1) return false;
+	if (!p2) return true;
 	return compare_point(*p1,*p2);
 };
 

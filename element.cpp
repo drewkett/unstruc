@@ -66,6 +66,8 @@ void set_s_by_lowest_id(Element * e) {
 }
 
 bool compare_element(Element * e1, Element * e2) {
+	if (!e1) return false;
+	if (!e2) return true;
 	return e1->s < e2->s;
 }
 
@@ -73,6 +75,12 @@ bool compare_element_by_name(Element * e1, Element * e2) {
 	if (!e1) return false;
 	if (!e2) return true;
 	return e1->name_i < e2->name_i;
+}
+
+bool compare_element_by_index(Element * e1, Element * e2) {
+	if (!e1) return false;
+	if (!e2) return true;
+	return e1->i < e2->i;
 }
 
 bool close(Element * e1, Element * e2) {

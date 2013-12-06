@@ -24,6 +24,7 @@ void dump(Element * e);
 void set_s_by_lowest_id(Element * e);
 bool compare_element(Element * e1, Element * e2);
 bool compare_element_by_name(Element * e1, Element * e2);
+bool compare_element_by_index(Element * e1, Element * e2);
 bool close(Element * e1, Element * e2);
 bool same(Element * e1, Element * e2);
 
