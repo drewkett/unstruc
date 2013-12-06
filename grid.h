@@ -22,12 +22,10 @@ struct Grid {
 };
 
 bool set_i(Grid * grid);
-void set_s_points(Grid * grid);
-void set_s_elements(Grid * grid);
-void sortPoints(Grid * grid);
+void sort_points(Grid * grid);
 void merge_points(Grid * grid, double tol);
 void merge_points_test(Grid * grid, double tol);
 void delete_inner_faces(Grid * grid);
 void collapse_elements(Grid * grid);
-void sortElements(Grid * grid);
-void sortElementsByName(Grid * grid);
+void sort_elements(Grid * grid);
+void sort_elements_by_name(Grid * grid);

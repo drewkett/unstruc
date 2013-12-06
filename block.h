@@ -18,4 +18,4 @@ struct MultiBlock {
 
 int size(MultiBlock *);
 
-Grid * toGrid(MultiBlock *);
+Grid * to_grid(MultiBlock *);

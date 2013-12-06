@@ -33,10 +33,10 @@ int main (int argc, char* argv[])
 		i++;
 	}
 	MultiBlock * mb = ReadPlot3D(blockfile);
-	Grid * grid = toGrid(mb);
-	sortPoints(grid);
+	Grid * grid = to_grid(mb);
+	sort_points(grid);
 	merge_points(grid,TOL);
-	sortElements(grid);
+	sort_elements(grid);
 	delete_inner_faces(grid);
 	collapse_elements(grid);
 	if (translationfile) {

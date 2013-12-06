@@ -12,16 +12,12 @@ void dump(Point ** p) {
 	dump(*p);
 };
 
-void set_s(Point * p) {
-	p->s = p->x + p->y + p->z;
-}
-
-bool comparePoint(Point * p1, Point * p2) {
+bool compare_point(Point * p1, Point * p2) {
 	return p1->s < p2->s;
 };
 
-bool comparePPoint(Point ** p1, Point ** p2) {
-	return comparePoint(*p1,*p2);
+bool compare_ppoint(Point ** p1, Point ** p2) {
+	return compare_point(*p1,*p2);
 };
 
 bool close(Point * p1, Point * p2, double tol) {

@@ -12,15 +12,15 @@ bool toSU2(Grid * grid) {
 	Point * p;
 	Element * e;
 	set_i(grid);
-	sortElementsByName(grid);
+	sort_elements_by_name(grid);
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
 	std::cout << "NDIME= " << 3 << std::endl;
 	std::cout << std::endl;
 	std::cout << "NELEM= " << grid->n_elems << std::endl;
 	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!is3D(grid->elements[i])) continue;
 		e = grid->elements[i];
+		if (!e or e->dim != 3) continue;
 		std::cout << e->type;
 		for (int j = 0; j < e->len; j++) {
 			std::cout << " " << (**e->points[j]).i;
@@ -48,8 +48,8 @@ bool toSU2(Grid * grid) {
 		name_count[i] = 0;
 	}
 	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!is2D(grid->elements[i])) continue;
 		e = grid->elements[i];
+		if (!e or e->dim != 2) continue;
 		name_count[e->name_i]++;
 	}
 	std::cerr << "Writing Markers" << std::endl;
@@ -62,8 +62,8 @@ bool toSU2(Grid * grid) {
 		std::cout << "MARKER_TAG= " << name->name << std::endl;
 		std::cout << "MARKER_ELEMS= " << name_count[i] << std::endl;
 		for (int j = 0; j < grid->elements.size(); j++) {
-			if (!is2D(grid->elements[j])) continue;
 			e = grid->elements[j];
+			if (!e or e->dim != 2) continue;
 			if (e->name_i != i) continue;
 			std::cout << e->type;
 			for (int k = 0; k < e->len; k++) {

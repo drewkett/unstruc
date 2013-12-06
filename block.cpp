@@ -33,7 +33,7 @@ int size(MultiBlock * mb) {
 	return mb->blocks.size();
 }
 
-Grid * toGrid(MultiBlock * mb) {
+Grid * to_grid(MultiBlock * mb) {
 	Grid * grid = new Grid();
 	int offset = 0;
 	Name * name;

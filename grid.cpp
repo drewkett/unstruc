@@ -5,17 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-void set_s_points(Grid * grid) {
-	for (int i = 0; i < grid->points.size(); i++) {
-		set_s(grid->points[i]);
-	}
-}
-
-void set_s_elements(Grid * grid) {
-	for (int i = 0; i < grid->elements.size(); i++) {
-		set_s(grid->elements[i]);
-	}
-}
 
 bool set_i(Grid * grid) {
 	int i_p = 0;
@@ -30,11 +19,13 @@ bool set_i(Grid * grid) {
 		name_mask[i] = false;
 	}
 	int i_e = 0;
+	Element * e;
 	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!grid->elements[i]) continue;
-		name_mask[grid->elements[i]->name_i] = true;
-		if (!is3D(grid->elements[i])) continue;
-		grid->elements[i]->i = i_e;
+		e = grid->elements[i];
+		if (!e) continue;
+		name_mask[e->name_i] = true;
+		if (e->dim != 3) continue;
+		e->i = i_e;
 		i_e++;
 	}
 	grid->n_elems = i_e;
@@ -53,10 +44,14 @@ bool set_i(Grid * grid) {
 }
 
 
-void sortPoints(Grid * grid){
+void sort_points(Grid * grid){
+	Point * p;
 	std::cerr << "Sorting Points" << std::endl;
-	set_s_points(grid);
-	sort(grid->ppoints.begin(),grid->ppoints.end(),comparePPoint);
+	for (int i = 0; i < grid->points.size(); i++) {
+		p = grid->points[i];
+		p->s = p->x + p->y + p->z;
+	}
+	sort(grid->ppoints.begin(),grid->ppoints.end(),compare_ppoint);
 };
 
 void merge_points(Grid * grid, double tol) {
@@ -79,14 +74,17 @@ void merge_points(Grid * grid, double tol) {
 
 void delete_inner_faces(Grid * grid) {
 	int n = 0;
+	Element *ei,*ej;
 	for (int i = 0; i < grid->elements.size() - 1; i++) {
-		if (!is2D(grid->elements[i])) continue;
+		ei = grid->elements[i];
+		if (!ei or ei->dim != 2) continue;
 		bool kill = false;
 		for (int j = i+1; j < grid->elements.size(); j++) {
-			if (!is2D(grid->elements[j])) continue;
-		    if (!close(grid->elements[i],grid->elements[j])) break;
-			if (same(grid->elements[i],grid->elements[j])) {
-				delete grid->elements[j];
+			ei = grid->elements[i];
+			if (!ej or ej->dim != 2) continue;
+		    if (!close(ei,ej)) break;
+			if (same(ei,ej)) {
+				delete ej;
 				grid->elements[j] = NULL;
 				kill = true;
 				n++;
@@ -95,7 +93,7 @@ void delete_inner_faces(Grid * grid) {
 		if (kill) {
 			kill = false;
 			n++;
-			delete grid->elements[i];
+			delete ei;
 			grid->elements[i] = NULL;
 		}
 	}
@@ -122,14 +120,15 @@ void collapse_elements(Grid * grid) {
 	std::cerr << n2 << " Elements Created on Collapse" << std::endl;
 };
 
-void sortElements(Grid * grid){
+void sort_elements(Grid * grid){
 	std::cerr << "Sorting Elements" << std::endl;
-	set_s_elements(grid);
-	sort(grid->elements.begin(),grid->elements.end(),compareElement);
+	for (int i = 0; i < grid->elements.size(); i++) {
+		set_s_by_lowest_id(grid->elements[i]);
+	}
+	sort(grid->elements.begin(),grid->elements.end(),compare_element);
 };
 
-void sortElementsByName(Grid * grid){
+void sort_elements_by_name(Grid * grid){
 	std::cerr << "Sorting Elements By Name" << std::endl;
-	set_s_elements(grid);
-	sort(grid->elements.begin(),grid->elements.end(),compareElementByName);
+	sort(grid->elements.begin(),grid->elements.end(),compare_element_by_name);
 };
