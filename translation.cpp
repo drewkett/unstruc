@@ -9,13 +9,12 @@
 #include <sstream>
 #include <fstream>
 
-TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
+void ReadTranslationFile(std::string * filename, TranslationTable * tt) {
 	std::ifstream f;
 	Name * name;
-	TranslationTable * tt = new TranslationTable(7*n_blocks);
 	std::string line, s;
 	std::cerr << "Reading Translation File '" << filename << "'" << std::endl;
-	f.open(filename,std::ios::in);
+	f.open(filename->c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open file");
 	while (getline(f,line)) {
 		name = new Name();
@@ -32,7 +31,6 @@ TranslationTable * ReadTranslationFile(char * filename, int n_blocks) {
 		std::cerr << std::endl;
 	}
 	f.close();
-	return tt;
 }
 
 void applyTranslation(Grid * grid, TranslationTable * transt) {

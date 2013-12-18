@@ -1,4 +1,5 @@
 #include <vector>
+#include <string>
 
 struct Name;
 struct Grid;
@@ -9,5 +10,5 @@ struct TranslationTable {
 	TranslationTable(int n) : names(0), index(n,-1) {};
 };
 
-TranslationTable * ReadTranslationFile(char * filename, int n_blocks);
+void ReadTranslationFile(std::string * filename, TranslationTable * transt);
 void applyTranslation(Grid * grid, TranslationTable * transt);

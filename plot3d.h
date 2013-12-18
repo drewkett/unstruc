@@ -1,3 +1,5 @@
+#include <string> 
+
 struct MultiBlock;
 
-MultiBlock * ReadPlot3D(char * filename);
+MultiBlock * ReadPlot3D(std::string * filename);

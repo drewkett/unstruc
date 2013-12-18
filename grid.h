@@ -18,6 +18,8 @@ struct Grid {
 	std::vector <Name *> names;
 	int n_points;
 	int n_elems;
+	int n_boundelems;
+	int dim;
 	int n_names;
 };
 

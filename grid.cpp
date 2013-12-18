@@ -31,17 +31,25 @@ void set_i(Grid * grid) {
 	for (int i = 0; i < grid->names.size(); i++) {
 		name_mask[i] = false;
 	}
-	int i_e = 0;
+	int i_e = 0, i_eb = 0;
 	Element * e;
 	for (int i = 0; i < grid->elements.size(); i++) {
 		e = grid->elements[i];
 		if (!e) continue;
 		name_mask[e->name_i] = true;
-		if (e->dim != 3) continue;
-		e->i = i_e;
-		i_e++;
+		switch (grid->dim - e->dim) {
+			case 0:
+				i_e++;
+				e->i = i_e;
+				break;
+			case 1:
+				i_eb++;
+				e->i = i_eb;
+				break;
+		}
 	}
 	grid->n_elems = i_e;
+	grid->n_boundelems = i_eb;
 	int i_n = 0;
 	for (int i = 0; i < grid->names.size(); i++) {
 		if (name_mask[i] && grid->names[i]->dim == 2) {

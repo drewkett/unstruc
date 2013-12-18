@@ -1,3 +1,6 @@
+#include <string>
+
 struct Grid;
 
-bool toSU2(Grid * grid);
+bool toSU2(std::string * outputfile, Grid * grid);
+Grid * readSU2(std::string * inputfile);

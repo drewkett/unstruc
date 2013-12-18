@@ -18,10 +18,15 @@ Element::Element(int T) : type(T) {
 	i = -1;
 	s = NULL;
 	switch (T) {
+		case LINE:
+			len = 2;
+			dim = 1;
+			points = new Point**[len];
+			break;
 		case TRI:
 			len = 3;
-			points = new Point**[len];
 			dim = 2;
+			points = new Point**[len];
 			break;
 		case QUAD:
 			len = 4;
