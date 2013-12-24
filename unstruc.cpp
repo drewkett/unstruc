@@ -93,8 +93,8 @@ int main (int argc, char* argv[])
 		set_i_elements(grid);
 		sort_elements(grid);
 		delete_inner_faces(grid);
-		collapse_elements(grid);
 		sort_elements_by_index(grid);
+		collapse_elements(grid);
 	}
 	if (translationfile) {
 		TranslationTable * transt = new TranslationTable(grid->names.size());
