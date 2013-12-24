@@ -35,6 +35,7 @@ int size(MultiBlock * mb) {
 
 Grid * to_grid(MultiBlock * mb) {
 	Grid * grid = new Grid();
+	grid->dim = 3;
 	int offset = 0;
 	Name * name;
 	std::stringstream ss;
