@@ -159,6 +159,6 @@ void sort_elements_by_name(Grid * grid){
 };
 
 void sort_elements_by_index(Grid * grid){
-	std::cerr << "Sorting Elements By Name" << std::endl;
+	std::cerr << "Sorting Elements By Index" << std::endl;
 	sort(grid->elements.begin(),grid->elements.end(),compare_element_by_index);
 };

@@ -163,7 +163,7 @@ Element * collapse_quad(Element * e) {
 	return NULL;
 }
 
-Element * pyramidFrom_hexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
+Element * pyramid_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
 	if (e->type != HEXA) WrongElement(e->type,HEXA);
 	Element * e_new = new Element(PYRAMID);
 	e_new->points[0] = e->points[i1];
@@ -175,7 +175,7 @@ Element * pyramidFrom_hexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
 	return e_new;
 }
 
-Element * wedgeFrom_hexa(Element * e,int i1, int i2, int i3, int i4, int i5, int i6) {
+Element * wedge_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5, int i6) {
 	if (e->type != HEXA) WrongElement(e->type,HEXA);
 	Element * e_new = new Element(WEDGE);
 	e_new->points[0] = e->points[i1];
@@ -206,14 +206,14 @@ Element * collapse_hexa(Element * e) {
 	if (canCollapse(e)) {
         if (*e->points[0] == *e->points[1]) {
 			if (*e->points[2] == *e->points[3]) {
-				*e = *wedgeFrom_hexa(e,0,4,5,3,7,6);
+				*e = *wedge_from_hexa(e,0,4,5,3,7,6);
 				return collapse_wedge(e);
 			} else if (*e->points[4] == *e->points[5]) {
-				*e = *wedgeFrom_hexa(e,1,2,3,5,6,7);
+				*e = *wedge_from_hexa(e,1,2,3,5,6,7);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,2,5,6,3,4,7);
-				e_new2 = pyramidFrom_hexa(e,2,5,4,3,0);
+				e_new = wedge_from_hexa(e,2,5,6,3,4,7);
+				e_new2 = pyramid_from_hexa(e,2,5,4,3,0);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -221,14 +221,14 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[1] == *e->points[2]) {
 			if (*e->points[0] == *e->points[3]) {
-				*e = *wedgeFrom_hexa(e,1,5,6,0,4,7);
+				*e = *wedge_from_hexa(e,1,5,6,0,4,7);
 				return collapse_wedge(e);
 			} else if (*e->points[5] == *e->points[6]) {
-				*e = *wedgeFrom_hexa(e,2,3,0,6,7,4);
+				*e = *wedge_from_hexa(e,2,3,0,6,7,4);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,3,6,7,0,5,4);
-				e_new2 = pyramidFrom_hexa(e,3,6,5,0,1);
+				e_new = wedge_from_hexa(e,3,6,7,0,5,4);
+				e_new2 = pyramid_from_hexa(e,3,6,5,0,1);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -236,11 +236,11 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[2] == *e->points[3]) {
 			if (*e->points[6] == *e->points[7]) {
-				*e = *wedgeFrom_hexa(e,3,0,1,7,4,5);
+				*e = *wedge_from_hexa(e,3,0,1,7,4,5);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,0,7,4,1,6,5);
-				e_new2 = pyramidFrom_hexa(e,0,7,6,1,2);
+				e_new = wedge_from_hexa(e,0,7,4,1,6,5);
+				e_new2 = pyramid_from_hexa(e,0,7,6,1,2);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -248,11 +248,11 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[3] == *e->points[0]) {
 			if (*e->points[7] == *e->points[4]) {
-				*e = *wedgeFrom_hexa(e,0,1,2,4,5,6);
+				*e = *wedge_from_hexa(e,0,1,2,4,5,6);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,1,4,5,2,7,6);
-				e_new2 = pyramidFrom_hexa(e,1,4,7,2,3);
+				e_new = wedge_from_hexa(e,1,4,5,2,7,6);
+				e_new2 = pyramid_from_hexa(e,1,4,7,2,3);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -260,14 +260,14 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[0] == *e->points[4]) {
 			if (*e->points[1] == *e->points[5]) {
-				*e = *wedgeFrom_hexa(e,0,3,7,1,2,6);
+				*e = *wedge_from_hexa(e,0,3,7,1,2,6);
 				return collapse_wedge(e);
 			} else if (*e->points[3] == *e->points[7]) {
-				*e = *wedgeFrom_hexa(e,3,2,6,0,1,5);
+				*e = *wedge_from_hexa(e,3,2,6,0,1,5);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,1,2,3,5,6,7);
-				e_new2 = pyramidFrom_hexa(e,3,1,5,7,0);
+				e_new = wedge_from_hexa(e,1,2,3,5,6,7);
+				e_new2 = pyramid_from_hexa(e,3,1,5,7,0);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -275,11 +275,11 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[1] == *e->points[5]) {
 			if (*e->points[2] == *e->points[6]) {
-				*e = *wedgeFrom_hexa(e,1,0,4,2,3,7);
+				*e = *wedge_from_hexa(e,1,0,4,2,3,7);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,2,3,0,6,7,4);
-				e_new2 = pyramidFrom_hexa(e,0,2,6,4,1);
+				e_new = wedge_from_hexa(e,2,3,0,6,7,4);
+				e_new2 = pyramid_from_hexa(e,0,2,6,4,1);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -287,30 +287,30 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[2] == *e->points[6]) {
 			if (*e->points[3] == *e->points[7]) {
-				*e = *wedgeFrom_hexa(e,2,1,5,3,0,4);
+				*e = *wedge_from_hexa(e,2,1,5,3,0,4);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,3,0,1,7,4,5);
-				e_new2 = pyramidFrom_hexa(e,1,3,7,5,2);
+				e_new = wedge_from_hexa(e,3,0,1,7,4,5);
+				e_new2 = pyramid_from_hexa(e,1,3,7,5,2);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
 				return e_new2;
 			}
 		} else if (*e->points[3] == *e->points[7]) {
-			e_new = wedgeFrom_hexa(e,0,1,2,4,5,6);
-			e_new2 = pyramidFrom_hexa(e,2,0,4,6,3);
+			e_new = wedge_from_hexa(e,0,1,2,4,5,6);
+			e_new2 = pyramid_from_hexa(e,2,0,4,6,3);
 			if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 			if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 			*e = *e_new;
 			return e_new2;
 		} else if (*e->points[4] == *e->points[5]) {
 			if (*e->points[6] == *e->points[7]) {
-				*e = *wedgeFrom_hexa(e,1,0,4,2,3,7);
+				*e = *wedge_from_hexa(e,1,0,4,2,3,7);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,0,3,7,1,2,6);
-				e_new2 = pyramidFrom_hexa(e,0,1,6,7,4);
+				e_new = wedge_from_hexa(e,0,3,7,1,2,6);
+				e_new2 = pyramid_from_hexa(e,0,1,6,7,4);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
@@ -318,26 +318,26 @@ Element * collapse_hexa(Element * e) {
 			}
 		} else if (*e->points[5] == *e->points[6]) {
 			if (*e->points[7] == *e->points[4]) {
-				*e = *wedgeFrom_hexa(e,2,1,5,3,0,4);
+				*e = *wedge_from_hexa(e,2,1,5,3,0,4);
 				return collapse_wedge(e);
 			} else {
-				e_new = wedgeFrom_hexa(e,1,0,4,2,3,7);
-				e_new2 = pyramidFrom_hexa(e,1,2,7,4,5);
+				e_new = wedge_from_hexa(e,1,0,4,2,3,7);
+				e_new2 = pyramid_from_hexa(e,1,2,7,4,5);
 				if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 				if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 				*e = *e_new;
 				return e_new2;
 			}
 		} else if (*e->points[6] == *e->points[7]) {
-			e_new = wedgeFrom_hexa(e,2,1,5,3,0,4);
-			e_new2 = pyramidFrom_hexa(e,2,3,4,5,6);
+			e_new = wedge_from_hexa(e,2,1,5,3,0,4);
+			e_new2 = pyramid_from_hexa(e,2,3,4,5,6);
 			if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 			if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 			*e = *e_new;
 			return e_new2;
 		} else if (*e->points[7] == *e->points[4]) {
-			e_new = wedgeFrom_hexa(e,3,2,6,0,1,5);
-			e_new2 = pyramidFrom_hexa(e,3,0,5,6,7);
+			e_new = wedge_from_hexa(e,3,2,6,0,1,5);
+			e_new2 = pyramid_from_hexa(e,3,0,5,6,7);
 			if (collapse_wedge(e_new)) NotImplemented("Return from _wedge Collapse 1");
 			if (collapse_pyramid(e_new2)) NotImplemented("Return from _wedge Collapse 2");
 			*e = *e_new;

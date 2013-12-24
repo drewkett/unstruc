@@ -11,7 +11,7 @@
 MultiBlock * ReadPlot3D(std::string * filename) {
 	std::ifstream f;
 	MultiBlock * mb = new MultiBlock();
-	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
+	std::cerr << "Opening Block File '" << *filename << "'" << std::endl;
 	f.open(filename->c_str(),std::ios::in|std::ios::binary);
 	if (!f.is_open()) Fatal("Could not open file");
 	int n_blocks;

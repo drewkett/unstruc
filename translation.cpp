@@ -13,7 +13,7 @@ void ReadTranslationFile(std::string * filename, TranslationTable * tt) {
 	std::ifstream f;
 	Name * name;
 	std::string line, s;
-	std::cerr << "Reading Translation File '" << filename << "'" << std::endl;
+	std::cerr << "Reading Translation File '" << *filename << "'" << std::endl;
 	f.open(filename->c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open file");
 	while (getline(f,line)) {
