@@ -140,6 +140,7 @@ Element * tri_from_quad(Element * e,int i1, int i2, int i3) {
 	e_new->points[1] = e->points[i2];
 	e_new->points[2] = e->points[i3];
 	e_new->name_i = e->name_i;
+	e_new->i = e->i;
 	return e_new;
 }
 
@@ -172,6 +173,7 @@ Element * pyramid_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5) 
 	e_new->points[3] = e->points[i4];
 	e_new->points[4] = e->points[i5];
 	e_new->name_i = e->name_i;
+	e_new->i = e->i;
 	return e_new;
 }
 
@@ -185,6 +187,7 @@ Element * wedge_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5, in
 	e_new->points[4] = e->points[i5];
 	e_new->points[5] = e->points[i6];
 	e_new->name_i = e->name_i;
+	e_new->i = e->i;
 	return e_new;
 }
 
