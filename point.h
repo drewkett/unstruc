@@ -1,6 +1,7 @@
 struct Point
 {
-	double x,y,z,s,i;
+	double x,y,z,s;
+	int i;
 };
 
 void dump(Point * p);
