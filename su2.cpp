@@ -14,39 +14,35 @@
 bool toSU2(std::string * outputfile, Grid * grid) {
 	int i, j;
 
-	std::fstream f;
-	f.open(outputfile->c_str(),std::ios::out);
-	if (!f.is_open()) Fatal("Could not open file");
-	f.precision(15);
+	FILE * f;
+	f = fopen(outputfile->c_str(),"w");
+	if (!f) Fatal("Could not open file");
 	Name * name;
 	Point * p;
 	Element * e;
 	set_i(grid);
-	sort_elements_by_name(grid);
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
-	f << "NDIME= " << 3 << std::endl;
-	f << std::endl;
-	f << "NELEM= " << grid->n_elems << std::endl;
+	fprintf(f,"NDIME= 3\n\n");
+	fprintf(f,"NELEM= %d\n",grid->n_elems);
 	for (i = 0; i < grid->elements.size(); i++) {
 		e = grid->elements[i];
 		if (!e or e->dim != 3) continue;
-		f << e->type;
+		fprintf(f,"%d",e->type);
 		for (j = 0; j < e->len; j++) {
-			f << " " << (**e->points[j]).i;
+			fprintf(f," %d",(**e->points[j]).i);
 		}
-		f << " " << i;
-		f << std::endl;
+		fprintf(f," %d\n",i);
 	}
-	f << std::endl;
+	fprintf(f,"\n");
 	std::cerr << "Writing Points" << std::endl;
-	f << "NPOIN= " << grid->n_points << std::endl;
+	fprintf(f,"NPOIN= %d\n",grid->n_points);
 	for (i = 0; i < grid->ppoints.size(); i++) {
 		if (!grid->ppoints[i]) continue;
 		p = *grid->ppoints[i];
-		f << p->x << " " << p->y << " " << p->z << " " << p->i << std::endl;
+		fprintf(f,"%.17g %.17g %.17g %d\n",p->x,p->y,p->z,p->i);
 	}
-	f << std::endl;
+	fprintf(f,"\n");
 	int n_names = 0;
 	for (i = 0; i < grid->names.size(); i++) {
 		if (!grid->names[i]) continue;
@@ -63,23 +59,23 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 		name_count[e->name_i]++;
 	}
 	std::cerr << "Writing Markers" << std::endl;
-	f << "NMARK= " << n_names << std::endl;
+	fprintf(f,"NMARK= %d\n",n_names);
 	for (i = 0; i < grid->names.size(); i++) {
 		if (!grid->names[i]) continue;
 		name = grid->names[i];
 		if (name->dim != 2) continue;
 		std::cerr << i << " : " << name->name << std::endl;
-		f << "MARKER_TAG= " << name->name << std::endl;
-		f << "MARKER_ELEMS= " << name_count[i] << std::endl;
+		fprintf(f,"MARKER_TAG= %s\n",name->name.c_str());
+		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid->elements.size(); j++) {
 			e = grid->elements[j];
 			if (!e or e->dim != 2) continue;
 			if (e->name_i != i) continue;
-			f << e->type;
+			fprintf(f,"%d",e->type);
 			for (int k = 0; k < e->len; k++) {
-				f << " " << (**e->points[k]).i;
+				fprintf(f," %d",(**e->points[k]).i);
 			}
-			f << std::endl;
+			fprintf(f,"\n");
 		}
 	}
 	return true;
