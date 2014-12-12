@@ -33,12 +33,22 @@ int get_blocktype ( std::string * arg ) {
 		return UNKNOWN;
 }
 
+void print_usage () {
+	std::cerr << "unstruc [-m] [-t translation_file] input_file output_file" << std::endl << std::endl;
+	std::cerr << "This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)" << std::endl << std::endl;
+	std::cerr << "Option Arguments" << std::endl;
+	std::cerr << "-m                   Attempt to merge points that are close together" << std::endl;
+	std::cerr << "-t translation_file  Specify translation file for changing surface/block names" << std::endl;
+	std::cerr << "-h, --help           Print usage" << std::endl;
+	std::cerr << std::endl;
+}
 int main (int argc, char* argv[])
 {
-	if (argc < 2) {
-		Fatal("One argument required");
+	if (argc < 3) {
+		print_usage();
+		Fatal("Two arguments required");
 	}
-	int i = 1;
+	int i = 1, j = 0;
 	std::string *arg, * inputfile = NULL, *outputfile = NULL, *translationfile = NULL;
 	bool mergepoints;
 	while (i < argc) {
@@ -56,10 +66,23 @@ int main (int argc, char* argv[])
 				outputfile = arg;
 			} else if (*arg == "-m") {
 				mergepoints = true;
+			} else if (*arg == "-h" || *arg == "--help") {
+				print_usage();
+				exit(0);
+			} else {
+				print_usage();
+				Fatal("Unknown argument");
 			}
 		} else {
-			if (inputfile) Fatal("blockname defined twice");
-			inputfile = arg;
+			if (j == 0)
+				inputfile = arg;
+			else if (j == 1)
+				outputfile = arg;
+			else {
+				print_usage();
+				Fatal("Specify one input_file and one output_file");
+			}
+			j++;
 		}
 		i++;
 	}
