@@ -44,10 +44,6 @@ void print_usage () {
 }
 int main (int argc, char* argv[])
 {
-	if (argc < 3) {
-		print_usage();
-		Fatal("Two arguments required");
-	}
 	int i = 1, j = 0;
 	std::string *arg, * inputfile = NULL, *outputfile = NULL, *translationfile = NULL;
 	bool mergepoints;
@@ -87,9 +83,11 @@ int main (int argc, char* argv[])
 		i++;
 	}
 	if (!inputfile) {
-		Fatal("Must define input file");
+		print_usage();
+		Fatal("Must specify input and output file");
 	} else if (!outputfile) {
-		Fatal("Must define output file");
+		print_usage();
+		Fatal("Must specify output file");
 	}
 	Grid * grid;
 	MultiBlock *mb;
