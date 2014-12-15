@@ -193,57 +193,67 @@ Grid * readSU2(std::string * inputfile) {
 				grid->points[ipoint] = point;
 				grid->ppoints[ipoint] = &grid->points[ipoint];
 			}
+		} else if (token.substr(0,6) == "NMARK=") {
+			int nmark;
+			if (token.size() > 6) {
+				nmark = std::atoi(token.substr(6).c_str());
+			} else {
+				ss >> token;
+				nmark = std::atoi(token.c_str());
+			}
+			std::cerr << nmark << " Markers" << std::endl;
+			for (i = 0; i < nmark; i++) {
+				name = new Name();
+				name->dim = grid->dim-1;
+				iname = grid->names.size();
+				grid->names.push_back(name);
+
+				// Read MARKER_TAG=
+				getline(f,line);
+				std::stringstream ss(line);
+				ss >> token;
+				if (token.substr(0,11) != "MARKER_TAG=")
+					Fatal("Invalid Marker Definition: Expected MARKER_TAG=");
+				if (token.size() > 11) {
+					name->name.assign(token.substr(11));
+				} else {
+					ss >> token;
+					name->name.assign(token);
+				}
+				std::cerr << name->name << std::endl;
+
+				// Read MARKER_ELEMS=
+				getline(f,line);
+				ss.clear();
+				ss.str(line);
+				ss >> token;
+				if (token.substr(0,13) != "MARKER_ELEMS=") 
+					Fatal("Invalid Marker Definition: Expected MARKER_ELEMS=");
+				if (token.size() > 13) {
+					nelem = std::atoi(token.substr(13).c_str());
+				} else {
+					ss >> token;
+					nelem = std::atoi(token.c_str());
+				}
+				for (j = 0; j < nelem; j++) {
+					getline(f,line);
+					ss.clear();
+					ss.str(line);
+					ss >> token;
+					elem = new Element(atoi(token.c_str()));
+					for (k=0; k<elem->len; k++) {
+						ss >> token;
+						ipoint = std::atoi(token.c_str());
+						if (ipoint >= grid->points.size()) Fatal("Error Marker Element");
+						elem->points[k] = &grid->points[ipoint];
+					}
+					elem->name_i = iname;
+					grid->elements.push_back(elem);
+				}
+			}
 		} else {
-			//std::cerr << "Unhandled Line: " << line << std::endl;
+			std::cerr << "Unhandled Line: " << line << std::endl;
 		}
-	}	//while (f >> token) {
-	//	if (token == "NMARK=") {
-	//		f >> token;
-	//		nmark = atoi(token.c_str());
-	//		break;
-	//	}
-	//}
-	//for (i = 0; i < nmark; i++) {
-	//	name = new Name();
-	//	name->dim = grid->dim-1;
-	//	iname = grid->names.size();
-	//	grid->names.push_back(name);
-	//	while (f >> token) {
-	//		if (token == "MARKER_TAG=") {
-	//			getline(f,line);
-	//			ls.clear();
-	//			ls.str(line);
-	//			ls >> token;
-	//			name->name = token;
-	//			break;
-	//		}
-	//	}
-	//	while (f >> token) {
-	//		if (token == "MARKER_ELEMS=") {
-	//			getline(f,line);
-	//			ls.clear();
-	//			ls.str(line);
-	//			ls >> token;
-	//			nelem = atoi(token.c_str());
-	//			break;
-	//		}
-	//	}
-	//	for (j=0; j < nelem; j++) {
-	//		getline(f,line);
-	//		ls.clear();
-	//		ls.str(line);
-	//		ls >> token;
-	//		elem = new Element(atoi(token.c_str()));
-	//		for (k=0; k<elem->len; k++) {
-	//			ls >> token;
-	//			ipoint = std::atoi(token.c_str());
-	//			if (ipoint >= grid->points.size()) 
-	//				Fatal("Error Reading File");
-	//			elem->points[k] = &grid->points[ipoint];
-	//		}
-	//		elem->name_i = iname;
-	//		grid->elements[j] = elem;
-	//	}
-	//}
+	}
 	return grid;
 }
