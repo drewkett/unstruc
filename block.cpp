@@ -6,9 +6,10 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
-	points = new Point[size1*size2*size3];
+	points = std::vector <Point> (size1*size2*size3);
 };
 Point * Block::at(int i, int j, int k) {
 	return &(points[i*(size2*size3) + j*size3 + k]);

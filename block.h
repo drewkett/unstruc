@@ -5,7 +5,7 @@ struct Grid;
 
 struct Block {
 	int size1, size2, size3;
-	Point * points;
+	std::vector <Point> points;
 	Block(int s1, int s2, int s3);
 	Point * at(int i, int j, int k);
 	double * at(int i, int j, int k, int l);

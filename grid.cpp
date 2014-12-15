@@ -27,7 +27,7 @@ void set_i_elements(Grid * grid) {
 
 void set_i(Grid * grid) {
 	set_i_points(grid);
-	bool* name_mask = new bool[grid->names.size()];
+	std::vector <bool> name_mask(grid->names.size());
 	for (int i = 0; i < grid->names.size(); i++) {
 		name_mask[i] = false;
 	}
