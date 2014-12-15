@@ -2,6 +2,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -49,7 +50,9 @@ Element::Element(int T) : type(T) {
 			points = new Point**[len];
 			break;
 		default:
-			NotImplemented("Element Type");
+			std::ostringstream oss;
+			oss << "Element Type " << T;
+			NotImplemented(oss.str());
 	}
 }
 
