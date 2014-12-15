@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 bool toSU2(std::string * outputfile, Grid * grid) {
 	int i, j;
@@ -23,11 +24,11 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 	set_i(grid);
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
-	fprintf(f,"NDIME= 3\n\n");
+	fprintf(f,"NDIME= %d\n\n",grid->dim);
 	fprintf(f,"NELEM= %d\n",grid->n_elems);
 	for (i = 0; i < grid->elements.size(); i++) {
 		e = grid->elements[i];
-		if (!e or e->dim != 3) continue;
+		if (!e or e->dim != grid->dim) continue;
 		fprintf(f,"%d",e->type);
 		for (j = 0; j < e->len; j++) {
 			fprintf(f," %d",(**e->points[j]).i);
@@ -40,7 +41,10 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 	for (i = 0; i < grid->ppoints.size(); i++) {
 		if (!grid->ppoints[i]) continue;
 		p = *grid->ppoints[i];
-		fprintf(f,"%.17g %.17g %.17g %d\n",p->x,p->y,p->z,p->i);
+		if (grid->dim == 2)
+			fprintf(f,"%.17g %.17g %d\n",p->x,p->y,p->i);
+		else
+			fprintf(f,"%.17g %.17g %.17g %d\n",p->x,p->y,p->z,p->i);
 	}
 	fprintf(f,"\n");
 	int n_names = 0;
@@ -49,13 +53,11 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 		if (grid->names[i]->dim != 2) continue;
 		n_names++;
 	}
-	int* name_count = new int[grid->names.size()];
-	for (i = 0; i < grid->names.size(); i++) {
-		name_count[i] = 0;
-	}
+	std::vector<int> name_count(grid->names.size(),0);
 	for (i = 0; i < grid->elements.size(); i++) {
 		e = grid->elements[i];
-		if (!e or e->dim != 2) continue;
+		if (!e or e->dim != (grid->dim-1)) continue;
+		if (e->name_i < 0) continue;
 		name_count[e->name_i]++;
 	}
 	std::cerr << "Writing Markers" << std::endl;
@@ -63,13 +65,13 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 	for (i = 0; i < grid->names.size(); i++) {
 		if (!grid->names[i]) continue;
 		name = grid->names[i];
-		if (name->dim != 2) continue;
+		if (name->dim != grid->dim - 1) continue;
 		std::cerr << i << " : " << name->name << std::endl;
 		fprintf(f,"MARKER_TAG= %s\n",name->name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid->elements.size(); j++) {
 			e = grid->elements[j];
-			if (!e or e->dim != 2) continue;
+			if (!e or e->dim != grid->dim - 1) continue;
 			if (e->name_i != i) continue;
 			fprintf(f,"%d",e->type);
 			for (int k = 0; k < e->len; k++) {
