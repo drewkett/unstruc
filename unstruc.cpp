@@ -20,9 +20,9 @@ enum BLOCKTYPE {
 	VTK = 3
 };
 
-int get_blocktype ( std::string * arg ) {
-	int n = arg->size();
-	std::string ext = arg->substr(n-4,n);
+int get_blocktype ( std::string &arg ) {
+	int n = arg.size();
+	std::string ext = arg.substr(n-4,n);
 	if (ext == ".su2")
 		return SU2;
 	else if (ext == ".vtk")
@@ -45,24 +45,18 @@ void print_usage () {
 int main (int argc, char* argv[])
 {
 	int i = 1, j = 0;
-	std::string *arg, * inputfile = NULL, *outputfile = NULL, *translationfile = NULL;
+	std::string arg, outputfile, inputfile, translationfile;
 	bool mergepoints;
 	while (i < argc) {
-		arg = new std::string(argv[i]);
-		if (arg->at(0) == '-') {
-			if (*arg == "-t") {
+		arg.assign(argv[i]);
+		if (arg.at(0) == '-') {
+			if (arg == "-t") {
 				i++;
 				if (i == argc) Fatal("Must pass filename option to -t");
-				arg = new std::string(argv[i]);
-				translationfile = arg;
-			} else if (*arg == "-o") {
-				i++;
-				if (i == argc) Fatal("Must pass filename option to -o");
-				arg = new std::string(argv[i]);
-				outputfile = arg;
-			} else if (*arg == "-m") {
+				translationfile.assign(argv[i]);
+			} else if (arg == "-m") {
 				mergepoints = true;
-			} else if (*arg == "-h" || *arg == "--help") {
+			} else if (arg == "-h" || arg == "--help") {
 				print_usage();
 				exit(0);
 			} else {
@@ -71,9 +65,9 @@ int main (int argc, char* argv[])
 			}
 		} else {
 			if (j == 0)
-				inputfile = arg;
+				inputfile.assign(arg);
 			else if (j == 1)
-				outputfile = arg;
+				outputfile.assign(arg);
 			else {
 				print_usage();
 				Fatal("Specify one input_file and one output_file");
@@ -82,10 +76,10 @@ int main (int argc, char* argv[])
 		}
 		i++;
 	}
-	if (!inputfile) {
+	if (inputfile.empty()) {
 		print_usage();
 		Fatal("Must specify input and output file");
-	} else if (!outputfile) {
+	} else if (outputfile.empty()) {
 		print_usage();
 		Fatal("Must specify output file");
 	}
@@ -117,7 +111,7 @@ int main (int argc, char* argv[])
 		sort_elements_by_index(grid);
 		collapse_elements(grid);
 	}
-	if (translationfile) {
+	if (!translationfile.empty()) {
 		TranslationTable * transt = new TranslationTable(grid->names.size());
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);

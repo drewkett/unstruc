@@ -9,9 +9,9 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(std::string * outputfile, Grid * grid) {
+bool toVTK(std::string &outputfile, Grid * grid) {
 	std::fstream f;
-	f.open(outputfile->c_str(),std::ios::out);
+	f.open(outputfile.c_str(),std::ios::out);
 	if (!f.is_open()) Fatal("Could not open file");
 	f.precision(15);
 	Point * p;

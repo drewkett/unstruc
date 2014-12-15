@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 
-bool toSU2(std::string * outputfile, Grid * grid) {
+bool toSU2(std::string &outputfile, Grid * grid) {
 	int i, j;
 
 	FILE * f;
-	f = fopen(outputfile->c_str(),"w");
+	f = fopen(outputfile.c_str(),"w");
 	if (!f) Fatal("Could not open file");
 	Name * name;
 	Point * p;
@@ -84,7 +84,7 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 	return true;
 }
 
-Grid * readSU2(std::string * inputfile) {
+Grid * readSU2(std::string &inputfile) {
 	int ipoint, ielem, iname, i, j, k;
 	int npoint, nelem, nmark;
 	Grid * grid = new Grid();
@@ -94,8 +94,8 @@ Grid * readSU2(std::string * inputfile) {
 	std::ifstream f;
 	std::istringstream ls;
 	std::string line, token;
-	f.open(inputfile->c_str(),std::ios::in);
-	std::cerr << "Opening SU2 File '" << *inputfile << "'" << std::endl;
+	f.open(inputfile.c_str(),std::ios::in);
+	std::cerr << "Opening SU2 File '" << inputfile << "'" << std::endl;
 	if (!f.is_open()) Fatal("Could not open file");
 	while (getline(f,line)) {
 		std::stringstream ss(line);

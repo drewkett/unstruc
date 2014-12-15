@@ -2,4 +2,4 @@
 
 struct Grid;
 
-bool toVTK(std::string * outputfile, Grid * grid);
+bool toVTK(std::string &outputfile, Grid * grid);

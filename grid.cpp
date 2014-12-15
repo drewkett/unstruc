@@ -76,8 +76,8 @@ void merge_points(Grid * grid, double tol) {
 		if (!grid->ppoints[i]) continue;
 		for (int j = i+1; j < grid->ppoints.size(); j++) {
 			if (!grid->ppoints[j]) continue;
-			if (!close(*grid->ppoints[i],*grid->ppoints[j],tol)) break;
-			if (same(*grid->ppoints[i],*grid->ppoints[j],tol)) {
+			if (!close(**grid->ppoints[i],**grid->ppoints[j],tol)) break;
+			if (same(**grid->ppoints[i],**grid->ppoints[j],tol)) {
 				*grid->ppoints[j] = *grid->ppoints[i];
 				grid->ppoints[j] = NULL;
 				n++;
