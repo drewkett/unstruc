@@ -36,6 +36,7 @@ void set_i(Grid * grid) {
 	for (int i = 0; i < grid->elements.size(); i++) {
 		e = grid->elements[i];
 		if (!e) continue;
+		if (e->name_i < 0) continue;
 		name_mask[e->name_i] = true;
 		switch (grid->dim - e->dim) {
 			case 0:
