@@ -51,17 +51,6 @@ void set_i(Grid * grid) {
 	}
 	grid->n_elems = i_e;
 	grid->n_boundelems = i_eb;
-	int i_n = 0;
-	for (int i = 0; i < grid->names.size(); i++) {
-		if (name_mask[i] && grid->names[i]->dim == 2) {
-			grid->names[i]->i = i_n;
-			i_n++;
-		} else {
-			delete grid->names[i];
-			grid->names[i] = NULL;
-		}
-	}
-	grid->n_names = i_n;
 }
 
 
