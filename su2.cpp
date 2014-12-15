@@ -80,6 +80,7 @@ bool toSU2(std::string * outputfile, Grid * grid) {
 			fprintf(f,"\n");
 		}
 	}
+	fclose(f);
 	return true;
 }
 
