@@ -16,7 +16,6 @@ bool toVTK(std::string * outputfile, Grid * grid) {
 	f.precision(15);
 	Point * p;
 	Element * e;
-	Name * name;
 	set_i(grid);
 	f << "# vtk DataFile Version 2.0" << std::endl;
 	f << "Description" << std::endl;
