@@ -108,6 +108,12 @@ Grid * readSU2(std::string * inputfile) {
 				grid->dim = std::atoi(token.c_str());
 			}
 			std::cerr << grid->dim << " Dimensions" << std::endl;
+
+			//Create default named block to be assigned to all elements
+			name = new Name();
+			name->name = "default";
+			name->dim = grid->dim;
+			grid->names.push_back(name);
 		} else if (token.substr(0,6) == "NELEM=") {
 			if (token.size() > 6) {
 				grid->n_elems = std::atoi(token.substr(6).c_str());
@@ -122,6 +128,8 @@ Grid * readSU2(std::string * inputfile) {
 				std::stringstream ss(line);
 				ss >> token;
 				elem = new Element(atoi(token.c_str()));
+				//Assign to default name block
+				elem->name_i = 0;
 				for (j = 0; j < elem->len; ++j) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
