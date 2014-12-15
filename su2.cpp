@@ -142,16 +142,16 @@ Grid * readSU2(std::string * inputfile) {
 				}
 				if (ss >> token && !ss.eof()) {
 					ielem = atoi(token.c_str());
-					if (ielem >= grid->elements.size())
-						grid->elements.resize(ielem+1);
-					grid->elements[ielem] = elem;
 				} else {
 					// Need a better plan for unnumbered elements
 					if (grid->elements[i])
-						std::cerr << "Not sure what to do with unnumbered element" << std::endl;
+						Fatal("Not sure what to do with unnumbered element");
 					else
-						grid->elements[i] = elem;
+						ielem = i;
 				}
+				if (ielem >= grid->elements.size())
+					grid->elements.resize(ielem+1);
+				grid->elements[ielem] = elem;
 			}
 		} else if (token.substr(0,6) == "NPOIN=") {
 			if (token.size() > 6) {
