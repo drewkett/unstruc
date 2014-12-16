@@ -33,11 +33,11 @@ void ReadTranslationFile(std::string &filename, TranslationTable * tt) {
 	f.close();
 }
 
-void applyTranslation(Grid * grid, TranslationTable * transt) {
+void applyTranslation(Grid &grid, TranslationTable * transt) {
 	Element *e;
-	int offset = grid->names.size();
+	int offset = grid.names.size();
 	for (int i=0; i < transt->names.size(); i++) {
-		grid->names.push_back(transt->names[i]);
+		grid.names.push_back(transt->names[i]);
 	}
 	for (int i=0; i < transt->index.size(); i++) {
 		if (transt->index[i] == -1) {
@@ -46,8 +46,8 @@ void applyTranslation(Grid * grid, TranslationTable * transt) {
 			transt->index[i] += offset;
 		}
 	}
-	for (int i = 0; i < grid->elements.size(); i++) {
-		e = grid->elements[i];
+	for (int i = 0; i < grid.elements.size(); i++) {
+		e = grid.elements[i];
 		if (!e) continue;
 		if (e->name_i != -1) e->name_i = transt->index[e->name_i];
 	}

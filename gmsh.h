@@ -1,3 +1,3 @@
 struct Grid;
 
-bool toGMSH(Grid * grid);
+bool toGMSH(Grid &grid);

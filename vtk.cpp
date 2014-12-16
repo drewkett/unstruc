@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(std::string &outputfile, Grid * grid) {
+bool toVTK(std::string &outputfile, Grid &grid) {
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
 	if (!f.is_open()) Fatal("Could not open file");
@@ -21,39 +21,39 @@ bool toVTK(std::string &outputfile, Grid * grid) {
 	f << "Description" << std::endl;
 	f << "ASCII" << std::endl;
 	f << "DATASET UNSTRUCTURED_GRID" << std::endl;
-	f << "POINTS " << grid->n_points << " double" << std::endl;
-	for (int i = 0; i < grid->ppoints.size(); i++) {
-		if (!grid->ppoints[i]) continue;
-		p = *grid->ppoints[i];
+	f << "POINTS " << grid.n_points << " double" << std::endl;
+	for (int i = 0; i < grid.ppoints.size(); i++) {
+		if (!grid.ppoints[i]) continue;
+		p = *grid.ppoints[i];
 		f << p->x << " " << p->y;
-		if (grid->dim == 3)
+		if (grid.dim == 3)
 			f << " " << p->z << std::endl;
 		else
 			f << " 0.0" << std::endl;
 	}
 	int n_elvals = 0;
-	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!grid->elements[i]) continue;
-		e = grid->elements[i];
-		if (e->dim != grid->dim) continue;
+	for (int i = 0; i < grid.elements.size(); i++) {
+		if (!grid.elements[i]) continue;
+		e = grid.elements[i];
+		if (e->dim != grid.dim) continue;
 		n_elvals += e->len+1;
 	}
-	f << "CELLS " << grid->n_elems << " " << n_elvals << std::endl;
-	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!grid->elements[i]) continue;
-		e = grid->elements[i];
-		if (e->dim != grid->dim) continue;
+	f << "CELLS " << grid.n_elems << " " << n_elvals << std::endl;
+	for (int i = 0; i < grid.elements.size(); i++) {
+		if (!grid.elements[i]) continue;
+		e = grid.elements[i];
+		if (e->dim != grid.dim) continue;
 		f << e->len;
 		for (int j = 0; j < e->len; j++) {
 			f << " " << (**e->points[j]).i;
 		}
 		f << std::endl;
 	}
-	f << "CELL_TYPES " << grid->n_elems << std::endl;
-	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!grid->elements[i]) continue;
-		e = grid->elements[i];
-		if (e->dim != grid->dim) continue;
+	f << "CELL_TYPES " << grid.n_elems << std::endl;
+	for (int i = 0; i < grid.elements.size(); i++) {
+		if (!grid.elements[i]) continue;
+		e = grid.elements[i];
+		if (e->dim != grid.dim) continue;
 		f << e->type << std::endl;
 	}
 	return true;

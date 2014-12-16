@@ -83,15 +83,15 @@ int main (int argc, char* argv[])
 		print_usage();
 		Fatal("Must specify output file");
 	}
-	Grid * grid;
+	Grid grid;
 	MultiBlock *mb;
 	switch (get_blocktype(inputfile)) {
 		case PLOT3D:
 			mb = ReadPlot3D(inputfile);
-			grid = to_grid(mb);
+			grid = *to_grid(mb);
 			break;
 		case SU2:
-			grid = readSU2(inputfile);
+			grid = *readSU2(inputfile);
 			break;
 		case VTK:
 			Fatal("Input file not supported");
@@ -112,7 +112,7 @@ int main (int argc, char* argv[])
 		collapse_elements(grid);
 	}
 	if (!translationfile.empty()) {
-		TranslationTable * transt = new TranslationTable(grid->names.size());
+		TranslationTable * transt = new TranslationTable(grid.names.size());
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);
 	}

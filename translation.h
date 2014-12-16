@@ -11,4 +11,4 @@ struct TranslationTable {
 };
 
 void ReadTranslationFile(std::string &filename, TranslationTable * transt);
-void applyTranslation(Grid * grid, TranslationTable * transt);
+void applyTranslation(Grid &grid, TranslationTable * transt);

@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-bool toGMSH(Grid * grid) {
+bool toGMSH(Grid &grid) {
 	std::cout.precision(15);
 	Point * p;
 	Element * e;
@@ -17,18 +17,18 @@ bool toGMSH(Grid * grid) {
 	std::cout << "2.2 0 " << sizeof(double) << std::endl;
 	std::cout << "$EndMeshFormat" << std::endl;
 	std::cout << "$Nodes" << std::endl;
-	std::cout << grid->n_points << std::endl;
-	for (int i = 0; i < grid->ppoints.size(); i++) {
-		if (!grid->ppoints[i]) continue;
-		p = *grid->ppoints[i];
+	std::cout << grid.n_points << std::endl;
+	for (int i = 0; i < grid.ppoints.size(); i++) {
+		if (!grid.ppoints[i]) continue;
+		p = *grid.ppoints[i];
 		std::cout << p->i+1 << " " << p->x << " " << p->y << " " << p->z << std::endl;
 	}
 	std::cout << "$EndNodes" << std::endl;
 	std::cout << "$Elements" << std::endl;
-	std::cout << grid->n_elems << std::endl;
-	for (int i = 0; i < grid->elements.size(); i++) {
-		if (!grid->elements[i]) continue;
-		e = grid->elements[i];
+	std::cout << grid.n_elems << std::endl;
+	for (int i = 0; i < grid.elements.size(); i++) {
+		if (!grid.elements[i]) continue;
+		e = grid.elements[i];
 		std::cout << e->i+1;
 		switch (e->type) {
 			case QUAD:
@@ -48,9 +48,9 @@ bool toGMSH(Grid * grid) {
 	}
 	std::cout << "$EndElements" << std::endl;
 	std::cout << "$PhysicalNames" << std::endl;
-	std::cout << grid->names.size() << std::endl;
-	for (int i = 0; i < grid->names.size(); i++) {
-		name = grid->names[i];
+	std::cout << grid.names.size() << std::endl;
+	for (int i = 0; i < grid.names.size(); i++) {
+		name = grid.names[i];
 		std::cout << name->dim << " " << i+1 << " \"" << name->name << "\"" << std::endl;
 	}
 	std::cout << "$EndPhysicalNames" << std::endl;
