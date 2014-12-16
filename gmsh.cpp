@@ -10,7 +10,6 @@
 bool toGMSH(Grid &grid) {
 	std::cout.precision(15);
 	Point * p;
-	Element * e;
 	Name name;
 	set_i(grid);
 	std::cout << "$MeshFormat" << std::endl;
@@ -27,10 +26,10 @@ bool toGMSH(Grid &grid) {
 	std::cout << "$Elements" << std::endl;
 	std::cout << grid.n_elems << std::endl;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		if (!grid.elements[i]) continue;
-		e = grid.elements[i];
-		std::cout << e->i+1;
-		switch (e->type) {
+		if (!grid.elements[i].valid) continue;
+		Element &e = grid.elements[i];
+		std::cout << e.i+1;
+		switch (e.type) {
 			case QUAD:
 				std::cout << " 3";
 				break;
@@ -40,9 +39,9 @@ bool toGMSH(Grid &grid) {
 			default:
 				NotImplemented("ElType for GMSH");
 		}
-		std::cout << " " << 2 << " " << e->name_i+1 << " " << e->name_i+1;
-		for (int j = 0; j < e->len; j++) {
-			std::cout << " " << (**e->points[j]).i+1;
+		std::cout << " " << 2 << " " << e.name_i+1 << " " << e.name_i+1;
+		for (int j = 0; j < e.len; j++) {
+			std::cout << " " << (**e.points[j]).i+1;
 		}
 		std::cout << std::endl;
 	}

@@ -18,8 +18,8 @@ void set_i_points(Grid &grid) {
 void set_i_elements(Grid &grid) {
 	int i_e = 0;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		if (!grid.elements[i]) continue;
-		grid.elements[i]->i = i_e;
+		if (!grid.elements[i].valid) continue;
+		grid.elements[i].i = i_e;
 		i_e++;
 	}
 	grid.n_elems = i_e;
@@ -32,20 +32,19 @@ void set_i(Grid &grid) {
 		name_mask[i] = false;
 	}
 	int i_e = 0, i_eb = 0;
-	Element * e;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		e = grid.elements[i];
-		if (!e) continue;
-		if (e->name_i < 0) continue;
-		name_mask[e->name_i] = true;
-		switch (grid.dim - e->dim) {
+		Element &e = grid.elements[i];
+		if (!e.valid) continue;
+		if (e.name_i < 0) continue;
+		name_mask[e.name_i] = true;
+		switch (grid.dim - e.dim) {
 			case 0:
 				i_e++;
-				e->i = i_e;
+				e.i = i_e;
 				break;
 			case 1:
 				i_eb++;
-				e->i = i_eb;
+				e.i = i_eb;
 				break;
 		}
 	}
@@ -89,18 +88,16 @@ void merge_points(Grid &grid, double tol) {
 
 void delete_inner_faces(Grid &grid) {
 	int n = 0;
-	Element *ei,*ej;
 	for (int i = 0; i < grid.elements.size() - 1; i++) {
-		ei = grid.elements[i];
-		if (!ei or ei->dim != 2) continue;
+		Element &ei = grid.elements[i];
+		if (!ei.valid or ei.dim != 2) continue;
 		bool kill = false;
 		for (int j = i+1; j < grid.elements.size(); j++) {
-			ej = grid.elements[j];
-			if (!ej or ej->dim != 2) continue;
+			Element &ej = grid.elements[j];
+			if (!ej.valid or ej.dim != 2) continue;
 		    if (!close(ei,ej)) break;
 			if (same(ei,ej)) {
-				delete ej;
-				grid.elements[j] = NULL;
+				grid.elements[j].valid = false;
 				kill = true;
 				n++;
 			}
@@ -108,8 +105,7 @@ void delete_inner_faces(Grid &grid) {
 		if (kill) {
 			kill = false;
 			n++;
-			delete ei;
-			grid.elements[i] = NULL;
+			grid.elements[i].valid = false;
 		}
 	}
 	std::cerr << n << " Faces Deleted" << std::endl;
@@ -118,15 +114,15 @@ void delete_inner_faces(Grid &grid) {
 void collapse_elements(Grid &grid) {
 	bool collapsed;
 	int n = 0, n2 = 0;
-	Element *e, *e_new;
+	Element  *e_new;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		e = grid.elements[i];
-		if (!e) continue;
-		if (canCollapse(e)) {
-			e_new = collapse(e);
+		Element &e = grid.elements[i];
+		if (!e.valid) continue;
+		if (canCollapse(&e)) {
+			e_new = collapse(&e);
 			n++;
 			if (e_new) {
-				grid.elements.push_back(e_new);
+				grid.elements.push_back(*e_new);
 				n2++;
 			}
 		}

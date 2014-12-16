@@ -1,11 +1,12 @@
 #ifndef GRID_H_A744617F_958E_4AD8_88D3_F2C799D3A0BE
 #define GRID_H_A744617F_958E_4AD8_88D3_F2C799D3A0BE
 
+#include "element.h"
+
 #include <vector>
 #include <deque>
 #include <string>
 
-struct Element;
 struct Point;
 
 struct Name {
@@ -20,7 +21,7 @@ struct Name {
 struct Grid {
 	std::deque <Point *> points;
 	std::vector <Point **> ppoints;
-	std::vector <Element *> elements;
+	std::vector <Element> elements;
 	std::vector <Name> names;
 	int n_points;
 	int n_elems;

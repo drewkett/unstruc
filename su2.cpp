@@ -27,11 +27,11 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
 	fprintf(f,"NELEM= %d\n",grid.n_elems);
 	for (i = 0; i < grid.elements.size(); i++) {
-		e = grid.elements[i];
-		if (!e or e->dim != grid.dim) continue;
-		fprintf(f,"%d",e->type);
-		for (j = 0; j < e->len; j++) {
-			fprintf(f," %d",(**e->points[j]).i);
+		Element &e = grid.elements[i];
+		if (!e.valid or e.dim != grid.dim) continue;
+		fprintf(f,"%d",e.type);
+		for (j = 0; j < e.len; j++) {
+			fprintf(f," %d",(**e.points[j]).i);
 		}
 		fprintf(f," %d\n",i);
 	}
@@ -55,10 +55,10 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	}
 	std::vector<int> name_count(grid.names.size(),0);
 	for (i = 0; i < grid.elements.size(); i++) {
-		e = grid.elements[i];
-		if (!e or e->dim != (grid.dim-1)) continue;
-		if (e->name_i < 0) continue;
-		name_count[e->name_i]++;
+		Element &e = grid.elements[i];
+		if (!e.valid or e.dim != (grid.dim-1)) continue;
+		if (e.name_i < 0) continue;
+		name_count[e.name_i]++;
 	}
 	std::cerr << "Writing Markers" << std::endl;
 	fprintf(f,"NMARK= %d\n",n_names);
@@ -70,12 +70,12 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 		fprintf(f,"MARKER_TAG= %s\n",name.name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid.elements.size(); j++) {
-			e = grid.elements[j];
-			if (!e or e->dim != grid.dim - 1) continue;
-			if (e->name_i != i) continue;
-			fprintf(f,"%d",e->type);
-			for (int k = 0; k < e->len; k++) {
-				fprintf(f," %d",(**e->points[k]).i);
+			Element &e = grid.elements[j];
+			if (!e.valid or e.dim != grid.dim - 1) continue;
+			if (e.name_i != i) continue;
+			fprintf(f,"%d",e.type);
+			for (int k = 0; k < e.len; k++) {
+				fprintf(f," %d",(**e.points[k]).i);
 			}
 			fprintf(f,"\n");
 		}
@@ -88,7 +88,6 @@ Grid * readSU2(std::string &inputfile) {
 	int ipoint, ielem, iname, i, j, k;
 	int npoint, nelem, nmark;
 	Grid * grid = new Grid();
-	Element * elem;
 	Point * point;
 	Name name;
 	std::ifstream f;
@@ -127,10 +126,10 @@ Grid * readSU2(std::string &inputfile) {
 				getline(f,line);
 				std::stringstream ss(line);
 				ss >> token;
-				elem = new Element(atoi(token.c_str()));
+				Element elem = Element(atoi(token.c_str()));
 				//Assign to default name block
-				elem->name_i = 0;
-				for (j = 0; j < elem->len; ++j) {
+				elem.name_i = 0;
+				for (j = 0; j < elem.len; ++j) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
 					// Might be able to do this resizing after the fact
@@ -138,13 +137,13 @@ Grid * readSU2(std::string &inputfile) {
 						grid->points.resize(ipoint+1);
 						grid->ppoints.resize(ipoint+1);
 					}
-					elem->points[j] = &grid->points[ipoint];
+					elem.points[j] = &grid->points[ipoint];
 				}
 				if (ss >> token && !ss.eof()) {
 					ielem = atoi(token.c_str());
 				} else {
 					// Need a better plan for unnumbered elements
-					if (grid->elements[i])
+					if (grid->elements[i].valid)
 						Fatal("Not sure what to do with unnumbered element");
 					else
 						ielem = i;
@@ -240,14 +239,14 @@ Grid * readSU2(std::string &inputfile) {
 					ss.clear();
 					ss.str(line);
 					ss >> token;
-					elem = new Element(atoi(token.c_str()));
-					for (k=0; k<elem->len; k++) {
+					Element elem = Element(atoi(token.c_str()));
+					for (k=0; k<elem.len; k++) {
 						ss >> token;
 						ipoint = std::atoi(token.c_str());
 						if (ipoint >= grid->points.size()) Fatal("Error Marker Element");
-						elem->points[k] = &grid->points[ipoint];
+						elem.points[k] = &grid->points[ipoint];
 					}
-					elem->name_i = iname;
+					elem.name_i = iname;
 					grid->elements.push_back(elem);
 				}
 			}

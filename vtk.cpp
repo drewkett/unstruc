@@ -33,28 +33,28 @@ bool toVTK(std::string &outputfile, Grid &grid) {
 	}
 	int n_elvals = 0;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		if (!grid.elements[i]) continue;
-		e = grid.elements[i];
-		if (e->dim != grid.dim) continue;
-		n_elvals += e->len+1;
+		Element &e = grid.elements[i];
+		if (!e.valid) continue;
+		if (e.dim != grid.dim) continue;
+		n_elvals += e.len+1;
 	}
 	f << "CELLS " << grid.n_elems << " " << n_elvals << std::endl;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		if (!grid.elements[i]) continue;
-		e = grid.elements[i];
-		if (e->dim != grid.dim) continue;
-		f << e->len;
-		for (int j = 0; j < e->len; j++) {
-			f << " " << (**e->points[j]).i;
+		Element &e = grid.elements[i];
+		if (!e.valid) continue;
+		if (e.dim != grid.dim) continue;
+		f << e.len;
+		for (int j = 0; j < e.len; j++) {
+			f << " " << (**e.points[j]).i;
 		}
 		f << std::endl;
 	}
 	f << "CELL_TYPES " << grid.n_elems << std::endl;
 	for (int i = 0; i < grid.elements.size(); i++) {
-		if (!grid.elements[i]) continue;
-		e = grid.elements[i];
-		if (e->dim != grid.dim) continue;
-		f << e->type << std::endl;
+		if (!grid.elements[i].valid) continue;
+		Element &e = grid.elements[i];
+		if (e.dim != grid.dim) continue;
+		f << e.type << std::endl;
 	}
 	return true;
 }

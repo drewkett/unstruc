@@ -49,6 +49,7 @@ Element::Element(int T) : type(T) {
 			NotImplemented(oss.str());
 	}
 	points.resize(len);
+	valid = true;
 }
 
 void dump(Element * e) {
@@ -58,55 +59,55 @@ void dump(Element * e) {
 	}
 };
 
-void set_s_by_lowest_id(Element * e) {
-	if (!e) return;
-	e->s = (*e->points[0]);
-	for (int i=1; i < e->len; i++) {
-		if ((*e->points[i]) < e->s) {
-			e->s = *e->points[i];
+void set_s_by_lowest_id(Element &e) {
+	if (!e.valid) return;
+	e.s = (*e.points[0]);
+	for (int i=1; i < e.len; i++) {
+		if ((*e.points[i]) < e.s) {
+			e.s = *e.points[i];
 		}
 	}
 }
 
-bool compare_element(Element * e1, Element * e2) {
-	if (!e1) return false;
-	if (!e2) return true;
-	return e1->s < e2->s;
+bool compare_element(Element &e1, Element &e2) {
+	if (!e1.valid) return false;
+	if (!e2.valid) return true;
+	return e1.s < e2.s;
 }
 
-bool compare_element_by_name(Element * e1, Element * e2) {
-	if (!e1) return false;
-	if (!e2) return true;
-	return e1->name_i < e2->name_i;
+bool compare_element_by_name(Element &e1, Element &e2) {
+	if (!e1.valid) return false;
+	if (!e2.valid) return true;
+	return e1.name_i < e2.name_i;
 }
 
-bool compare_element_by_index(Element * e1, Element * e2) {
-	if (!e1) return false;
-	if (!e2) return true;
-	return e1->i < e2->i;
+bool compare_element_by_index(Element &e1, Element &e2) {
+	if (!e1.valid) return false;
+	if (!e2.valid) return true;
+	return e1.i < e2.i;
 }
 
-bool close(Element * e1, Element * e2) {
-	return e1->s == e2->s;
+bool close(Element &e1, Element &e2) {
+	return e1.s == e2.s;
 };
 
-bool same(Element * e1, Element * e2) {
-	if (e1->type != e2->type) return false;
+bool same(Element &e1, Element &e2) {
+	if (e1.type != e2.type) return false;
 	bool br;
-	for (int i = 0; i < e1->len; i++) {
+	for (int i = 0; i < e1.len; i++) {
 		br = false;
-		for (int j = 0; j < e2->len; j++) {
-			if (*e1->points[i] == *e2->points[j]) {
+		for (int j = 0; j < e2.len; j++) {
+			if (*e1.points[i] == *e2.points[j]) {
 				br = true;
 				break;
 			}
 		}
 		if (!br) return false;
 	}
-	for (int j = 0; j < e2->len; j++) {
+	for (int j = 0; j < e2.len; j++) {
 		br = false;
-		for (int i = 0; i < e1->len; i++) {
-			if (*e1->points[i] == *e2->points[j]) {
+		for (int i = 0; i < e1.len; i++) {
+			if (*e1.points[i] == *e2.points[j]) {
 				br = true;
 				break;
 			}
