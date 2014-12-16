@@ -13,7 +13,7 @@ Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 Point * Block::at(int i, int j, int k) {
 	return &(points[i*(size2*size3) + j*size3 + k]);
 };
-double * Block::at(int i, int j, int k, int l) {
+double * Block::at_ref(int i, int j, int k, int l) {
 	switch (l) {
 		case 0:
 			return &(points[i*(size2*size3) + j*size3 + k].x);

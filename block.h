@@ -12,7 +12,7 @@ struct Block {
 	std::vector <Point> points;
 	Block(int s1, int s2, int s3);
 	Point * at(int i, int j, int k);
-	double * at(int i, int j, int k, int l);
+	double * at_ref(int i, int j, int k, int l);
 	int index(int i, int j, int k);
 };
 

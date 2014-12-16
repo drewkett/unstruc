@@ -43,7 +43,7 @@ MultiBlock ReadPlot3D(std::string &filename) {
 			for (int k = 0; k < dim[ib][2]; k++) {
 				for (int j = 0; j < dim[ib][1]; j++) {
 					for (int i = 0; i < dim[ib][0]; i++) {
-						f.read((char *) blk.at(i,j,k,l),sizeof(double));
+						f.read((char *) blk.at_ref(i,j,k,l),sizeof(double));
 					}
 				}
 			}
