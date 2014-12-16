@@ -11,6 +11,7 @@ struct Name {
 	std::string name;
 	bool deleted;
 	Name() : deleted(false) {};
+	Name(int dim,std::string name) : dim(dim), name(name), deleted(false) {};
 };
 
 struct Grid {

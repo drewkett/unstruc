@@ -37,7 +37,6 @@ Grid * to_grid(MultiBlock &mb) {
 	Grid * grid = new Grid();
 	grid->dim = 3;
 	int offset = 0;
-	Name name;
 	std::stringstream ss;
 	Element * e;
 	std::cerr << "Converting to unstructured grid" << std::endl;
@@ -55,13 +54,10 @@ Grid * to_grid(MultiBlock &mb) {
 				}
 			}
 		}
-		name = Name();
-		name.dim = 3;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1;
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(3,ss.str()));
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
 				for (int k = 0; k < sk-1; k++) {
@@ -79,13 +75,10 @@ Grid * to_grid(MultiBlock &mb) {
 				}
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceI1";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		int i = 0;
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
@@ -98,13 +91,10 @@ Grid * to_grid(MultiBlock &mb) {
 				grid->elements.push_back(e);
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceI2";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		i = si-1;
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
@@ -117,13 +107,10 @@ Grid * to_grid(MultiBlock &mb) {
 				grid->elements.push_back(e);
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceJ1";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		int j = 0;
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
@@ -136,13 +123,10 @@ Grid * to_grid(MultiBlock &mb) {
 				grid->elements.push_back(e);
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceJ2";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		j = sj-1;
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
@@ -155,13 +139,10 @@ Grid * to_grid(MultiBlock &mb) {
 				grid->elements.push_back(e);
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceK1";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		int k = 0;
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
@@ -174,13 +155,10 @@ Grid * to_grid(MultiBlock &mb) {
 				grid->elements.push_back(e);
 			}
 		}
-		name = Name();
-		name.dim = 2;
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1 << " FaceK2";
-		name.name = ss.str();
-		grid->names.push_back(name);
+		grid->names.push_back(Name(2,ss.str()));
 		k = sk-1;
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
