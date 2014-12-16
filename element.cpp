@@ -22,38 +22,33 @@ Element::Element(int T) : type(T) {
 		case LINE:
 			len = 2;
 			dim = 1;
-			points = new Point**[len];
 			break;
 		case TRI:
 			len = 3;
 			dim = 2;
-			points = new Point**[len];
 			break;
 		case QUAD:
 			len = 4;
 			dim = 2;
-			points = new Point**[len];
 			break;
 		case HEXA:
 			len = 8;
 			dim = 3;
-			points = new Point**[len];
 			break;
 		case WEDGE:
 			len = 6;
 			dim = 3;
-			points = new Point**[len];
 			break;
 		case PYRAMID:
 			len = 5;
 			dim = 3;
-			points = new Point**[len];
 			break;
 		default:
 			std::ostringstream oss;
 			oss << "Element Type " << T;
 			NotImplemented(oss.str());
 	}
+	points.resize(len);
 }
 
 void dump(Element * e) {

@@ -1,6 +1,8 @@
 #ifndef ELEMENT_H_DFA32621_EEB4_401F_8C3B_FA778CAD6F42
 #define ELEMENT_H_DFA32621_EEB4_401F_8C3B_FA778CAD6F42
 
+#include <vector>
+
 struct Point;
 
 enum Shapes { LINE = 3,
@@ -19,7 +21,7 @@ struct Element
 	int i;
 	int dim;
 	Point * s;
-	Point *** points;
+	std::vector<Point **> points;
 	Element(int T);
 };
 
