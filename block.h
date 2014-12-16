@@ -16,6 +16,6 @@ struct MultiBlock {
 	std::vector <Block *> blocks;
 };
 
-int size(MultiBlock *);
+int size(MultiBlock &);
 
-Grid * to_grid(MultiBlock *);
+Grid * to_grid(MultiBlock &);

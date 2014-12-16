@@ -8,9 +8,9 @@
 #include <string>
 
 
-MultiBlock * ReadPlot3D(std::string &filename) {
+MultiBlock ReadPlot3D(std::string &filename) {
 	std::ifstream f;
-	MultiBlock * mb = new MultiBlock();
+	MultiBlock mb;
 	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in|std::ios::binary);
 	if (!f.is_open()) Fatal("Could not open file");
@@ -49,7 +49,7 @@ MultiBlock * ReadPlot3D(std::string &filename) {
 				}
 			}
 		}
-		mb->blocks.push_back(blk);
+		mb.blocks.push_back(blk);
 	}
 	return mb;
 }

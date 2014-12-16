@@ -84,7 +84,7 @@ int main (int argc, char* argv[])
 		Fatal("Must specify output file");
 	}
 	Grid grid;
-	MultiBlock *mb;
+	MultiBlock mb;
 	switch (get_blocktype(inputfile)) {
 		case PLOT3D:
 			mb = ReadPlot3D(inputfile);

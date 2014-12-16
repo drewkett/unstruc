@@ -30,11 +30,11 @@ int Block::index(int i, int j, int k) {
 	return i*(size2*size3) + j*size3 + k;
 };
 
-int size(MultiBlock * mb) {
-	return mb->blocks.size();
+int size(MultiBlock &mb) {
+	return mb.blocks.size();
 }
 
-Grid * to_grid(MultiBlock * mb) {
+Grid * to_grid(MultiBlock &mb) {
 	Grid * grid = new Grid();
 	grid->dim = 3;
 	int offset = 0;
@@ -45,7 +45,7 @@ Grid * to_grid(MultiBlock * mb) {
 	std::cerr << "Converting to unstructured grid" << std::endl;
 	int si,sj,sk;
 	for (int ib = 0; ib < size(mb); ib++) {
-		blk = mb->blocks[ib];
+		blk = mb.blocks[ib];
 		si = blk->size1;
 		sj = blk->size2;
 		sk = blk->size3;
