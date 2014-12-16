@@ -1,3 +1,6 @@
+#ifndef GRID_H_A744617F_958E_4AD8_88D3_F2C799D3A0BE
+#define GRID_H_A744617F_958E_4AD8_88D3_F2C799D3A0BE
+
 #include <vector>
 #include <deque>
 #include <string>
@@ -37,3 +40,5 @@ void collapse_elements(Grid &grid);
 void sort_elements(Grid &grid);
 void sort_elements_by_name(Grid &grid);
 void sort_elements_by_index(Grid &grid);
+
+#endif

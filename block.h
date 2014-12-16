@@ -1,3 +1,6 @@
+#ifndef BLOCK_H_17859E7C_9108_4D1B_8805_3FA4F71F11EF
+#define BLOCK_H_17859E7C_9108_4D1B_8805_3FA4F71F11EF
+
 #include "point.h"
 
 #include <vector>
@@ -20,3 +23,5 @@ struct MultiBlock {
 int size(MultiBlock &);
 
 Grid * to_grid(MultiBlock &);
+
+#endif

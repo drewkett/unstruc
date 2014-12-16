@@ -1,3 +1,6 @@
+#ifndef TRANSLATION_H_896B6D75_C1A2_4956_8FC4_E811C8F300EA
+#define TRANSLATION_H_896B6D75_C1A2_4956_8FC4_E811C8F300EA
+
 #include "grid.h"
 
 #include <vector>
@@ -14,3 +17,5 @@ struct TranslationTable {
 
 void ReadTranslationFile(std::string &filename, TranslationTable &transt);
 void applyTranslation(Grid &grid, TranslationTable &transt);
+
+#endif
