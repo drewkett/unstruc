@@ -112,7 +112,7 @@ int main (int argc, char* argv[])
 		collapse_elements(grid);
 	}
 	if (!translationfile.empty()) {
-		TranslationTable * transt = new TranslationTable(grid.names.size());
+		TranslationTable transt = TranslationTable(grid.names.size());
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);
 	}

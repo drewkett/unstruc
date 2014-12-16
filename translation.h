@@ -10,5 +10,5 @@ struct TranslationTable {
 	TranslationTable(int n) : names(0), index(n,-1) {};
 };
 
-void ReadTranslationFile(std::string &filename, TranslationTable * transt);
-void applyTranslation(Grid &grid, TranslationTable * transt);
+void ReadTranslationFile(std::string &filename, TranslationTable &transt);
+void applyTranslation(Grid &grid, TranslationTable &transt);
