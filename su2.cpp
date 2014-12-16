@@ -18,7 +18,7 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	FILE * f;
 	f = fopen(outputfile.c_str(),"w");
 	if (!f) Fatal("Could not open file");
-	Name * name;
+	Name name;
 	Point * p;
 	Element * e;
 	set_i(grid);
@@ -49,8 +49,8 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	fprintf(f,"\n");
 	int n_names = 0;
 	for (i = 0; i < grid.names.size(); i++) {
-		if (!grid.names[i]) continue;
-		if (grid.names[i]->dim != 2) continue;
+		if (grid.names[i].deleted) continue;
+		if (grid.names[i].dim != 2) continue;
 		n_names++;
 	}
 	std::vector<int> name_count(grid.names.size(),0);
@@ -63,11 +63,11 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	std::cerr << "Writing Markers" << std::endl;
 	fprintf(f,"NMARK= %d\n",n_names);
 	for (i = 0; i < grid.names.size(); i++) {
-		if (!grid.names[i]) continue;
+		if (grid.names[i].deleted) continue;
 		name = grid.names[i];
-		if (name->dim != grid.dim - 1) continue;
-		std::cerr << i << " : " << name->name << std::endl;
-		fprintf(f,"MARKER_TAG= %s\n",name->name.c_str());
+		if (name.dim != grid.dim - 1) continue;
+		std::cerr << i << " : " << name.name << std::endl;
+		fprintf(f,"MARKER_TAG= %s\n",name.name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid.elements.size(); j++) {
 			e = grid.elements[j];
@@ -90,7 +90,7 @@ Grid * readSU2(std::string &inputfile) {
 	Grid * grid = new Grid();
 	Element * elem;
 	Point * point;
-	Name * name;
+	Name name;
 	std::ifstream f;
 	std::istringstream ls;
 	std::string line, token;
@@ -110,9 +110,9 @@ Grid * readSU2(std::string &inputfile) {
 			std::cerr << grid->dim << " Dimensions" << std::endl;
 
 			//Create default named block to be assigned to all elements
-			name = new Name();
-			name->name = "default";
-			name->dim = grid->dim;
+			name = Name();
+			name.name.assign("default");
+			name.dim = grid->dim;
 			grid->names.push_back(name);
 		} else if (token.substr(0,6) == "NELEM=") {
 			if (token.size() > 6) {
@@ -203,10 +203,9 @@ Grid * readSU2(std::string &inputfile) {
 			}
 			std::cerr << nmark << " Markers" << std::endl;
 			for (i = 0; i < nmark; i++) {
-				name = new Name();
-				name->dim = grid->dim-1;
+				name = Name();
+				name.dim = grid->dim-1;
 				iname = grid->names.size();
-				grid->names.push_back(name);
 
 				// Read MARKER_TAG=
 				getline(f,line);
@@ -215,12 +214,13 @@ Grid * readSU2(std::string &inputfile) {
 				if (token.substr(0,11) != "MARKER_TAG=")
 					Fatal("Invalid Marker Definition: Expected MARKER_TAG=");
 				if (token.size() > 11) {
-					name->name.assign(token.substr(11));
+					name.name.assign(token.substr(11));
 				} else {
 					ss >> token;
-					name->name.assign(token);
+					name.name.assign(token);
 				}
-				std::cerr << name->name << std::endl;
+				grid->names.push_back(name);
+				std::cerr << name.name << std::endl;
 
 				// Read MARKER_ELEMS=
 				getline(f,line);

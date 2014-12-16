@@ -9,13 +9,15 @@ struct Name {
 	int dim;
 	int i;
 	std::string name;
+	bool deleted;
+	Name() : deleted(false) {};
 };
 
 struct Grid {
 	std::deque <Point *> points;
 	std::vector <Point **> ppoints;
 	std::vector <Element *> elements;
-	std::vector <Name *> names;
+	std::vector <Name> names;
 	int n_points;
 	int n_elems;
 	int n_boundelems;

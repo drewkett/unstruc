@@ -3,7 +3,6 @@
 #include <cstdlib>
 
 #include "error.h"
-#include "grid.h"
 #include "su2.h"
 #include "vtk.h"
 #include "gmsh.h"

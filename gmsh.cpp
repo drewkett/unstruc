@@ -11,7 +11,7 @@ bool toGMSH(Grid &grid) {
 	std::cout.precision(15);
 	Point * p;
 	Element * e;
-	Name * name;
+	Name name;
 	set_i(grid);
 	std::cout << "$MeshFormat" << std::endl;
 	std::cout << "2.2 0 " << sizeof(double) << std::endl;
@@ -51,7 +51,7 @@ bool toGMSH(Grid &grid) {
 	std::cout << grid.names.size() << std::endl;
 	for (int i = 0; i < grid.names.size(); i++) {
 		name = grid.names[i];
-		std::cout << name->dim << " " << i+1 << " \"" << name->name << "\"" << std::endl;
+		std::cout << name.dim << " " << i+1 << " \"" << name.name << "\"" << std::endl;
 	}
 	std::cout << "$EndPhysicalNames" << std::endl;
 	return true;
