@@ -15,7 +15,6 @@ bool toVTK(std::string &outputfile, Grid &grid) {
 	if (!f.is_open()) Fatal("Could not open file");
 	f.precision(15);
 	Point * p;
-	Element * e;
 	set_i(grid);
 	f << "# vtk DataFile Version 2.0" << std::endl;
 	f << "Description" << std::endl;

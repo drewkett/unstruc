@@ -20,7 +20,6 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	if (!f) Fatal("Could not open file");
 	Name name;
 	Point * p;
-	Element * e;
 	set_i(grid);
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
