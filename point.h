@@ -5,8 +5,6 @@ struct Point
 {
 	double x,y,z,s;
 	int i;
-	bool merged
-	bool operator==(const pos& a) const { return (x == a.x && y == a.y); }
 };
 
 void dump(Point * p);
