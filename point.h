@@ -1,10 +1,12 @@
-#ifndef POINT_H_18F17439_7F9C_4610_91ED_D673F59EBB10
-#define POINT_H_18F17439_7F9C_4610_91ED_D673F59EBB10
+#ifndef POINT_H_17F17439_7F9C_4610_91ED_D673F59EBB10
+#define POINT_H_17F17439_7F9C_4610_91ED_D673F59EBB10
 
 struct Point
 {
 	double x,y,z,s;
 	int i;
+	bool merged
+	bool operator==(const pos& a) const { return (x == a.x && y == a.y); }
 };
 
 void dump(Point * p);
