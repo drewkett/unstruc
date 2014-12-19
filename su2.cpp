@@ -138,14 +138,14 @@ Grid * readSU2(std::string &inputfile) {
 					}
 					elem.points[j] = &grid->points[ipoint];
 				}
-				if (ss >> token && !ss.eof()) {
+				if (!ss.eof()) {
+					ss >> token ;
 					ielem = atoi(token.c_str());
-				} else {
+				} else if (!grid->elements[i].valid) {
+					ielem = i;
+				 } else {
 					// Need a better plan for unnumbered elements
-					if (grid->elements[i].valid)
-						Fatal("Not sure what to do with unnumbered element");
-					else
-						ielem = i;
+					Fatal("Not sure what to do with unnumbered element");
 				}
 				if (ielem >= grid->elements.size())
 					grid->elements.resize(ielem+1);
@@ -179,10 +179,10 @@ Grid * readSU2(std::string &inputfile) {
 					ss >> token;
 					point->z = std::atof(token.c_str());
 				}
-				if (ss >> token && !ss.eof()) {
+				if (!ss.eof()) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
-				} else if (!grid->points[ipoint]) {
+				} else if (!grid->points[i]) {
 					ipoint = i;
 				} else {
 					Fatal("Don't know how to handle unnumbered point");
