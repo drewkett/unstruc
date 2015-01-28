@@ -46,12 +46,6 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 			fprintf(f,"%.17g %.17g %.17g %d\n",p->x,p->y,p->z,p->i);
 	}
 	fprintf(f,"\n");
-	int n_names = 0;
-	for (i = 0; i < grid.names.size(); i++) {
-		if (grid.names[i].deleted) continue;
-		if (grid.names[i].dim != 2) continue;
-		n_names++;
-	}
 	std::vector<int> name_count(grid.names.size(),0);
 	for (i = 0; i < grid.elements.size(); i++) {
 		Element &e = grid.elements[i];
@@ -59,13 +53,18 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 		if (e.name_i < 0) continue;
 		name_count[e.name_i]++;
 	}
+	int n_names = 0;
+	for (i = 0; i < grid.names.size(); i++) {
+		if (name_count[i] > 0)
+			n_names++;
+	}
 	std::cerr << "Writing Markers" << std::endl;
 	fprintf(f,"NMARK= %d\n",n_names);
-	for (i = 0; i < grid.names.size(); i++) {
-		if (grid.names[i].deleted) continue;
+	for (i = 0; i < n_names; i++) {
+		if (name_count[i] == 0) continue;
 		name = grid.names[i];
 		if (name.dim != grid.dim - 1) continue;
-		std::cerr << i << " : " << name.name << std::endl;
+		std::cerr << i << " : " << name.name << " (" << name_count[i] << ")" << std::endl;
 		fprintf(f,"MARKER_TAG= %s\n",name.name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid.elements.size(); j++) {
