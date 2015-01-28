@@ -5,6 +5,7 @@
 
 #include <vector>
 
+struct Point;
 struct Grid;
 
 struct Block {
@@ -17,7 +18,7 @@ struct Block {
 };
 
 struct MultiBlock {
-	std::vector <Block> blocks;
+	std::vector <Block *> blocks;
 };
 
 int size(MultiBlock &);
