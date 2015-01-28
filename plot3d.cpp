@@ -61,7 +61,6 @@ void ReadPlot3D(MultiBlock& mb, std::string &filename) {
 				}
 			}
 		}
-		dump(blk->at(0,0,0));
 		mb.blocks.push_back(blk);
 	}
 }
