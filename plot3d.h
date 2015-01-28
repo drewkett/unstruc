@@ -5,6 +5,6 @@
 
 struct MultiBlock;
 
-MultiBlock ReadPlot3D(std::string &filename);
+void ReadPlot3D(MultiBlock&, std::string &filename);
 
 #endif
