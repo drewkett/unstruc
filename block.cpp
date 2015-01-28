@@ -15,13 +15,14 @@ Point * Block::at(int i, int j, int k) {
 	return &(points[i*(size2*size3) + j*size3 + k]);
 };
 double * Block::at_ref(int i, int j, int k, int l) {
+	int ii = i*(size2*size3) + j*size3 + k;
 	switch (l) {
 		case 0:
-			return &(points[i*(size2*size3) + j*size3 + k].x);
+			return &(points[ii].x);
 		case 1:
-			return &(points[i*(size2*size3) + j*size3 + k].y);
+			return &(points[ii].y);
 		case 2:
-			return &(points[i*(size2*size3) + j*size3 + k].z);
+			return &(points[ii].z);
 		default:
 			return NULL;
 	}
