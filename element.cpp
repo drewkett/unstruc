@@ -35,6 +35,10 @@ Element::Element(int T) : type(T) {
 			len = 8;
 			dim = 3;
 			break;
+		case TETRA:
+			len = 4;
+			dim = 3;
+			break;
 		case WEDGE:
 			len = 6;
 			dim = 3;
@@ -163,6 +167,31 @@ Element * collapse_quad(Element * e) {
 	return NULL;
 }
 
+Element * tetra_from_pyramid(Element * e,int i1, int i2, int i3, int i4) {
+	if (e->type != PYRAMID) WrongElement(e->type,PYRAMID);
+	Element * e_new = new Element(TETRA);
+	e_new->points[0] = e->points[i1];
+	e_new->points[1] = e->points[i2];
+	e_new->points[2] = e->points[i3];
+	e_new->points[3] = e->points[i4];
+	e_new->name_i = e->name_i;
+	e_new->i = e->i;
+	return e_new;
+}
+
+Element * pyramid_from_wedge(Element * e,int i1, int i2, int i3, int i4, int i5) {
+	if (e->type != WEDGE) WrongElement(e->type,WEDGE);
+	Element * e_new = new Element(PYRAMID);
+	e_new->points[0] = e->points[i1];
+	e_new->points[1] = e->points[i2];
+	e_new->points[2] = e->points[i3];
+	e_new->points[3] = e->points[i4];
+	e_new->points[4] = e->points[i5];
+	e_new->name_i = e->name_i;
+	e_new->i = e->i;
+	return e_new;
+}
+
 Element * pyramid_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5) {
 	if (e->type != HEXA) WrongElement(e->type,HEXA);
 	Element * e_new = new Element(PYRAMID);
@@ -190,15 +219,78 @@ Element * wedge_from_hexa(Element * e,int i1, int i2, int i3, int i4, int i5, in
 	return e_new;
 }
 
+Element * collapse_tetra(Element * e) {
+	if (e->type != TETRA) WrongElement(e->type,TETRA);
+	if (canCollapse(e)) e = NULL;
+	return NULL;
+}
+
 Element * collapse_pyramid(Element * e) {
 	if (e->type != PYRAMID) WrongElement(e->type,PYRAMID);
-	if (canCollapse(e)) NotImplemented("_pyramid Collapse");
+	if (canCollapse(e)) {
+		if (*e->points[0] == *e->points[1]) {
+			*e = *tetra_from_pyramid(e,1,2,3,4);
+			return collapse_tetra(e);
+		} else if (*e->points[1] == *e->points[2]) {
+			*e = *tetra_from_pyramid(e,2,3,0,4);
+			return collapse_tetra(e);
+		} else if (*e->points[2] == *e->points[3]) {
+			*e = *tetra_from_pyramid(e,3,0,1,4);
+			return collapse_tetra(e);
+		} else if (*e->points[0] == *e->points[4]) {
+			*e = *tetra_from_pyramid(e,1,2,3,4);
+			return collapse_tetra(e);
+		} else if (*e->points[1] == *e->points[4]) {
+			*e = *tetra_from_pyramid(e,2,3,0,4);
+			return collapse_tetra(e);
+		} else if (*e->points[2] == *e->points[4]) {
+			*e = *tetra_from_pyramid(e,3,0,1,4);
+			return collapse_tetra(e);
+		} else if (*e->points[3] == *e->points[4]) {
+			*e = *tetra_from_pyramid(e,0,1,2,4);
+			return collapse_tetra(e);
+		} else {
+			dump(e);
+			NotImplemented("Don't know how to collapse this pyramid");
+		}
+	}
 	return NULL;
 }
 
 Element * collapse_wedge(Element * e) {
 	if (e->type != WEDGE) WrongElement(e->type,WEDGE);
-	if (canCollapse(e)) NotImplemented("_wedge Collapse");
+	if (canCollapse(e)) {
+        if (*e->points[0] == *e->points[1]) {
+			*e = *pyramid_from_wedge(e,2,1,4,5,3);
+			return collapse_pyramid(e);
+		} else if (*e->points[1] == *e->points[2]) {
+			*e = *pyramid_from_wedge(e,0,2,5,3,4);
+			return collapse_pyramid(e);
+		} else if (*e->points[2] == *e->points[0]) {
+			*e = *pyramid_from_wedge(e,1,0,3,4,5);
+			return collapse_pyramid(e);
+		} else if (*e->points[3] == *e->points[4]) {
+			*e = *pyramid_from_wedge(e,2,1,4,5,0);
+			return collapse_pyramid(e);
+		} else if (*e->points[4] == *e->points[5]) {
+			*e = *pyramid_from_wedge(e,0,2,5,3,1);
+			return collapse_pyramid(e);
+		} else if (*e->points[5] == *e->points[3]) {
+			*e = *pyramid_from_wedge(e,1,0,3,4,2);
+			return collapse_pyramid(e);
+		} else if (*e->points[0] == *e->points[3]) {
+			*e = *pyramid_from_wedge(e,2,1,4,5,0);
+			return collapse_pyramid(e);
+		} else if (*e->points[1] == *e->points[4]) {
+			*e = *pyramid_from_wedge(e,0,2,5,3,1);
+			return collapse_pyramid(e);
+		} else if (*e->points[2] == *e->points[5]) {
+			*e = *pyramid_from_wedge(e,1,0,3,4,2);
+			return collapse_pyramid(e);
+		} else {
+			NotImplemented("Don't know how to collapse this wedge");
+		}
+	}
 	return NULL;
 }
 
