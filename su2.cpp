@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-bool toSU2(std::string &outputfile, Grid &grid) {
+bool toSU2(std::string &outputfile, Grid& grid) {
 	int i, j;
 
 	FILE * f;
@@ -83,9 +83,8 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 	return true;
 }
 
-Grid * readSU2(std::string &inputfile) {
+void readSU2(Grid& grid, std::string &inputfile) {
 	int ipoint, ielem, iname, i, j, k;
-	Grid * grid = new Grid();
 	int nelem;
 	Point * point;
 	Name name;
@@ -100,28 +99,28 @@ Grid * readSU2(std::string &inputfile) {
 		ss >> token;
 		if (token.substr(0,6) == "NDIME=") {
 			if (token.size() > 6) {
-				grid->dim = std::atoi(token.substr(6).c_str());
+				grid.dim = std::atoi(token.substr(6).c_str());
 			} else {
 				ss >> token;
-				grid->dim = std::atoi(token.c_str());
+				grid.dim = std::atoi(token.c_str());
 			}
-			std::cerr << grid->dim << " Dimensions" << std::endl;
+			std::cerr << grid.dim << " Dimensions" << std::endl;
 
 			//Create default named block to be assigned to all elements
 			name = Name();
 			name.name.assign("default");
-			name.dim = grid->dim;
-			grid->names.push_back(name);
+			name.dim = grid.dim;
+			grid.names.push_back(name);
 		} else if (token.substr(0,6) == "NELEM=") {
 			if (token.size() > 6) {
-				grid->n_elems = std::atoi(token.substr(6).c_str());
+				grid.n_elems = std::atoi(token.substr(6).c_str());
 			} else {
 				ss >> token;
-				grid->n_elems = std::atoi(token.c_str());
+				grid.n_elems = std::atoi(token.c_str());
 			}
-			std::cerr << grid->n_elems << " Elements" << std::endl;
-			grid->elements.resize(grid->n_elems);
-			for (int i = 0; i < grid->n_elems; ++i) {
+			std::cerr << grid.n_elems << " Elements" << std::endl;
+			grid.elements.resize(grid.n_elems);
+			for (int i = 0; i < grid.n_elems; ++i) {
 				getline(f,line);
 				std::stringstream ss(line);
 				ss >> token;
@@ -132,40 +131,40 @@ Grid * readSU2(std::string &inputfile) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
 					// Might be able to do this resizing after the fact
-					if (ipoint >= grid->points.size()) {
-						grid->points.resize(ipoint+1);
-						grid->ppoints.resize(ipoint+1);
+					if (ipoint >= grid.points.size()) {
+						grid.points.resize(ipoint+1);
+						grid.ppoints.resize(ipoint+1);
 					}
-					elem.points[j] = &grid->points[ipoint];
+					elem.points[j] = &grid.points[ipoint];
 				}
 				if (!ss.eof()) {
 					ss >> token ;
 					ielem = atoi(token.c_str());
-				} else if (!grid->elements[i].valid) {
+				} else if (!grid.elements[i].valid) {
 					ielem = i;
 				 } else {
 					// Need a better plan for unnumbered elements
 					Fatal("Not sure what to do with unnumbered element");
 				}
-				if (ielem >= grid->elements.size())
-					grid->elements.resize(ielem+1);
-				grid->elements[ielem] = elem;
+				if (ielem >= grid.elements.size())
+					grid.elements.resize(ielem+1);
+				grid.elements[ielem] = elem;
 			}
 		} else if (token.substr(0,6) == "NPOIN=") {
 			if (token.size() > 6) {
-				grid->n_points = std::atoi(token.substr(6).c_str());
+				grid.n_points = std::atoi(token.substr(6).c_str());
 			} else {
 				ss >> token;
-				grid->n_points = std::atoi(token.c_str());
+				grid.n_points = std::atoi(token.c_str());
 			}
 			if (ss >> token && !ss.eof())
-				grid->n_points = std::atoi(token.c_str());
-			std::cerr << grid->n_points << " Points" << std::endl;
-			if (grid->n_points > grid->points.size()) {
-				grid->points.resize(grid->n_points);
-				grid->ppoints.resize(grid->n_points);
+				grid.n_points = std::atoi(token.c_str());
+			std::cerr << grid.n_points << " Points" << std::endl;
+			if (grid.n_points > grid.points.size()) {
+				grid.points.resize(grid.n_points);
+				grid.ppoints.resize(grid.n_points);
 			}
-			for (i = 0; i < grid->n_points; ++i) {
+			for (i = 0; i < grid.n_points; ++i) {
 				getline(f,line);
 				std::stringstream ss(line);
 				point = new Point();
@@ -173,23 +172,23 @@ Grid * readSU2(std::string &inputfile) {
 				point->x = std::atof(token.c_str());
 				ss >> token;
 				point->y = std::atof(token.c_str());
-				if (!grid->dim)
+				if (!grid.dim)
 					Fatal("Dimension (NDIME) not defined");
-				if (grid->dim == 3) {
+				if (grid.dim == 3) {
 					ss >> token;
 					point->z = std::atof(token.c_str());
 				}
 				if (!ss.eof()) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
-				} else if (!grid->points[i]) {
+				} else if (!grid.points[i]) {
 					ipoint = i;
 				} else {
 					Fatal("Don't know how to handle unnumbered point");
 				}
 				point->i = ipoint;
-				grid->points[ipoint] = point;
-				grid->ppoints[ipoint] = &grid->points[ipoint];
+				grid.points[ipoint] = point;
+				grid.ppoints[ipoint] = &grid.points[ipoint];
 			}
 		} else if (token.substr(0,6) == "NMARK=") {
 			int nmark;
@@ -202,8 +201,8 @@ Grid * readSU2(std::string &inputfile) {
 			std::cerr << nmark << " Markers" << std::endl;
 			for (i = 0; i < nmark; i++) {
 				name = Name();
-				name.dim = grid->dim-1;
-				iname = grid->names.size();
+				name.dim = grid.dim-1;
+				iname = grid.names.size();
 
 				// Read MARKER_TAG=
 				getline(f,line);
@@ -217,7 +216,7 @@ Grid * readSU2(std::string &inputfile) {
 					ss >> token;
 					name.name.assign(token);
 				}
-				grid->names.push_back(name);
+				grid.names.push_back(name);
 				std::cerr << name.name << std::endl;
 
 				// Read MARKER_ELEMS=
@@ -242,16 +241,15 @@ Grid * readSU2(std::string &inputfile) {
 					for (k=0; k<elem.len; k++) {
 						ss >> token;
 						ipoint = std::atoi(token.c_str());
-						if (ipoint >= grid->points.size()) Fatal("Error Marker Element");
-						elem.points[k] = &grid->points[ipoint];
+						if (ipoint >= grid.points.size()) Fatal("Error Marker Element");
+						elem.points[k] = &grid.points[ipoint];
 					}
 					elem.name_i = iname;
-					grid->elements.push_back(elem);
+					grid.elements.push_back(elem);
 				}
 			}
 		} else {
 			std::cerr << "Unhandled Line: " << line << std::endl;
 		}
 	}
-	return grid;
 }

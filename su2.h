@@ -6,6 +6,6 @@
 struct Grid;
 
 bool toSU2(std::string &outputfile, Grid &grid);
-Grid * readSU2(std::string &inputfile);
+void readSU2(Grid&, std::string &inputfile);
 
 #endif

@@ -23,6 +23,6 @@ struct MultiBlock {
 
 int size(MultiBlock &);
 
-Grid * to_grid(MultiBlock &);
+void to_grid(Grid&, MultiBlock &);
 
 #endif

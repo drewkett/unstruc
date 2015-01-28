@@ -87,10 +87,10 @@ int main (int argc, char* argv[])
 	switch (get_blocktype(inputfile)) {
 		case PLOT3D:
 			mb = ReadPlot3D(inputfile);
-			grid = *to_grid(mb);
+			to_grid(grid,mb);
 			break;
 		case SU2:
-			grid = *readSU2(inputfile);
+			readSU2(grid,inputfile);
 			break;
 		case VTK:
 			Fatal("Input file not supported");
@@ -104,10 +104,12 @@ int main (int argc, char* argv[])
 		sort_points_by_location(grid);
 		merge_points(grid,TOL);
 		sort_points_by_index(grid);
+
 		set_i_elements(grid);
 		sort_elements(grid);
 		delete_inner_faces(grid);
 		sort_elements_by_index(grid);
+
 		collapse_elements(grid);
 	}
 	if (!translationfile.empty()) {
