@@ -112,7 +112,6 @@ void delete_inner_faces(Grid &grid) {
 }
 
 void collapse_elements(Grid &grid) {
-	bool collapsed;
 	int n = 0, n2 = 0;
 	Element  *e_new;
 	for (int i = 0; i < grid.elements.size(); i++) {

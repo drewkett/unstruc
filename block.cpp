@@ -40,7 +40,6 @@ Grid * to_grid(MultiBlock &mb) {
 	grid->dim = 3;
 	int offset = 0;
 	std::stringstream ss;
-	Element * e;
 	Block * blk;
 	std::cerr << "Converting to unstructured grid" << std::endl;
 	int si,sj,sk;

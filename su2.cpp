@@ -85,8 +85,8 @@ bool toSU2(std::string &outputfile, Grid &grid) {
 
 Grid * readSU2(std::string &inputfile) {
 	int ipoint, ielem, iname, i, j, k;
-	int npoint, nelem, nmark;
 	Grid * grid = new Grid();
+	int nelem;
 	Point * point;
 	Name name;
 	std::ifstream f;
