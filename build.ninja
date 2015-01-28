@@ -1,9 +1,19 @@
+
 rule cc
-  command = clang++ $opts $in -o $out
+  command = clang++ -Wall -O0 -g -c $opts $in -o $out
 
-build unstruc-dbg : cc vtk.cpp plot3d.cpp translation.cpp block.cpp gmsh.cpp su2.cpp grid.cpp error.cpp point.cpp element.cpp unstruc.cpp
-  opts = -g -O0
+rule ld
+  command = clang++ -Wall $opts $in -o $out
 
-build unstruc : cc vtk.cpp plot3d.cpp translation.cpp block.cpp gmsh.cpp su2.cpp grid.cpp error.cpp point.cpp element.cpp unstruc.cpp
-  opts = -O2
+build vtk.o : cc vtk.cpp | vtk.h grid.h element.h point.h error.h
+build plot3d.o : cc plot3d.cpp | plot3d.h block.h error.h
+build block.o : cc block.cpp | block.h point.h
+build su2.o : cc su2.cpp | su2.h grid.h element.h point.h error.h
+build grid.o : cc grid.cpp | grid.h element.h point.h
+build translation.o : cc translation.cpp | translation.h error.h element.h
+build error.o : cc error.cpp | error.h
+build point.o : cc point.cpp | point.h 
+build element.o : cc element.cpp | element.h point.h error.h
+build unstruc.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h
 
+build unstruc : ld plot3d.o su2.o grid.o translation.o error.o point.o element.o unstruc.o block.o vtk.o

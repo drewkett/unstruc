@@ -2,3 +2,4 @@
 /unstruc-dbg
 .ninja*
 *.dSYM
+*.o
