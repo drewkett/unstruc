@@ -33,7 +33,7 @@ int get_blocktype ( std::string &arg ) {
 }
 
 void print_usage () {
-	std::cerr << "unstruc [-m] [-t translation_file] input_file output_file" << std::endl << std::endl;
+	std::cerr << "unstruc [-m] [-t translation_file] output_file input_file [input_file ...]" << std::endl << std::endl;
 	std::cerr << "This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)" << std::endl << std::endl;
 	std::cerr << "Option Arguments" << std::endl;
 	std::cerr << "-m                   Attempt to merge points that are close together" << std::endl;
@@ -44,15 +44,18 @@ void print_usage () {
 int main (int argc, char* argv[])
 {
 	int i = 1, j = 0;
-	std::string arg, outputfile, inputfile, translationfile;
+	char * c_outputfile = NULL;
+	char * c_translationfile = NULL;
+	std::string arg;
+	std::vector <std::string> inputfiles;
 	bool mergepoints;
 	while (i < argc) {
-		arg.assign(argv[i]);
-		if (arg.at(0) == '-') {
+		if (argv[i][0] == '-') {
+			std::string arg (argv[i]);
 			if (arg == "-t") {
 				i++;
 				if (i == argc) Fatal("Must pass filename option to -t");
-				translationfile.assign(argv[i]);
+				c_translationfile = argv[i];
 			} else if (arg == "-m") {
 				mergepoints = true;
 			} else if (arg == "-h" || arg == "--help") {
@@ -64,9 +67,9 @@ int main (int argc, char* argv[])
 			}
 		} else {
 			if (j == 0)
-				inputfile.assign(arg);
-			else if (j == 1)
-				outputfile.assign(arg);
+				c_outputfile = argv[i];
+			else if (j > 0)
+				inputfiles.emplace_back(argv[i]);
 			else {
 				print_usage();
 				Fatal("Specify one input_file and one output_file");
@@ -75,22 +78,24 @@ int main (int argc, char* argv[])
 		}
 		i++;
 	}
-	if (inputfile.empty()) {
-		print_usage();
-		Fatal("Must specify input and output file");
-	} else if (outputfile.empty()) {
+	if (!c_outputfile) {
 		print_usage();
 		Fatal("Must specify output file");
 	}
+	if (inputfiles.size() == 0) {
+		print_usage();
+		Fatal("Must specify input file[s]");
+	}
+	std::string outputfile (c_outputfile);
 	Grid grid;
 	MultiBlock mb;
-	switch (get_blocktype(inputfile)) {
+	switch (get_blocktype(inputfiles[0])) {
 		case PLOT3D:
-			readPlot3D(mb,inputfile);
+			readPlot3D(mb,inputfiles[0]);
 			to_grid(grid,mb);
 			break;
 		case SU2:
-			readSU2(grid,inputfile);
+			readSU2(grid,inputfiles[0]);
 			break;
 		case VTK:
 			Fatal("Input file not supported");
@@ -112,7 +117,8 @@ int main (int argc, char* argv[])
 
 		collapse_elements(grid);
 	}
-	if (!translationfile.empty()) {
+	if (c_translationfile) {
+		std::string translationfile (c_translationfile);
 		TranslationTable transt = TranslationTable(grid.names.size());
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);
