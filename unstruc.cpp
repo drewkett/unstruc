@@ -86,7 +86,7 @@ int main (int argc, char* argv[])
 	MultiBlock mb;
 	switch (get_blocktype(inputfile)) {
 		case PLOT3D:
-			ReadPlot3D(mb,inputfile);
+			readPlot3D(mb,inputfile);
 			to_grid(grid,mb);
 			break;
 		case SU2:

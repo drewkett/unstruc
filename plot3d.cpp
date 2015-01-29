@@ -9,7 +9,7 @@
 #include <string>
 
 
-void ReadPlot3D(MultiBlock& mb, std::string &filename) {
+void readPlot3D(MultiBlock& mb, std::string &filename) {
 	std::ifstream f;
 	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in|std::ios::binary);
