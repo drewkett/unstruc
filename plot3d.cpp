@@ -63,3 +63,10 @@ void readPlot3D(MultiBlock& mb, std::string &filename) {
 		mb.blocks.push_back(blk);
 	}
 }
+
+void readPlot3DToGrid(Grid& grid, std::string &filename) {
+	MultiBlock mb;
+	readPlot3D(mb, filename);
+	to_grid(grid,mb);
+}
+	

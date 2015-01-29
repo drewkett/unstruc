@@ -84,21 +84,21 @@ int main (int argc, char* argv[])
 	}
 	std::string outputfile (c_outputfile);
 	Grid grid;
-	MultiBlock mb;
-	switch (get_blocktype(inputfiles[0])) {
-		case PLOT3D:
-			readPlot3D(mb,inputfiles[0]);
-			to_grid(grid,mb);
-			break;
-		case SU2:
-			readSU2(grid,inputfiles[0]);
-			break;
-		case VTK:
-			Fatal("Input file not supported");
-			break;
-		default:
-			Fatal("Input file not recognized");
-			break;
+	for (int i = 0; i < inputfiles.size(); ++i) {
+		switch (get_blocktype(inputfiles[i])) {
+			case PLOT3D:
+				readPlot3DToGrid(grid,inputfiles[i]);
+				break;
+			case SU2:
+				readSU2(grid,inputfiles[i]);
+				break;
+			case VTK:
+				Fatal("Input file not supported");
+				break;
+			default:
+				Fatal("Input file not recognized");
+				break;
+		}
 	}
 	set_i_points(grid);
 	if (mergepoints) {
