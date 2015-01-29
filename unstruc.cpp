@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
 	char * c_translationfile = NULL;
 	std::string arg;
 	std::vector <std::string> inputfiles;
-	bool mergepoints;
+	bool mergepoints = false;
 	while (i < argc) {
 		if (argv[i][0] == '-') {
 			std::string arg (argv[i]);
@@ -68,12 +68,8 @@ int main (int argc, char* argv[])
 		} else {
 			if (j == 0)
 				c_outputfile = argv[i];
-			else if (j > 0)
+			else 
 				inputfiles.emplace_back(argv[i]);
-			else {
-				print_usage();
-				Fatal("Specify one input_file and one output_file");
-			}
 			j++;
 		}
 		i++;
