@@ -2,13 +2,15 @@
 #include <string>
 #include <cstdlib>
 
-#include "error.h"
 #include "su2.h"
 #include "vtk.h"
 #include "gmsh.h"
+#include "openfoam.h"
+#include "plot3d.h"
+
+#include "error.h"
 #include "block.h"
 #include "translation.h"
-#include "plot3d.h"
 
 #define TOL 3.e-8
 
@@ -16,18 +18,21 @@ enum BLOCKTYPE {
 	UNKNOWN = 0,
 	PLOT3D = 1,
 	SU2 = 2,
-	VTK = 3
+	VTK = 3,
+	OPENFOAM = 4
 };
 
 int get_blocktype ( std::string &arg ) {
 	int n = arg.size();
 	std::string ext = arg.substr(n-4,n);
-	if (ext == ".su2")
+	if (arg.compare(n-4,4,".su2") == 0)
 		return SU2;
-	else if (ext == ".vtk")
+	else if (arg.compare(n-4,4,".vtk") == 0)
 		return VTK;
-	else if (ext == ".xyz" || ext == ".p3d")
+	else if (arg.compare(n-4,4,".xyz") == 0 || arg.compare(n-4,4,".p3d") == 0)
 		return PLOT3D;
+	else if (arg.compare(n-5,5,".foam") == 0)
+		return OPENFOAM;
 	else
 		return UNKNOWN;
 }
@@ -92,8 +97,9 @@ int main (int argc, char* argv[])
 		case SU2:
 			readSU2(grid,inputfile);
 			break;
-		case VTK:
-			Fatal("Input file not supported");
+		case OPENFOAM:
+			readOpenFoam(grid,inputfile);
+			return 0;
 			break;
 		default:
 			Fatal("Input file not recognized");

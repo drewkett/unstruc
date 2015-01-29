@@ -3,17 +3,21 @@ rule cc
   command = clang++ -Wall -O2 -g -c $opts $in -o $out
 
 rule ld
-  command = clang++ -Wall $opts $in -o $out
+  command = clang++ -Wall $in -o $out $opts
 
 build vtk.o : cc vtk.cpp | vtk.h grid.h element.h point.h error.h
 build plot3d.o : cc plot3d.cpp | plot3d.h block.h error.h
-build block.o : cc block.cpp | block.h point.h
 build su2.o : cc su2.cpp | su2.h grid.h element.h point.h error.h
+build openfoam.o : cc openfoam.cpp | openfoam.h grid.h element.h point.h error.h
+build gmsh.o : cc gmsh.cpp | gmsh.h grid.h element.h point.h error.h
+
+build block.o : cc block.cpp | block.h point.h
 build grid.o : cc grid.cpp | grid.h element.h point.h
 build translation.o : cc translation.cpp | translation.h error.h element.h
 build error.o : cc error.cpp | error.h
 build point.o : cc point.cpp | point.h 
 build element.o : cc element.cpp | element.h point.h error.h
-build unstruc.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h
+build unstruc.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h openfoam.h
 
-build unstruc : ld plot3d.o su2.o grid.o translation.o error.o point.o element.o unstruc.o block.o vtk.o
+build unstruc : ld plot3d.o su2.o grid.o translation.o error.o point.o element.o unstruc.o block.o vtk.o openfoam.o gmsh.o
+    opts= -lboost_system -lboost_filesystem
