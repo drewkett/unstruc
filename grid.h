@@ -28,6 +28,8 @@ struct Grid {
 	int n_boundelems;
 	int dim;
 	int n_names;
+
+	Grid () : points(0), ppoints(0), elements(0), names(0), n_points(0), n_elems(0), n_boundelems(0), dim(0), n_names(0) {};
 };
 
 void set_i(Grid &grid);

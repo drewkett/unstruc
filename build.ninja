@@ -1,6 +1,6 @@
 
 rule cc
-  command = clang++ -Wall -O2 -g -c $opts $in -o $out
+  command = clang++ -std=c++11 -Wall -O2 -g -c $opts $in -o $out
 
 rule ld
   command = clang++ -Wall $in -o $out $opts

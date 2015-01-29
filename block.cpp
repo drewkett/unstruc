@@ -49,7 +49,11 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int i = 0; i < si; i++) {
 			for (int j = 0; j < sj; j++) {
 				for (int k = 0; k < sk; k++) {
-					grid.points.push_back(blk.at(i,j,k));
+					Point * p = new Point;
+					p->x = blk.at(i,j,k)->x;
+					p->y = blk.at(i,j,k)->y;
+					p->z = blk.at(i,j,k)->z;
+					grid.points.push_back(p);
 					grid.ppoints.push_back(&grid.points.back());
 				}
 			}
