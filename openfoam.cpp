@@ -5,6 +5,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <assert.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -54,6 +55,39 @@ struct OFFace {
 struct OFInfo {
 	int n_points, n_cells, n_faces, n_internal_faces;
 };
+
+std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid) {
+	if (face.n_points < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
+	std::vector<OFFace> split_faces;
+
+	Point* face_center = new Point { 0, 0, 0, 0, 0 };
+	for (int p_i : face.points) {
+		Point *p = grid.points[p_i];
+		face_center->x += p->x;
+		face_center->y += p->y;
+		face_center->z += p->z;
+	}
+	face_center->x /= face.n_points;
+	face_center->y /= face.n_points;
+	face_center->z /= face.n_points;
+
+	int face_center_id = grid.points.size();
+	grid.points.push_back(face_center);
+	grid.ppoints.push_back(&grid.points.back());
+
+	//create tetrahedrals that include one edge, the face center and the cell center
+	//for (int k = current_index; k < current_index+current_npoints-1; ++k) {
+	for (int i = 0; i < face.n_points-1; ++i) {
+		split_faces.emplace_back();
+		OFFace& new_face = split_faces.back();
+		new_face.n_points = 3;
+		new_face.points.resize(3);
+		new_face.points[0] = face.points[i];
+		new_face.points[1] = face.points[i+1];
+		new_face.points[2] = face_center_id;
+	}
+	return split_faces;
+}
 
 FoamHeader readFoamHeader(std::ifstream& f) {
 	std::string line;
@@ -792,37 +826,26 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					}
 					e.points[4] = &grid.points[cell_center_id];
 				} else {
-					// create new point at face center for tetrahedryl
-					// This step is not needed if clever about divying up face to mimimize number of created cells
-					Point* face_center = new Point { 0, 0, 0, 0, 0 };
-					for (int p_i : current_face.points) {
-						Point *p = grid.points[p_i];
-						face_center->x += p->x;
-						face_center->y += p->y;
-						face_center->z += p->z;
-					}
-					face_center->x /= current_face.n_points;
-					face_center->y /= current_face.n_points;
-					face_center->z /= current_face.n_points;
+					// Split polygon face into tris and quads
+					std::vector<OFFace> split_faces = splitPolyFace(current_face,grid);
 
-					int face_center_id = grid.points.size();
-					grid.points.push_back(face_center);
-					grid.ppoints.push_back(&grid.points.back());
-
-					//create tetrahedrals that include one edge, the face center and the cell center
-					//for (int k = current_index; k < current_index+current_npoints-1; ++k) {
-					for (int k = 0; k < current_face.n_points-1; ++k) {
-						grid.elements.emplace_back(TETRA);
+					//create element from each of the split faces and the cell center
+					for (OFFace& new_face : split_faces) {
+						if (new_face.n_points == 3)
+							grid.elements.emplace_back(TETRA);
+						else if (new_face.n_points == 4)
+							grid.elements.emplace_back(TETRA);
 						Element& e = grid.elements.back();
 
 						if (j < n_owners_per_cell[i]) {
-							e.points[0] = &grid.points[current_face.points[k]];
-							e.points[1] = &grid.points[current_face.points[k+1]];
+							e.points[0] = &grid.points[new_face.points[0]];
+							e.points[1] = &grid.points[new_face.points[1]];
+							e.points[2] = &grid.points[new_face.points[2]];
 						} else {
-							e.points[1] = &grid.points[current_face.points[k]];
-							e.points[0] = &grid.points[current_face.points[k+1]];
+							e.points[2] = &grid.points[new_face.points[0]];
+							e.points[1] = &grid.points[new_face.points[1]];
+							e.points[0] = &grid.points[new_face.points[2]];
 						}
-						e.points[2] = &grid.points[face_center_id];
 						e.points[3] = &grid.points[cell_center_id];
 					}
 				}
