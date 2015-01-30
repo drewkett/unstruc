@@ -852,6 +852,45 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 		}
 	}
+	for (OFBoundary& boundary : boundaries) {
+		int name_i = grid.names.size();
+		grid.names.emplace_back(2,boundary.name);
+		for (int i = boundary.start_face; i < boundary.start_face+boundary.n_faces; ++i) {
+			OFFace& face = faces[i];
+			if (face.n_points == 3) {
+				grid.elements.emplace_back(TRI);
+				Element &e = grid.elements.back();
+				e.name_i = name_i;
+				for (int j = 0; j < 3; ++j)
+					e.points[j] = &grid.points[face.points[j]];
+			} else if (face.n_points == 4) {
+				grid.elements.emplace_back(QUAD);
+				Element &e = grid.elements.back();
+				e.name_i = name_i;
+				for (int j = 0; j < 3; ++j)
+					e.points[j] = &grid.points[face.points[j]];
+			} else if (face.n_points > 4) {
+				std::vector<OFFace> split_faces = splitPolyFace(face,grid);
+				for (OFFace split_face : split_faces) {
+					if (split_face.n_points == 3) {
+						grid.elements.emplace_back(TRI);
+						Element &e = grid.elements.back();
+						e.name_i = name_i;
+						for (int j = 0; j < 3; ++j)
+							e.points[j] = &grid.points[face.points[j]];
+					} else if (split_face.n_points == 4) {
+						grid.elements.emplace_back(TRI);
+						Element &e = grid.elements.back();
+						e.name_i = name_i;
+						for (int j = 0; j < 4; ++j)
+							e.points[j] = &grid.points[face.points[j]];
+					}
+				}
+			} else {
+				Fatal("Not a valid face for boundary");
+			}
+		}
+	}
 	printf("Created Points: %zu\n",grid.points.size());
-	printf("Created Cells: %zu\n",grid.elements.size());
+	printf("Created Elements: %zu\n",grid.elements.size());
 }
