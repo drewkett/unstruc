@@ -138,13 +138,6 @@ FoamHeader readFoamHeader(std::ifstream& f) {
 		f >> token;
 	}
 
-	//while (std::getline(f,line)) {
-	//	if (line.size() == 0) continue;
-	//	if (line[0] == '/' && line[1] == '/') continue;
-	//	header.n = atoi(line.c_str());
-	//	break;
-	//}
-
 	return header;
 }
 
@@ -349,14 +342,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	}
 
 	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
-	//grid.elements.resize(info.n_cells);
-	//std::vector<int> n_faces_per_cell (info.n_cells,0);
-	//for (int i = 0; i < owners.size(); ++i) {
-	//	n_faces_per_cell[owners[i]]++;
-	//}
-	//for (int i = 0; i < neighbours.size(); ++i) {
-	//	n_faces_per_cell[neighbours[i]]++;
-	//}
 
 	std::vector< int > n_faces_per_cell (info.n_cells,0);
 	std::vector< int > n_owners_per_cell (info.n_cells,0);
