@@ -60,31 +60,68 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid) {
 	if (face.n_points < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
 	std::vector<OFFace> split_faces;
 
-	Point* face_center = new Point { 0, 0, 0, 0, 0 };
-	for (int p_i : face.points) {
-		Point *p = grid.points[p_i];
-		face_center->x += p->x;
-		face_center->y += p->y;
-		face_center->z += p->z;
+	double max_angle = 0;
+	int max_i = -1;
+	for (int i = 0; i < face.n_points; ++i) {
+		Point* p0 = grid.points[face.points[i]];
+		Point* p1 = grid.points[face.points[((i-1)+face.n_points)%face.n_points]];
+		Point* p2 = grid.points[face.points[(i+1)%face.n_points]];
+		Vector v1 = subtract_points(p1,p0);
+		Vector v2 = subtract_points(p2,p0);
+		double angle = angle_between(v2,v1);
+		assert (angle == angle);
+		assert (angle >= 0);
+		if (angle > max_angle) {
+			max_angle = angle;
+			max_i = i;
+		}
 	}
-	face_center->x /= face.n_points;
-	face_center->y /= face.n_points;
-	face_center->z /= face.n_points;
+	assert (max_i != -1);
 
-	int face_center_id = grid.points.size();
-	grid.points.push_back(face_center);
-	grid.ppoints.push_back(&grid.points.back());
+	Point* p0 = grid.points[face.points[max_i]];
+	Point* p1 = grid.points[face.points[(max_i+1)%face.n_points]];
+	Vector v1 = subtract_points(p1,p0);
+	double min_diff = 180;
+	int min_i = -1;
+	for (int i_offset = 2; i_offset < face.n_points-1; ++i_offset) {
+		int i = (max_i + i_offset) % face.n_points;
+		Point* p2 = grid.points[face.points[i]];
+		Vector v2 = subtract_points(p2,p0);
+		double diff = fabs(90 - angle_between(v1,v2));
+		if (diff < min_diff) {
+			min_diff = diff;
+			min_i = i;
+		}
+	}
+	assert (min_i != -1);
+	OFFace face1;
+	face1.n_points = ((min_i - max_i + 1) + face.n_points) % face.n_points;
+	for (int i_off = 0; i_off < face1.n_points; ++i_off) {
+		int i = (max_i + i_off) % face.n_points;
+		face1.points.push_back(face.points[i]);
+	}
 
-	//create tetrahedrals that include one edge, the face center and the cell center
-	//for (int k = current_index; k < current_index+current_npoints-1; ++k) {
-	for (int i = 0; i < face.n_points-1; ++i) {
-		split_faces.emplace_back();
-		OFFace& new_face = split_faces.back();
-		new_face.n_points = 3;
-		new_face.points.resize(3);
-		new_face.points[0] = face.points[i];
-		new_face.points[1] = face.points[i+1];
-		new_face.points[2] = face_center_id;
+	assert (face1.n_points > 2);
+	if (face1.n_points == 3 || face1.n_points == 4) {
+		split_faces.push_back(face1);
+	} else {
+		std::vector<OFFace> new_split_faces = splitPolyFace(face1,grid);
+		split_faces.insert(split_faces.end(),new_split_faces.begin(),new_split_faces.end());
+	}
+
+	OFFace face2;
+	face2.n_points = ((max_i - min_i + 1) + face.n_points) % face.n_points;
+	for (int i_off = 0; i_off < face2.n_points; ++i_off) {
+		int i = (min_i + i_off) % face.n_points;
+		face2.points.push_back(face.points[i]);
+	}
+
+	assert (face2.n_points > 2);
+	if (face2.n_points == 3 || face2.n_points == 4) {
+		split_faces.push_back(face2);
+	} else {
+		std::vector<OFFace> new_split_faces = splitPolyFace(face2,grid);
+		split_faces.insert(split_faces.end(),new_split_faces.begin(),new_split_faces.end());
 	}
 	return split_faces;
 }

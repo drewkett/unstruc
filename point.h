@@ -16,4 +16,13 @@ bool compare_ppoint_by_index(Point ** p1, Point ** p2);
 bool close(Point &p1, Point &p2, double tol);
 bool same(Point &p1, Point &p2, double tol);
 
+struct Vector
+{
+	double x,y,z;
+};
+
+void dump(Vector&);
+Vector subtract_points(Point *, Point *);
+double angle_between(const Vector&, const Vector&);
+
 #endif
