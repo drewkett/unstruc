@@ -47,8 +47,8 @@ struct OFBoundary {
 	int start_face;
 };
 
-struct OFFaces {
-	std::vector<int> index;
+struct OFFace {
+	int n_points;
 	std::vector<int> points;
 };
 
@@ -222,7 +222,7 @@ std::vector<OFPoint> readPoints(path dirpath) {
 	return readBinary<OFPoint>(f,header);
 }
 
-OFFaces readFaces(path dirpath) {
+std::vector<OFFace> readFaces(path dirpath) {
 	path filepath = dirpath/"faces";
 
 	std::ifstream f;
@@ -232,9 +232,15 @@ OFFaces readFaces(path dirpath) {
 
 	if (header.format == "ascii") Fatal("ascii not supported");
 
-	OFFaces faces;
-	faces.index = readBinary<int>(f,header);
-	faces.points = readBinary<int>(f,header);
+	std::vector<OFFace> faces;
+	std::vector<int> index = readBinary<int>(f,header);
+	std::vector<int> points = readBinary<int>(f,header);
+
+	faces.resize(index.size() - 1);
+	for (int i = 0; i < index.size() - 1; ++i) {
+		faces[i].n_points = index[i+1] - index[i];
+		faces[i].points = std::vector<int> (&points[index[i]],&points[index[i+1]]);
+	}
 
 	return faces;
 }
@@ -292,7 +298,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 	
 	OFInfo info = readInfoFromOwners(polymesh);
 	std::vector<OFPoint> points = readPoints(polymesh);
-	OFFaces faces = readFaces(polymesh);
+	std::vector<OFFace> faces = readFaces(polymesh);
 	std::vector<int> owners = readOwners(polymesh);
 	std::vector<int> neighbours = readNeighbours(polymesh);
 	std::vector<OFBoundary> boundaries = readBoundaries(polymesh);
@@ -310,7 +316,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 		grid.ppoints[i] = &grid.points[i];
 	}
 
-	if (info.n_faces != faces.index.size() - 1 ) Fatal("Invalid FoamFile: number of faces do not match");
+	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
 	//grid.elements.resize(info.n_cells);
 	//std::vector<int> n_faces_per_cell (info.n_cells,0);
 	//for (int i = 0; i < owners.size(); ++i) {
@@ -319,10 +325,6 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 	//for (int i = 0; i < neighbours.size(); ++i) {
 	//	n_faces_per_cell[neighbours[i]]++;
 	//}
-	std::vector< int > n_points_per_face (info.n_faces);
-	for (int i = 0; i < info.n_faces; ++i) {
-		n_points_per_face[i] = faces.index[i+1] - faces.index[i];
-	}
 
 	std::vector< int > n_faces_per_cell (info.n_cells,0);
 	std::vector< int > n_owners_per_cell (info.n_cells,0);
@@ -342,9 +344,9 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 		int n_quad = 0;
 		int n_poly = 0;
 		std::vector<int>& cell_faces = faces_per_cell[i];
-		for (int j = 0; j < n_faces_per_cell[i]; ++j) {
-			int current_face = cell_faces[j];
-			switch (n_points_per_face[current_face]) {
+		for (int j : cell_faces) {
+			OFFace& current_face = faces[j];
+			switch (current_face.n_points) {
 				case 0:
 				case 1:
 				case 2:
@@ -402,28 +404,26 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			Element& e = grid.elements.back();
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int first_face = cell_faces[0];
-			int first_index = faces.index[first_face];
 			if (n_owners_per_cell[i] == 0) {
-				e.points[0] = &grid.points[faces.points[first_index]];
-				e.points[1] = &grid.points[faces.points[first_index+1]];
-				e.points[2] = &grid.points[faces.points[first_index+2]];
+				e.points[0] = &grid.points[faces[first_face].points[0]];
+				e.points[1] = &grid.points[faces[first_face].points[1]];
+				e.points[2] = &grid.points[faces[first_face].points[2]];
 			} else {
-				e.points[2] = &grid.points[faces.points[first_index]];
-				e.points[1] = &grid.points[faces.points[first_index+1]];
-				e.points[0] = &grid.points[faces.points[first_index+2]];
+				e.points[2] = &grid.points[faces[first_face].points[0]];
+				e.points[1] = &grid.points[faces[first_face].points[1]];
+				e.points[0] = &grid.points[faces[first_face].points[2]];
 			}
 			int second_face = cell_faces[1];
-			for (int j = faces.index[second_face]; j < faces.index[second_face+1]; ++j) {
-				int p = faces.points[j];
+			for (int p2 : faces[second_face].points) {
 				bool match = true;
-				for (int k = 0; k < 3; ++k) {
-					if (p == faces.points[first_index+k]) {
+				for (int p1 : faces[first_face].points) {
+					if (p2 == p1) {
 						match = false;
 						break;
 					}
 				}
 				if (match) {
-					e.points[3] = &grid.points[p];
+					e.points[3] = &grid.points[p2];
 					break;
 				}
 			}
@@ -433,7 +433,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			int tri2_j = -1;
 			int quad1_j = -1;
 			for (int j = 0; j < 5; ++j) {
-				if (n_points_per_face[cell_faces[j]] == 3) {
+				if (faces[cell_faces[j]].n_points == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else
@@ -443,34 +443,28 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 						quad1_j = j;
 				}
 			}
-			int tri1_face = cell_faces[tri1_j];
-			int tri1_index = faces.index[tri1_face];
-
-			int tri2_face = cell_faces[tri2_j];
-			int tri2_index = faces.index[tri2_face];
-
-			int quad1_face = cell_faces[quad1_j];
-			int quad1_index = faces.index[quad1_face];
+			OFFace& tri1_face = faces[cell_faces[tri1_j]];
+			OFFace& tri2_face = faces[cell_faces[tri2_j]];
+			OFFace& quad1_face = faces[cell_faces[quad1_j]];
 
 			int extra_point = -1;
-			for (int j = quad1_index; j < quad1_index+4; ++j) {
-				int current_point = faces.points[j];
+			for (int p : quad1_face.points) {
 				bool match = true;
-				for (int k = tri1_index; k < tri1_index+3; ++k) {
-					if (current_point == faces.points[k]) {
+				for (int tp1 : tri1_face.points) {
+					if (p == tp1) {
 						match = false;
 						break;
 					}
 				}
 				if (!match) continue;
-				for (int k = tri2_index; k < tri2_index+3; ++k) {
-					if (current_point == faces.points[k]) {
+				for (int tp2 : tri2_face.points) {
+					if (p == tp2) {
 						match = false;
 						break;
 					}
 				}
 				if (match) {
-					extra_point = current_point;
+					extra_point = p;
 					break;
 				}
 			}
@@ -479,26 +473,26 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			grid.elements.emplace_back(TETRA);
 			Element& e1 = grid.elements.back();
 			if (tri1_j < n_owners_per_cell[i]) {
-				e1.points[2] = &grid.points[faces.points[tri1_index+1]];
-				e1.points[1] = &grid.points[faces.points[tri1_index+2]];
-				e1.points[0] = &grid.points[faces.points[tri1_index+3]];
+				e1.points[2] = &grid.points[tri1_face.points[0]];
+				e1.points[1] = &grid.points[tri1_face.points[1]];
+				e1.points[0] = &grid.points[tri1_face.points[2]];
 			} else {
-				e1.points[0] = &grid.points[faces.points[tri1_index+1]];
-				e1.points[1] = &grid.points[faces.points[tri1_index+2]];
-				e1.points[2] = &grid.points[faces.points[tri1_index+3]];
+				e1.points[0] = &grid.points[tri1_face.points[0]];
+				e1.points[1] = &grid.points[tri1_face.points[1]];
+				e1.points[2] = &grid.points[tri1_face.points[2]];
 			}
 			e1.points[3] = &grid.points[extra_point];
 
 			grid.elements.emplace_back(TETRA);
 			Element& e2 = grid.elements.back();
 			if (tri2_j < n_owners_per_cell[i]) {
-				e2.points[2] = &grid.points[faces.points[tri2_index+1]];
-				e2.points[1] = &grid.points[faces.points[tri2_index+2]];
-				e2.points[0] = &grid.points[faces.points[tri2_index+3]];
+				e2.points[2] = &grid.points[tri2_face.points[0]];
+				e2.points[1] = &grid.points[tri2_face.points[1]];
+				e2.points[0] = &grid.points[tri2_face.points[2]];
 			} else {
-				e2.points[0] = &grid.points[faces.points[tri2_index+1]];
-				e2.points[1] = &grid.points[faces.points[tri2_index+2]];
-				e2.points[2] = &grid.points[faces.points[tri2_index+3]];
+				e2.points[0] = &grid.points[tri2_face.points[0]];
+				e2.points[1] = &grid.points[tri2_face.points[1]];
+				e2.points[2] = &grid.points[tri2_face.points[2]];
 			}
 			e2.points[3] = &grid.points[extra_point];
 		} else if (cell_type == OFPyramid) {
@@ -506,38 +500,36 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			Element& e = grid.elements.back();
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int quad_j = -1;
-			int quad_face = -1;
 			for (int j = 0; j < 5; ++j) {
-				if (n_points_per_face[cell_faces[j]] == 4) {
+				if (faces[cell_faces[j]].n_points == 4) {
 					quad_j = j;
-					quad_face = cell_faces[j];
 					break;
 				}
 			}
-			if (quad_j == -1)
-				Fatal("Shouldn't be possible");
-			int quad_index = faces.index[quad_face];
+			if (quad_j == -1) Fatal("Shouldn't be possible");
+
+			OFFace& quad_face = faces[cell_faces[quad_j]];
 			if (quad_j < n_owners_per_cell[i]) {
-				e.points[3] = &grid.points[faces.points[quad_index]];
-				e.points[2] = &grid.points[faces.points[quad_index+1]];
-				e.points[1] = &grid.points[faces.points[quad_index+2]];
-				e.points[0] = &grid.points[faces.points[quad_index+3]];
+				e.points[3] = &grid.points[quad_face.points[0]];
+				e.points[2] = &grid.points[quad_face.points[1]];
+				e.points[1] = &grid.points[quad_face.points[2]];
+				e.points[0] = &grid.points[quad_face.points[3]];
 			} else {
-				e.points[0] = &grid.points[faces.points[quad_index]];
-				e.points[1] = &grid.points[faces.points[quad_index+1]];
-				e.points[2] = &grid.points[faces.points[quad_index+2]];
-				e.points[3] = &grid.points[faces.points[quad_index+3]];
+				e.points[0] = &grid.points[quad_face.points[0]];
+				e.points[1] = &grid.points[quad_face.points[1]];
+				e.points[2] = &grid.points[quad_face.points[2]];
+				e.points[3] = &grid.points[quad_face.points[3]];
 			}
-			int second_face;
+			int second_j;
 			if (quad_j == 0)
-				second_face = cell_faces[1];
+				second_j = 1;
 			else
-				second_face = cell_faces[0];
-			for (int j = faces.index[second_face]; j < faces.index[second_face+1]; ++j) {
-				int p = faces.points[j];
+				second_j = 0;
+			OFFace& second_face = faces[cell_faces[second_j]];
+			for (int p : second_face.points) {
 				bool match = true;
-				for (int k = 0; k < 4; ++k) {
-					if (p == faces.points[quad_index+k]) {
+				for (int p2 : quad_face.points) {
+					if (p == p2) {
 						match = false;
 						break;
 					}
@@ -552,7 +544,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
-				if (n_points_per_face[cell_faces[j]] == 3) {
+				if (faces[cell_faces[j]].n_points == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else if (tri2_j == -1)
@@ -563,18 +555,14 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			}
 			if (tri1_j == -1) Fatal("Shouldn't be possible");
 			if (tri2_j == -1) Fatal("Shouldn't be possible");
-			int tri1_face = cell_faces[tri1_j];
-			int tri1_index = faces.index[tri1_face];
-
-			int tri2_face = cell_faces[tri2_j];
-			int tri2_index = faces.index[tri2_face];
+			OFFace& tri1_face = faces[cell_faces[tri1_j]];
+			OFFace& tri2_face = faces[cell_faces[tri2_j]];
 
 			int common_point = -1;
-			for (int j = tri1_index; j < tri1_index+3; ++j) {
-				int p = faces.points[j];
-				for (int k = tri2_index; k < tri2_index+3; ++k) {
-					if (p == faces.points[k]) {
-						common_point = p;
+			for (int p1 : tri1_face.points) {
+				for (int p2 : tri2_face.points) {
+					if (p1 == p2) {
+						common_point = p1;
 						break;
 					}
 				}
@@ -585,21 +573,20 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			int quad1_j = -1;
 			int quad2_j = -1;
 			for (int j = 0; j < 6; ++j) {
-				int current_face = cell_faces[j];
-				int current_index = faces.index[current_face];
-				if (n_points_per_face[current_face] == 3) continue;
+				OFFace& current_face = faces[cell_faces[j]];
+				if (current_face.n_points == 3) continue;
 				bool match1 = false;
 				bool match2 = false;
-				for (int k = current_index; k < current_index+4; ++k) {
-					for (int l = tri1_index; l < tri1_index+3; ++l) {
-						if (faces.points[k] == faces.points[l]) {
+				for (int p : current_face.points) {
+					for (int p1 : tri1_face.points) {
+						if (p == p1) {
 							match1 = true;
 							break;
 						}
 					}
-					for (int l = tri2_index; l < tri2_index+3; ++l) {
-						if (faces.points[k] == faces.points[l]) {
-							match1 = true;
+					for (int p2 : tri2_face.points) {
+						if (p == p2) {
+							match2 = true;
 							break;
 						}
 					}
@@ -611,39 +598,36 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			if (quad1_j == -1) Fatal("Shouldn't be possible");
 			if (quad2_j == -1) Fatal("Shouldn't be possible");
 
-			int quad1_face = cell_faces[quad1_j];
-			int quad2_face = cell_faces[quad2_j];
-
-			int quad1_index = faces.index[quad1_face];
-			int quad2_index = faces.index[quad2_face];
+			OFFace& quad1_face = faces[cell_faces[quad1_j]];
+			OFFace& quad2_face = faces[cell_faces[quad2_j]];
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e1 = grid.elements.back();
 			if (quad1_j < n_owners_per_cell[i]) {
-				e1.points[3] = &grid.points[faces.points[quad1_index]];
-				e1.points[2] = &grid.points[faces.points[quad1_index+1]];
-				e1.points[1] = &grid.points[faces.points[quad1_index+2]];
-				e1.points[0] = &grid.points[faces.points[quad1_index+3]];
+				e1.points[3] = &grid.points[quad1_face.points[0]];
+				e1.points[2] = &grid.points[quad1_face.points[1]];
+				e1.points[1] = &grid.points[quad1_face.points[2]];
+				e1.points[0] = &grid.points[quad1_face.points[3]];
 			} else {
-				e1.points[0] = &grid.points[faces.points[quad1_index]];
-				e1.points[1] = &grid.points[faces.points[quad1_index+1]];
-				e1.points[2] = &grid.points[faces.points[quad1_index+2]];
-				e1.points[3] = &grid.points[faces.points[quad1_index+3]];
+				e1.points[0] = &grid.points[quad1_face.points[0]];
+				e1.points[1] = &grid.points[quad1_face.points[1]];
+				e1.points[2] = &grid.points[quad1_face.points[2]];
+				e1.points[3] = &grid.points[quad1_face.points[3]];
 			}
 			e1.points[4] = &grid.points[common_point];
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e2 = grid.elements.back();
 			if (quad2_j < n_owners_per_cell[i]) {
-				e2.points[3] = &grid.points[faces.points[quad2_index]];
-				e2.points[2] = &grid.points[faces.points[quad2_index+1]];
-				e2.points[1] = &grid.points[faces.points[quad2_index+2]];
-				e2.points[0] = &grid.points[faces.points[quad2_index+3]];
+				e2.points[3] = &grid.points[quad2_face.points[0]];
+				e2.points[2] = &grid.points[quad2_face.points[1]];
+				e2.points[1] = &grid.points[quad2_face.points[2]];
+				e2.points[0] = &grid.points[quad2_face.points[3]];
 			} else {
-				e2.points[0] = &grid.points[faces.points[quad2_index]];
-				e2.points[1] = &grid.points[faces.points[quad2_index+1]];
-				e2.points[2] = &grid.points[faces.points[quad2_index+2]];
-				e2.points[3] = &grid.points[faces.points[quad2_index+3]];
+				e2.points[0] = &grid.points[quad2_face.points[0]];
+				e2.points[1] = &grid.points[quad2_face.points[1]];
+				e2.points[2] = &grid.points[quad2_face.points[2]];
+				e2.points[3] = &grid.points[quad2_face.points[3]];
 			}
 			e2.points[4] = &grid.points[common_point];
 		} else if (cell_type == OFPrism) {
@@ -651,7 +635,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
-				if (n_points_per_face[cell_faces[j]] == 3) {
+				if (faces[cell_faces[j]].n_points == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else if (tri2_j == -1)
@@ -662,62 +646,53 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			}
 			if (tri1_j == -1) Fatal("Shouldn't be possible");
 			if (tri2_j == -1) Fatal("Shouldn't be possible");
-			int tri1_face = cell_faces[tri1_j];
-			int tri1_index = faces.index[tri1_face];
-
-			int tri2_face = cell_faces[tri2_j];
-			int tri2_index = faces.index[tri2_face];
+			OFFace& tri1_face = faces[cell_faces[tri1_j]];
+			OFFace& tri2_face = faces[cell_faces[tri2_j]];
 
 			grid.elements.emplace_back(WEDGE);
 			Element& e = grid.elements.back();
 			if (tri1_j < n_owners_per_cell[i]) {
-				e.points[0] = &grid.points[faces.points[tri1_index]];
-				e.points[1] = &grid.points[faces.points[tri1_index+1]];
-				e.points[2] = &grid.points[faces.points[tri1_index+2]];
+				e.points[0] = &grid.points[tri1_face.points[0]];
+				e.points[1] = &grid.points[tri1_face.points[1]];
+				e.points[2] = &grid.points[tri1_face.points[2]];
 			} else {
-				e.points[2] = &grid.points[faces.points[tri1_index]];
-				e.points[1] = &grid.points[faces.points[tri1_index+1]];
-				e.points[0] = &grid.points[faces.points[tri1_index+2]];
+				e.points[2] = &grid.points[tri1_face.points[0]];
+				e.points[1] = &grid.points[tri1_face.points[1]];
+				e.points[0] = &grid.points[tri1_face.points[2]];
 			}
 			if (tri2_j < n_owners_per_cell[i]) {
-				e.points[5] = &grid.points[faces.points[tri2_index]];
-				e.points[4] = &grid.points[faces.points[tri2_index+1]];
-				e.points[3] = &grid.points[faces.points[tri2_index+2]];
+				e.points[5] = &grid.points[tri2_face.points[0]];
+				e.points[4] = &grid.points[tri2_face.points[1]];
+				e.points[3] = &grid.points[tri2_face.points[2]];
 			} else {
-				e.points[3] = &grid.points[faces.points[tri2_index]];
-				e.points[4] = &grid.points[faces.points[tri2_index+1]];
-				e.points[5] = &grid.points[faces.points[tri2_index+2]];
+				e.points[3] = &grid.points[tri2_face.points[0]];
+				e.points[4] = &grid.points[tri2_face.points[1]];
+				e.points[5] = &grid.points[tri2_face.points[2]];
 			}
 		} else if (cell_type == OFHexa) {
 			grid.elements.emplace_back(HEXA);
 			Element& e = grid.elements.back();
 			std::vector<int>& cell_faces = faces_per_cell[i];
-			int first_face = cell_faces[0];
-			int first_index = faces.index[first_face];
+			OFFace& first_face = faces[cell_faces[0]];
 			if (n_owners_per_cell[i] == 0) {
-				e.points[0] = &grid.points[faces.points[first_index]];
-				e.points[1] = &grid.points[faces.points[first_index+1]];
-				e.points[2] = &grid.points[faces.points[first_index+2]];
-				e.points[3] = &grid.points[faces.points[first_index+3]];
+				e.points[0] = &grid.points[first_face.points[0]];
+				e.points[1] = &grid.points[first_face.points[1]];
+				e.points[2] = &grid.points[first_face.points[2]];
+				e.points[3] = &grid.points[first_face.points[3]];
 			} else {
-				e.points[3] = &grid.points[faces.points[first_index]];
-				e.points[2] = &grid.points[faces.points[first_index+1]];
-				e.points[1] = &grid.points[faces.points[first_index+2]];
-				e.points[0] = &grid.points[faces.points[first_index+3]];
+				e.points[3] = &grid.points[first_face.points[0]];
+				e.points[2] = &grid.points[first_face.points[1]];
+				e.points[1] = &grid.points[first_face.points[2]];
+				e.points[0] = &grid.points[first_face.points[3]];
 			}
 
-			std::vector<int> first_face_points (4);
-			for (int k = 0; k < 4; ++k)
-				first_face_points[k] = faces.points[first_index+k];
-
+			std::vector<int> first_face_points (first_face.points);
 			std::sort(first_face_points.begin(),first_face_points.end());
 
 			std::vector<int> current_face_points (4);
 			for (int j = 1; j < 6; ++j) {
-				int current_face = cell_faces[j];
-				int current_index = faces.index[current_face];
-				for (int k = 0; k < 4; ++k)
-					current_face_points[k] = faces.points[current_index+k];
+				OFFace& current_face = faces[cell_faces[j]];
+				std::vector<int> current_face_points (current_face.points);
 				std::sort(current_face_points.begin(),current_face_points.end());
 
 				bool match = true;
@@ -730,32 +705,29 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 
 				if (match) {
 					if (j < n_owners_per_cell[i]) {
-						e.points[4] = &grid.points[faces.points[current_index]];
-						e.points[5] = &grid.points[faces.points[current_index+1]];
-						e.points[6] = &grid.points[faces.points[current_index+2]];
-						e.points[7] = &grid.points[faces.points[current_index+3]];
+						e.points[4] = &grid.points[current_face.points[0]];
+						e.points[5] = &grid.points[current_face.points[1]];
+						e.points[6] = &grid.points[current_face.points[2]];
+						e.points[7] = &grid.points[current_face.points[3]];
 					} else {
-						e.points[7] = &grid.points[faces.points[current_index]];
-						e.points[6] = &grid.points[faces.points[current_index+1]];
-						e.points[5] = &grid.points[faces.points[current_index+2]];
-						e.points[4] = &grid.points[faces.points[current_index+3]];
+						e.points[7] = &grid.points[current_face.points[0]];
+						e.points[6] = &grid.points[current_face.points[1]];
+						e.points[5] = &grid.points[current_face.points[2]];
+						e.points[4] = &grid.points[current_face.points[3]];
 					}
 					break;
 				}
 			}
 		} else if (cell_type == OFPoly) {
-			std::vector<int>& cell_faces = faces_per_cell[i];
-			int first_face = cell_faces[0];
-
 			// Find complete set of points that make up cell by doing repeated unions
-			std::vector<int> point_set (&faces.points[faces.index[first_face]],&faces.points[faces.index[first_face+1]]);
+			std::vector<int> point_set (0);
 			std::sort(point_set.begin(),point_set.end());
 
-			for (int j = 1; j < n_faces_per_cell[i]; ++j) {
-				int current_face = cell_faces[j];
+			for (int f : cell_faces) {
+				OFFace& current_face = faces[f];
 
 				// create vector of points for current face
-				std::vector<int> current_set (&faces.points[faces.index[current_face]],&faces.points[faces.index[current_face+1]]);
+				std::vector<int> current_set (current_face.points);
 				std::sort(current_set.begin(),current_set.end());
 
 				// copy point_set to temp_set so that final union goes back in point_set
@@ -771,8 +743,7 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 
 			// Calculate cell_center used for created cells
 			Point* cell_center = new Point { 0, 0, 0, 0, 0 };
-			for (int j = 0; j < point_set.size(); ++j) {
-				int p_i = point_set[j];
+			for (int p_i : point_set) {
 				Point *p = grid.points[p_i];
 				cell_center->x += p->x;
 				cell_center->y += p->y;
@@ -787,73 +758,71 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 			grid.points.push_back(cell_center);
 			grid.ppoints.push_back(&grid.points.back());
 
-			for (int j = 0; j < n_faces_per_cell[i]; ++j) {
-				int current_face = cell_faces[j];
-				int current_index = faces.index[current_face];
-				int current_npoints = n_points_per_face[current_face];
+			for (int j = 0; j < cell_faces.size(); ++j) {
+				OFFace& current_face = faces[cell_faces[j]];
 
-				if (current_npoints == 3) {
+				if (current_face.n_points == 3) {
 					// If current face only has 3 points, create a tetrahedral with face plus cell center
 					grid.elements.emplace_back(TETRA);
 					Element& e = grid.elements.back();
 
 					if (j < n_owners_per_cell[i]) {
-						e.points[0] = &grid.points[faces.points[current_index]];
-						e.points[1] = &grid.points[faces.points[current_index+1]];
-						e.points[2] = &grid.points[faces.points[current_index+2]];
+						e.points[0] = &grid.points[current_face.points[0]];
+						e.points[1] = &grid.points[current_face.points[1]];
+						e.points[2] = &grid.points[current_face.points[2]];
 					} else {
-						e.points[2] = &grid.points[faces.points[current_index]];
-						e.points[1] = &grid.points[faces.points[current_index+1]];
-						e.points[0] = &grid.points[faces.points[current_index+2]];
+						e.points[2] = &grid.points[current_face.points[0]];
+						e.points[1] = &grid.points[current_face.points[1]];
+						e.points[0] = &grid.points[current_face.points[2]];
 					}
 					e.points[3] = &grid.points[cell_center_id];
-				} else if (current_npoints == 4) {
+				} else if (current_face.n_points == 4) {
 					// If current face only has 4 points, create a pyramid with face plus cell center
 					grid.elements.emplace_back(PYRAMID);
 					Element& e = grid.elements.back();
 
 					if (j < n_owners_per_cell[i]) {
-						e.points[0] = &grid.points[faces.points[current_index]];
-						e.points[1] = &grid.points[faces.points[current_index+1]];
-						e.points[2] = &grid.points[faces.points[current_index+2]];
-						e.points[3] = &grid.points[faces.points[current_index+3]];
+						e.points[0] = &grid.points[current_face.points[0]];
+						e.points[1] = &grid.points[current_face.points[1]];
+						e.points[2] = &grid.points[current_face.points[2]];
+						e.points[3] = &grid.points[current_face.points[3]];
 					} else {
-						e.points[3] = &grid.points[faces.points[current_index]];
-						e.points[2] = &grid.points[faces.points[current_index+1]];
-						e.points[1] = &grid.points[faces.points[current_index+2]];
-						e.points[0] = &grid.points[faces.points[current_index+3]];
+						e.points[3] = &grid.points[current_face.points[0]];
+						e.points[2] = &grid.points[current_face.points[1]];
+						e.points[1] = &grid.points[current_face.points[2]];
+						e.points[0] = &grid.points[current_face.points[3]];
 					}
 					e.points[4] = &grid.points[cell_center_id];
 				} else {
 					// create new point at face center for tetrahedryl
 					// This step is not needed if clever about divying up face to mimimize number of created cells
 					Point* face_center = new Point { 0, 0, 0, 0, 0 };
-					for (int k = current_index; k < current_index+current_npoints; ++k) {
-						int p_i = faces.points[k];
+					for (int p_i : current_face.points) {
 						Point *p = grid.points[p_i];
 						face_center->x += p->x;
 						face_center->y += p->y;
 						face_center->z += p->z;
 					}
-					face_center->x /= current_npoints;
-					face_center->y /= current_npoints;
-					face_center->z /= current_npoints;
+					face_center->x /= current_face.n_points;
+					face_center->y /= current_face.n_points;
+					face_center->z /= current_face.n_points;
 
 					int face_center_id = grid.points.size();
 					grid.points.push_back(face_center);
 					grid.ppoints.push_back(&grid.points.back());
 
 					//create tetrahedrals that include one edge, the face center and the cell center
-					for (int k = current_index; k < current_index+current_npoints-1; ++k) {
+					//for (int k = current_index; k < current_index+current_npoints-1; ++k) {
+					for (int k = 0; k < current_face.n_points-1; ++k) {
 						grid.elements.emplace_back(TETRA);
 						Element& e = grid.elements.back();
 
 						if (j < n_owners_per_cell[i]) {
-							e.points[0] = &grid.points[faces.points[k]];
-							e.points[1] = &grid.points[faces.points[k+1]];
+							e.points[0] = &grid.points[current_face.points[k]];
+							e.points[1] = &grid.points[current_face.points[k+1]];
 						} else {
-							e.points[1] = &grid.points[faces.points[k]];
-							e.points[0] = &grid.points[faces.points[k+1]];
+							e.points[1] = &grid.points[current_face.points[k]];
+							e.points[0] = &grid.points[current_face.points[k+1]];
 						}
 						e.points[2] = &grid.points[face_center_id];
 						e.points[3] = &grid.points[cell_center_id];
