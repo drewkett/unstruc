@@ -328,6 +328,8 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	std::vector<int> neighbours = readNeighbours(polymesh);
 	std::vector<OFBoundary> boundaries = readBoundaries(polymesh);
 
+	grid.dim = 3;
+
 	printf("Points: %d\nFaces: %d\nInternal Faces: %d\nCells: %d\n",info.n_points,info.n_faces,info.n_internal_faces,info.n_cells);
 	if (info.n_points != points.size()) Fatal("Invalid FoamFile: number of points do not match");
 	grid.points.resize(points.size());
@@ -340,6 +342,9 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		grid.points[i] = p;
 		grid.ppoints[i] = &grid.points[i];
 	}
+
+	int name_i = grid.names.size();
+	grid.names.emplace_back(3,"volume");
 
 	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
 
@@ -419,6 +424,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFTetra) {
 			grid.elements.emplace_back(TETRA);
 			Element& e = grid.elements.back();
+			e.name_i = name_i;
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int first_face = cell_faces[0];
 			if (n_owners_per_cell[i] == 0) {
@@ -489,6 +495,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(TETRA);
 			Element& e1 = grid.elements.back();
+			e1.name_i = name_i;
 			if (tri1_j < n_owners_per_cell[i]) {
 				e1.points[2] = &grid.points[tri1_face.points[0]];
 				e1.points[1] = &grid.points[tri1_face.points[1]];
@@ -502,6 +509,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(TETRA);
 			Element& e2 = grid.elements.back();
+			e2.name_i = name_i;
 			if (tri2_j < n_owners_per_cell[i]) {
 				e2.points[2] = &grid.points[tri2_face.points[0]];
 				e2.points[1] = &grid.points[tri2_face.points[1]];
@@ -515,6 +523,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFPyramid) {
 			grid.elements.emplace_back(PYRAMID);
 			Element& e = grid.elements.back();
+			e.name_i = name_i;
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int quad_j = -1;
 			for (int j = 0; j < 5; ++j) {
@@ -620,6 +629,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e1 = grid.elements.back();
+			e1.name_i = name_i;
 			if (quad1_j < n_owners_per_cell[i]) {
 				e1.points[3] = &grid.points[quad1_face.points[0]];
 				e1.points[2] = &grid.points[quad1_face.points[1]];
@@ -635,6 +645,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e2 = grid.elements.back();
+			e2.name_i = name_i;
 			if (quad2_j < n_owners_per_cell[i]) {
 				e2.points[3] = &grid.points[quad2_face.points[0]];
 				e2.points[2] = &grid.points[quad2_face.points[1]];
@@ -668,6 +679,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(WEDGE);
 			Element& e = grid.elements.back();
+			e.name_i = name_i;
 			if (tri1_j < n_owners_per_cell[i]) {
 				e.points[0] = &grid.points[tri1_face.points[0]];
 				e.points[1] = &grid.points[tri1_face.points[1]];
@@ -689,6 +701,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFHexa) {
 			grid.elements.emplace_back(HEXA);
 			Element& e = grid.elements.back();
+			e.name_i = name_i;
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			OFFace& first_face = faces[cell_faces[0]];
 			if (n_owners_per_cell[i] == 0) {
@@ -782,6 +795,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					// If current face only has 3 points, create a tetrahedral with face plus cell center
 					grid.elements.emplace_back(TETRA);
 					Element& e = grid.elements.back();
+					e.name_i = name_i;
 
 					if (j < n_owners_per_cell[i]) {
 						e.points[0] = &grid.points[current_face.points[0]];
@@ -797,6 +811,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					// If current face only has 4 points, create a pyramid with face plus cell center
 					grid.elements.emplace_back(PYRAMID);
 					Element& e = grid.elements.back();
+					e.name_i = name_i;
 
 					if (j < n_owners_per_cell[i]) {
 						e.points[0] = &grid.points[current_face.points[0]];
@@ -821,6 +836,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						else if (new_face.n_points == 4)
 							grid.elements.emplace_back(TETRA);
 						Element& e = grid.elements.back();
+						e.name_i = name_i;
 
 						if (j < n_owners_per_cell[i]) {
 							e.points[0] = &grid.points[new_face.points[0]];
@@ -837,6 +853,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 		}
 	}
+	grid.n_elems = grid.elements.size();
 	for (OFBoundary& boundary : boundaries) {
 		int name_i = grid.names.size();
 		grid.names.emplace_back(2,boundary.name);
@@ -876,6 +893,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 		}
 	}
-	printf("Created Points: %zu\n",grid.points.size());
-	printf("Created Elements: %zu\n",grid.elements.size());
+	grid.n_points = grid.points.size();
+	grid.n_boundelems = grid.elements.size() - grid.n_elems;
+	grid.n_names = grid.names.size();
+	printf("Created Points: %d\n",grid.n_points);
+	printf("Created Elements: %d\n",grid.n_elems);
+	printf("Created Boundary Elements: %d\n",grid.n_boundelems);
 }
