@@ -20,4 +20,3 @@ build element.o : cc element.cpp | element.h point.h error.h
 build unstruc.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h openfoam.h
 
 build unstruc : ld plot3d.o su2.o grid.o translation.o error.o point.o element.o unstruc.o block.o vtk.o openfoam.o gmsh.o
-    opts= -lboost_system -lboost_filesystem

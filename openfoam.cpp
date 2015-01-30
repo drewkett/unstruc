@@ -6,6 +6,8 @@
 #include "error.h"
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <string>
 #include <algorithm>
@@ -13,9 +15,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-#include <boost/filesystem.hpp>
-using namespace boost::filesystem;
 
 enum OFCellType {
 	OFUnknown,
@@ -146,12 +145,12 @@ std::vector<T> readBinary(std::ifstream& f, FoamHeader& header) {
 	return vec;
 }
 
-OFInfo readInfoFromOwners(path dirpath) {
-	path filepath = dirpath/"owner";
+OFInfo readInfoFromOwners(std::string polymesh) {
+	std::string filepath = polymesh + "/owner";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	std::string note = header.note.substr(1,header.note.size()-2);
@@ -183,12 +182,12 @@ OFInfo readInfoFromOwners(path dirpath) {
 	return info;
 }
 
-std::vector<int> readOwners(path dirpath) {
-	path filepath = dirpath/"owner";
+std::vector<int> readOwners(const std::string polymesh) {
+	std::string filepath = polymesh + "/owner";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	if (header.format == "ascii") Fatal("ascii not supported");
@@ -196,12 +195,12 @@ std::vector<int> readOwners(path dirpath) {
 	return readBinary<int>(f,header);
 }
 
-std::vector<int> readNeighbours(path dirpath) {
-	path filepath = dirpath/"neighbour";
+std::vector<int> readNeighbours(const std::string& polymesh) {
+	std::string filepath = polymesh + "/neighbour";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	if (header.format == "ascii") Fatal("ascii not supported");
@@ -209,12 +208,12 @@ std::vector<int> readNeighbours(path dirpath) {
 	return readBinary<int>(f,header);
 }
 
-std::vector<OFPoint> readPoints(path dirpath) {
-	path filepath = dirpath/"points";
+std::vector<OFPoint> readPoints(const std::string& polymesh) {
+	std::string filepath = polymesh + "/points";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	if (header.format == "ascii") Fatal("ascii not supported");
@@ -222,12 +221,12 @@ std::vector<OFPoint> readPoints(path dirpath) {
 	return readBinary<OFPoint>(f,header);
 }
 
-std::vector<OFFace> readFaces(path dirpath) {
-	path filepath = dirpath/"faces";
+std::vector<OFFace> readFaces(const std::string& polymesh) {
+	std::string filepath = polymesh + "/faces";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	if (header.format == "ascii") Fatal("ascii not supported");
@@ -245,12 +244,12 @@ std::vector<OFFace> readFaces(path dirpath) {
 	return faces;
 }
 
-std::vector<OFBoundary> readBoundaries(path dirpath) {
-	path filepath = dirpath/"boundary";
+std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
+	std::string filepath = polymesh + "/boundary";
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath.string());
+	if (!f.is_open()) Fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f);
 
 	int n = readNextInt(f);
@@ -290,11 +289,10 @@ std::vector<OFBoundary> readBoundaries(path dirpath) {
 	return boundaries;
 }
 
-void readOpenFoam(Grid& grid, std::string &filename) {
-	path filepath(filename);
-	path polymesh = filepath.parent_path()/"constant"/"polyMesh";
-
-	if (!exists(polymesh)) Fatal("constant/polyMesh directory doesn't exist");
+void readOpenFoam(Grid& grid, std::string &polymesh) {
+	struct stat s;
+	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
+		Fatal(polymesh + " isn't a directory");
 	
 	OFInfo info = readInfoFromOwners(polymesh);
 	std::vector<OFPoint> points = readPoints(polymesh);

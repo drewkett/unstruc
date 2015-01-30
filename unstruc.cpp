@@ -31,7 +31,7 @@ int get_blocktype ( std::string &arg ) {
 		return VTK;
 	else if (arg.compare(n-4,4,".xyz") == 0 || arg.compare(n-4,4,".p3d") == 0)
 		return PLOT3D;
-	else if (arg.compare(n-5,5,".foam") == 0)
+	else if (arg.compare(n-8,8,"polyMesh") == 0 || arg.compare(n-9,9,"polyMesh/") == 0)
 		return OPENFOAM;
 	else
 		return UNKNOWN;
