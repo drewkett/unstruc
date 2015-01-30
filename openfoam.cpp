@@ -792,38 +792,72 @@ void readOpenFoam(Grid& grid, std::string &filename) {
 				int current_index = faces.index[current_face];
 				int current_npoints = n_points_per_face[current_face];
 
-				// create new point at face center for tetrahedryl
-				// This step is not needed if clever about divying up face to mimimize number of created cells
-				Point* face_center = new Point { 0, 0, 0, 0, 0 };
-				for (int k = current_index; k < current_index+current_npoints; ++k) {
-					int p_i = faces.points[k];
-					Point *p = grid.points[p_i];
-					face_center->x += p->x;
-					face_center->y += p->y;
-					face_center->z += p->z;
-				}
-				face_center->x /= current_npoints;
-				face_center->y /= current_npoints;
-				face_center->z /= current_npoints;
-
-				int face_center_id = grid.points.size();
-				grid.points.push_back(face_center);
-				grid.ppoints.push_back(&grid.points.back());
-
-				//create tetrahedrals that include one edge, the face center and the cell center
-				for (int k = current_index; k < current_index+current_npoints-1; ++k) {
+				if (current_npoints == 3) {
+					// If current face only has 3 points, create a tetrahedral with face plus cell center
 					grid.elements.emplace_back(TETRA);
 					Element& e = grid.elements.back();
 
 					if (j < n_owners_per_cell[i]) {
-						e.points[0] = &grid.points[faces.points[k]];
-						e.points[1] = &grid.points[faces.points[k+1]];
+						e.points[0] = &grid.points[faces.points[current_index]];
+						e.points[1] = &grid.points[faces.points[current_index+1]];
+						e.points[2] = &grid.points[faces.points[current_index+2]];
 					} else {
-						e.points[1] = &grid.points[faces.points[k]];
-						e.points[0] = &grid.points[faces.points[k+1]];
+						e.points[2] = &grid.points[faces.points[current_index]];
+						e.points[1] = &grid.points[faces.points[current_index+1]];
+						e.points[0] = &grid.points[faces.points[current_index+2]];
 					}
-					e.points[2] = &grid.points[face_center_id];
 					e.points[3] = &grid.points[cell_center_id];
+				} else if (current_npoints == 4) {
+					// If current face only has 4 points, create a pyramid with face plus cell center
+					grid.elements.emplace_back(PYRAMID);
+					Element& e = grid.elements.back();
+
+					if (j < n_owners_per_cell[i]) {
+						e.points[0] = &grid.points[faces.points[current_index]];
+						e.points[1] = &grid.points[faces.points[current_index+1]];
+						e.points[2] = &grid.points[faces.points[current_index+2]];
+						e.points[3] = &grid.points[faces.points[current_index+3]];
+					} else {
+						e.points[3] = &grid.points[faces.points[current_index]];
+						e.points[2] = &grid.points[faces.points[current_index+1]];
+						e.points[1] = &grid.points[faces.points[current_index+2]];
+						e.points[0] = &grid.points[faces.points[current_index+3]];
+					}
+					e.points[4] = &grid.points[cell_center_id];
+				} else {
+					// create new point at face center for tetrahedryl
+					// This step is not needed if clever about divying up face to mimimize number of created cells
+					Point* face_center = new Point { 0, 0, 0, 0, 0 };
+					for (int k = current_index; k < current_index+current_npoints; ++k) {
+						int p_i = faces.points[k];
+						Point *p = grid.points[p_i];
+						face_center->x += p->x;
+						face_center->y += p->y;
+						face_center->z += p->z;
+					}
+					face_center->x /= current_npoints;
+					face_center->y /= current_npoints;
+					face_center->z /= current_npoints;
+
+					int face_center_id = grid.points.size();
+					grid.points.push_back(face_center);
+					grid.ppoints.push_back(&grid.points.back());
+
+					//create tetrahedrals that include one edge, the face center and the cell center
+					for (int k = current_index; k < current_index+current_npoints-1; ++k) {
+						grid.elements.emplace_back(TETRA);
+						Element& e = grid.elements.back();
+
+						if (j < n_owners_per_cell[i]) {
+							e.points[0] = &grid.points[faces.points[k]];
+							e.points[1] = &grid.points[faces.points[k+1]];
+						} else {
+							e.points[1] = &grid.points[faces.points[k]];
+							e.points[0] = &grid.points[faces.points[k+1]];
+						}
+						e.points[2] = &grid.points[face_center_id];
+						e.points[3] = &grid.points[cell_center_id];
+					}
 				}
 			}
 		}
