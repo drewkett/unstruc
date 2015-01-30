@@ -60,7 +60,7 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 	}
 	std::cerr << "Writing Markers" << std::endl;
 	fprintf(f,"NMARK= %d\n",n_names);
-	for (i = 0; i < n_names; i++) {
+	for (i = 0; i < grid.names.size(); i++) {
 		if (name_count[i] == 0) continue;
 		name = grid.names[i];
 		if (name.dim != grid.dim - 1) continue;

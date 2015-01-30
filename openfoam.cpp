@@ -869,7 +869,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				grid.elements.emplace_back(QUAD);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
-				for (int j = 0; j < 3; ++j)
+				for (int j = 0; j < 4; ++j)
 					e.points[j] = &grid.points[face.points[j]];
 			} else if (face.n_points > 4) {
 				std::vector<OFFace> split_faces = splitPolyFace(face,grid);
