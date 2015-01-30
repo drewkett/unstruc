@@ -778,36 +778,41 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e.points[0] = &grid.points[first_face.points[3]];
 			}
 
-			std::vector<int> first_face_points (first_face.points);
-			std::sort(first_face_points.begin(),first_face_points.end());
-
-			std::vector<int> current_face_points (4);
 			for (int j = 1; j < 6; ++j) {
 				OFFace& current_face = faces[cell_faces[j]];
-				std::vector<int> current_face_points (current_face.points);
-				std::sort(current_face_points.begin(),current_face_points.end());
-
-				bool match = true;
 				for (int k = 0; k < 4; ++k) {
-					if (first_face_points[k] == current_face_points[k]) {
-						match = false;
-						break;
-					}
-				}
+					int p1 = current_face.points[k];
+					int p2 = current_face.points[(k+1)%4];
 
-				if (match) {
-					if (j < n_owners_per_cell[i]) {
-						e.points[4] = &grid.points[current_face.points[0]];
-						e.points[5] = &grid.points[current_face.points[1]];
-						e.points[6] = &grid.points[current_face.points[2]];
-						e.points[7] = &grid.points[current_face.points[3]];
-					} else {
-						e.points[7] = &grid.points[current_face.points[0]];
-						e.points[6] = &grid.points[current_face.points[1]];
-						e.points[5] = &grid.points[current_face.points[2]];
-						e.points[4] = &grid.points[current_face.points[3]];
+					auto it1 = std::find(first_face.points.begin(),first_face.points.end(),p1);
+					bool p1_on_first_face = (it1 != first_face.points.end());
+
+					auto it2 = std::find(first_face.points.begin(),first_face.points.end(),p2);
+					bool p2_on_first_face = (it2 != first_face.points.end());
+
+					if (p1_on_first_face != p2_on_first_face) {
+						if (p1_on_first_face) {
+							for (int l = 0; l < 4; ++l) {
+								if (first_face.points[l] == p1) {
+									if (n_owners_per_cell[i] == 0)
+										e.points[l+4] = &grid.points[p2];
+									else
+										e.points[7-l] = &grid.points[p2];
+									break;
+								}
+							}
+						} else {
+							for (int l = 0; l < 4; ++l) {
+								if (first_face.points[l] == p2) {
+									if (n_owners_per_cell[i] == 0)
+										e.points[l+4] = &grid.points[p1];
+									else
+										e.points[7-l] = &grid.points[p1];
+									break;
+								}
+							}
+						}
 					}
-					break;
 				}
 			}
 		} else if (cell_type == OFPoly) {
