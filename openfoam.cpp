@@ -35,6 +35,7 @@ struct FoamHeader {
 	std::string location;
 	std::string object;
 	std::string note;
+	std::string filename;
 };
 
 struct OFPoint {
@@ -126,7 +127,7 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid) {
 	return split_faces;
 }
 
-FoamHeader readFoamHeader(std::ifstream& f) {
+FoamHeader readFoamHeader(std::ifstream& f, std::string filename) {
 	std::string line;
 	bool is_foamfile = false;
 	while (std::getline(f,line)) {
@@ -142,6 +143,7 @@ FoamHeader readFoamHeader(std::ifstream& f) {
 	if (token != "{") Fatal("Not a valid FoamFile");
 
 	FoamHeader header;
+	header.filename = filename;
 	f >> token;
 	while (token != "}") {
 		if (token == "version") {
@@ -195,17 +197,20 @@ template<typename T>
 std::vector<T> readBinary(std::ifstream& f, FoamHeader& header) {
 	int n = readNextInt(f);
 
-	char c = f.get();
-	if (c != '(') Fatal("Invalid FoamFile: Expected '(' in "+header.location);
-
 	std::vector<T> vec;
 	vec.resize(n);
-	for (int i = 0; i < n; ++i) {
-		f.read((char *) &vec[i], sizeof(T));
+
+	if (n) {
+		char c = f.get();
+		if (c != '(') Fatal("Invalid FoamFile: Expected '(' in "+header.filename);
+
+		for (int i = 0; i < n; ++i) {
+			f.read((char *) &vec[i], sizeof(T));
+		}
+		c = f.get();
+		if (c != ')') Fatal("Invalid FoamFile: Expected ')' in "+header.filename);
 	}
 	
-	c = f.get();
-	if (c != ')') Fatal("Invalid FoamFile: Expected ')' in "+header.location);
 	return vec;
 }
 
@@ -215,7 +220,7 @@ OFInfo readInfoFromOwners(std::string polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"owner");
 
 	std::string note = header.note.substr(1,header.note.size()-2);
 	std::istringstream ss(note);
@@ -228,13 +233,33 @@ OFInfo readInfoFromOwners(std::string polymesh) {
 	while (ss >> token) {
 		i = token.find_first_of(':');
 		if (token.compare(0,i,"nPoints") == 0) {
-			info.n_points = atoi(token.substr(i+1).c_str());
+			if (i < token.size()-1)
+				info.n_points = atoi(token.substr(i+1).c_str());
+			else {
+				ss >> token;
+				info.n_points = atoi(token.c_str());
+			}
 		} else if (token.compare(0,i,"nCells") == 0) {
-			info.n_cells = atoi(token.substr(i+1).c_str());
+			if (i < token.size()-1)
+				info.n_cells = atoi(token.substr(i+1).c_str());
+			else {
+				ss >> token;
+				info.n_cells = atoi(token.c_str());
+			}
 		} else if (token.compare(0,i,"nFaces") == 0) {
-			info.n_faces = atoi(token.substr(i+1).c_str());
+			if (i < token.size()-1)
+				info.n_faces = atoi(token.substr(i+1).c_str());
+			else {
+				ss >> token;
+				info.n_faces = atoi(token.c_str());
+			}
 		} else if (token.compare(0,i,"nInternalFaces") == 0) {
-			info.n_internal_faces = atoi(token.substr(i+1).c_str());
+			if (i < token.size()-1)
+				info.n_internal_faces = atoi(token.substr(i+1).c_str());
+			else {
+				ss >> token;
+				info.n_internal_faces = atoi(token.c_str());
+			}
 		} else {
 			Fatal("Invalid FoamFile: Unknown key in header.note "+token.substr(0,i));
 		}
@@ -252,7 +277,7 @@ std::vector<int> readOwners(const std::string polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"owner");
 
 	if (header.format == "ascii") Fatal("ascii not supported");
 
@@ -265,7 +290,7 @@ std::vector<int> readNeighbours(const std::string& polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"neighbour");
 
 	if (header.format == "ascii") Fatal("ascii not supported");
 
@@ -278,7 +303,7 @@ std::vector<OFPoint> readPoints(const std::string& polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"points");
 
 	if (header.format == "ascii") Fatal("ascii not supported");
 
@@ -291,7 +316,7 @@ std::vector<OFFace> readFaces(const std::string& polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"faces");
 
 	if (header.format == "ascii") Fatal("ascii not supported");
 
@@ -314,7 +339,7 @@ std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
 	if (!f.is_open()) Fatal("Could not open "+filepath);
-	FoamHeader header = readFoamHeader(f);
+	FoamHeader header = readFoamHeader(f,"boundary");
 
 	int n = readNextInt(f);
 
