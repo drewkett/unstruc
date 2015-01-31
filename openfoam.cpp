@@ -489,14 +489,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			e.name_i = name_i;
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int first_face = cell_faces[0];
-			if (n_owners_per_cell[i] == 0) {
-				e.points[0] = &grid.points[faces[first_face].points[0]];
-				e.points[1] = &grid.points[faces[first_face].points[1]];
-				e.points[2] = &grid.points[faces[first_face].points[2]];
-			} else {
+			bool faces_out = (n_owners_per_cell[i] > 0);
+
+			if (faces_out) {
 				e.points[2] = &grid.points[faces[first_face].points[0]];
 				e.points[1] = &grid.points[faces[first_face].points[1]];
 				e.points[0] = &grid.points[faces[first_face].points[2]];
+			} else {
+				e.points[0] = &grid.points[faces[first_face].points[0]];
+				e.points[1] = &grid.points[faces[first_face].points[1]];
+				e.points[2] = &grid.points[faces[first_face].points[2]];
 			}
 			int second_face = cell_faces[1];
 			for (int p2 : faces[second_face].points) {
@@ -528,6 +530,13 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						quad1_j = j;
 				}
 			}
+			assert (tri1_j != -1);
+			assert (tri2_j != -1);
+			assert (quad1_j != -1);
+
+			bool tri1_faces_out = (tri1_j < n_owners_per_cell[i]);
+			bool tri2_faces_out = (tri2_j < n_owners_per_cell[i]);
+
 			OFFace& tri1_face = faces[cell_faces[tri1_j]];
 			OFFace& tri2_face = faces[cell_faces[tri2_j]];
 			OFFace& quad1_face = faces[cell_faces[quad1_j]];
@@ -558,7 +567,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(TETRA);
 			Element& e1 = grid.elements.back();
 			e1.name_i = name_i;
-			if (tri1_j < n_owners_per_cell[i]) {
+			if (tri1_faces_out) {
 				e1.points[2] = &grid.points[tri1_face.points[0]];
 				e1.points[1] = &grid.points[tri1_face.points[1]];
 				e1.points[0] = &grid.points[tri1_face.points[2]];
@@ -572,7 +581,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(TETRA);
 			Element& e2 = grid.elements.back();
 			e2.name_i = name_i;
-			if (tri2_j < n_owners_per_cell[i]) {
+			if (tri2_faces_out) {
 				e2.points[2] = &grid.points[tri2_face.points[0]];
 				e2.points[1] = &grid.points[tri2_face.points[1]];
 				e2.points[0] = &grid.points[tri2_face.points[2]];
@@ -595,9 +604,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				}
 			}
 			if (quad_j == -1) Fatal("Shouldn't be possible");
+			bool faces_out = (quad_j < n_owners_per_cell[i]);
 
 			OFFace& quad_face = faces[cell_faces[quad_j]];
-			if (quad_j < n_owners_per_cell[i]) {
+			if (faces_out) {
 				e.points[3] = &grid.points[quad_face.points[0]];
 				e.points[2] = &grid.points[quad_face.points[1]];
 				e.points[1] = &grid.points[quad_face.points[2]];
@@ -686,13 +696,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			if (quad1_j == -1) Fatal("Shouldn't be possible");
 			if (quad2_j == -1) Fatal("Shouldn't be possible");
 
+			bool quad1_faces_out = (quad1_j < n_owners_per_cell[i]);
+			bool quad2_faces_out = (quad2_j < n_owners_per_cell[i]);
+
 			OFFace& quad1_face = faces[cell_faces[quad1_j]];
 			OFFace& quad2_face = faces[cell_faces[quad2_j]];
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e1 = grid.elements.back();
 			e1.name_i = name_i;
-			if (quad1_j < n_owners_per_cell[i]) {
+			if (quad1_faces_out) {
 				e1.points[3] = &grid.points[quad1_face.points[0]];
 				e1.points[2] = &grid.points[quad1_face.points[1]];
 				e1.points[1] = &grid.points[quad1_face.points[2]];
@@ -708,7 +721,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(PYRAMID);
 			Element& e2 = grid.elements.back();
 			e2.name_i = name_i;
-			if (quad2_j < n_owners_per_cell[i]) {
+			if (quad2_faces_out) {
 				e2.points[3] = &grid.points[quad2_face.points[0]];
 				e2.points[2] = &grid.points[quad2_face.points[1]];
 				e2.points[1] = &grid.points[quad2_face.points[2]];
@@ -736,13 +749,17 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 			if (tri1_j == -1) Fatal("Shouldn't be possible");
 			if (tri2_j == -1) Fatal("Shouldn't be possible");
+
+			bool tri1_faces_out = (tri1_j < n_owners_per_cell[i]);
+			bool tri2_faces_out = (tri2_j < n_owners_per_cell[i]);
+
 			OFFace& tri1_face = faces[cell_faces[tri1_j]];
 			OFFace& tri2_face = faces[cell_faces[tri2_j]];
 
 			grid.elements.emplace_back(WEDGE);
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
-			if (tri1_j < n_owners_per_cell[i]) {
+			if (tri1_faces_out) {
 				e.points[0] = &grid.points[tri1_face.points[0]];
 				e.points[1] = &grid.points[tri1_face.points[1]];
 				e.points[2] = &grid.points[tri1_face.points[2]];
@@ -751,7 +768,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e.points[1] = &grid.points[tri1_face.points[1]];
 				e.points[0] = &grid.points[tri1_face.points[2]];
 			}
-			if (tri2_j < n_owners_per_cell[i]) {
+			if (tri2_faces_out) {
 				e.points[5] = &grid.points[tri2_face.points[0]];
 				e.points[4] = &grid.points[tri2_face.points[1]];
 				e.points[3] = &grid.points[tri2_face.points[2]];
@@ -765,17 +782,18 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
 			std::vector<int>& cell_faces = faces_per_cell[i];
+			bool faces_out = (n_owners_per_cell[i] > 0);
 			OFFace& first_face = faces[cell_faces[0]];
-			if (n_owners_per_cell[i] == 0) {
-				e.points[0] = &grid.points[first_face.points[0]];
-				e.points[1] = &grid.points[first_face.points[1]];
-				e.points[2] = &grid.points[first_face.points[2]];
-				e.points[3] = &grid.points[first_face.points[3]];
-			} else {
+			if (faces_out) {
 				e.points[3] = &grid.points[first_face.points[0]];
 				e.points[2] = &grid.points[first_face.points[1]];
 				e.points[1] = &grid.points[first_face.points[2]];
 				e.points[0] = &grid.points[first_face.points[3]];
+			} else {
+				e.points[0] = &grid.points[first_face.points[0]];
+				e.points[1] = &grid.points[first_face.points[1]];
+				e.points[2] = &grid.points[first_face.points[2]];
+				e.points[3] = &grid.points[first_face.points[3]];
 			}
 
 			for (int j = 1; j < 6; ++j) {
@@ -794,20 +812,20 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						if (p1_on_first_face) {
 							for (int l = 0; l < 4; ++l) {
 								if (first_face.points[l] == p1) {
-									if (n_owners_per_cell[i] == 0)
-										e.points[l+4] = &grid.points[p2];
-									else
+									if (faces_out)
 										e.points[7-l] = &grid.points[p2];
+									else
+										e.points[l+4] = &grid.points[p2];
 									break;
 								}
 							}
 						} else {
 							for (int l = 0; l < 4; ++l) {
 								if (first_face.points[l] == p2) {
-									if (n_owners_per_cell[i] == 0)
-										e.points[l+4] = &grid.points[p1];
-									else
+									if (faces_out)
 										e.points[7-l] = &grid.points[p1];
+									else
+										e.points[l+4] = &grid.points[p1];
 									break;
 								}
 							}
@@ -856,6 +874,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.ppoints.push_back(&grid.points.back());
 
 			for (int j = 0; j < cell_faces.size(); ++j) {
+				bool faces_out = (j < n_owners_per_cell[i]);
 				OFFace& current_face = faces[cell_faces[j]];
 
 				if (current_face.n_points == 3) {
@@ -864,14 +883,14 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					Element& e = grid.elements.back();
 					e.name_i = name_i;
 
-					if (j < n_owners_per_cell[i]) {
-						e.points[0] = &grid.points[current_face.points[0]];
-						e.points[1] = &grid.points[current_face.points[1]];
-						e.points[2] = &grid.points[current_face.points[2]];
-					} else {
+					if (faces_out) {
 						e.points[2] = &grid.points[current_face.points[0]];
 						e.points[1] = &grid.points[current_face.points[1]];
 						e.points[0] = &grid.points[current_face.points[2]];
+					} else {
+						e.points[0] = &grid.points[current_face.points[0]];
+						e.points[1] = &grid.points[current_face.points[1]];
+						e.points[2] = &grid.points[current_face.points[2]];
 					}
 					e.points[3] = &grid.points[cell_center_id];
 				} else if (current_face.n_points == 4) {
@@ -880,16 +899,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					Element& e = grid.elements.back();
 					e.name_i = name_i;
 
-					if (j < n_owners_per_cell[i]) {
-						e.points[0] = &grid.points[current_face.points[0]];
-						e.points[1] = &grid.points[current_face.points[1]];
-						e.points[2] = &grid.points[current_face.points[2]];
-						e.points[3] = &grid.points[current_face.points[3]];
-					} else {
+					if (faces_out) {
 						e.points[3] = &grid.points[current_face.points[0]];
 						e.points[2] = &grid.points[current_face.points[1]];
 						e.points[1] = &grid.points[current_face.points[2]];
 						e.points[0] = &grid.points[current_face.points[3]];
+					} else {
+						e.points[0] = &grid.points[current_face.points[0]];
+						e.points[1] = &grid.points[current_face.points[1]];
+						e.points[2] = &grid.points[current_face.points[2]];
+						e.points[3] = &grid.points[current_face.points[3]];
 					}
 					e.points[4] = &grid.points[cell_center_id];
 				} else {
@@ -898,23 +917,38 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 					//create element from each of the split faces and the cell center
 					for (OFFace& new_face : split_faces) {
-						if (new_face.n_points == 3)
+						if (new_face.n_points == 3) {
 							grid.elements.emplace_back(TETRA);
-						else if (new_face.n_points == 4)
-							grid.elements.emplace_back(TETRA);
-						Element& e = grid.elements.back();
-						e.name_i = name_i;
-
-						if (j < n_owners_per_cell[i]) {
-							e.points[0] = &grid.points[new_face.points[0]];
-							e.points[1] = &grid.points[new_face.points[1]];
-							e.points[2] = &grid.points[new_face.points[2]];
-						} else {
-							e.points[2] = &grid.points[new_face.points[0]];
-							e.points[1] = &grid.points[new_face.points[1]];
-							e.points[0] = &grid.points[new_face.points[2]];
+							Element& e = grid.elements.back();
+							e.name_i = name_i;
+							if (faces_out) {
+								e.points[2] = &grid.points[new_face.points[0]];
+								e.points[1] = &grid.points[new_face.points[1]];
+								e.points[0] = &grid.points[new_face.points[2]];
+							} else {
+								e.points[0] = &grid.points[new_face.points[0]];
+								e.points[1] = &grid.points[new_face.points[1]];
+								e.points[2] = &grid.points[new_face.points[2]];
+							}
+							e.points[3] = &grid.points[cell_center_id];
+						} else if (new_face.n_points == 4) {
+							grid.elements.emplace_back(PYRAMID);
+							Element& e = grid.elements.back();
+							e.name_i = name_i;
+							if (faces_out) {
+								e.points[3] = &grid.points[new_face.points[0]];
+								e.points[2] = &grid.points[new_face.points[1]];
+								e.points[1] = &grid.points[new_face.points[2]];
+								e.points[0] = &grid.points[new_face.points[3]];
+							} else {
+								e.points[0] = &grid.points[new_face.points[0]];
+								e.points[1] = &grid.points[new_face.points[1]];
+								e.points[2] = &grid.points[new_face.points[2]];
+								e.points[3] = &grid.points[new_face.points[3]];
+							}
+							e.points[4] = &grid.points[cell_center_id];
 						}
-						e.points[3] = &grid.points[cell_center_id];
+
 					}
 				}
 			}
