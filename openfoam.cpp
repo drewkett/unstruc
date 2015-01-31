@@ -453,28 +453,28 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			case 3:
 				Fatal("Bad Cell");
 			case 4:
-				if (n_poly)
-					cell_type = OFPoly;
-				else if (n_tri == 4)
+				if (n_tri == 4)
 					cell_type = OFTetra;
 				else if (n_quad == 2 && n_tri == 2)
 					cell_type = OFTetraWedge;
+				else
+					cell_type = OFPoly;
 				break;
 			case 5:
-				if (n_poly)
-					cell_type = OFPoly;
-				else if (n_quad == 3 && n_tri == 2)
+				if (n_quad == 3 && n_tri == 2)
 					cell_type = OFPrism;
 				else if (n_quad == 1 && n_tri == 4)
 					cell_type = OFPyramid;
+				else
+					cell_type = OFPoly;
 				break;
 			case 6:
-				if (n_poly)
-					cell_type = OFPoly;
-				else if (n_quad == 6)
+				if (n_quad == 6)
 					cell_type = OFHexa;
 				else if (n_quad == 4 && n_tri == 2)
 					cell_type = OFWedge;
+				else
+					cell_type = OFPoly;
 				break;
 			default:
 				cell_type = OFPoly;
