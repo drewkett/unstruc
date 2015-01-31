@@ -1,10 +1,11 @@
 
 rule cc
-  command = clang++ -std=c++11 -Wall -O2 -g -c $opts $in -o $out
+  command = clang++ -std=c++11 -Wall -c $opts $in -o $out
 
 rule ld
   command = clang++ -Wall $in -o $out $opts
 
+opts = -O2
 build vtk.o : cc vtk.cpp | vtk.h grid.h element.h point.h error.h
 build plot3d.o : cc plot3d.cpp | plot3d.h block.h error.h
 build su2.o : cc su2.cpp | su2.h grid.h element.h point.h error.h
@@ -20,3 +21,20 @@ build element.o : cc element.cpp | element.h point.h error.h
 build unstruc.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h openfoam.h
 
 build unstruc : ld plot3d.o su2.o grid.o translation.o error.o point.o element.o unstruc.o block.o vtk.o openfoam.o gmsh.o
+
+opts = -O0 -g
+build vtk-dbg.o : cc vtk.cpp | vtk.h grid.h element.h point.h error.h
+build plot3d-dbg.o : cc plot3d.cpp | plot3d.h block.h error.h
+build su2-dbg.o : cc su2.cpp | su2.h grid.h element.h point.h error.h
+build openfoam-dbg.o : cc openfoam.cpp | openfoam.h grid.h element.h point.h error.h
+build gmsh-dbg.o : cc gmsh.cpp | gmsh.h grid.h element.h point.h error.h
+
+build block-dbg.o : cc block.cpp | block.h point.h
+build grid-dbg.o : cc grid.cpp | grid.h element.h point.h
+build translation-dbg.o : cc translation.cpp | translation.h error.h element.h
+build error-dbg.o : cc error.cpp | error.h
+build point-dbg.o : cc point.cpp | point.h 
+build element-dbg.o : cc element.cpp | element.h point.h error.h
+build unstruc-dbg.o : cc unstruc.cpp | error.h su2.h vtk.h gmsh.h block.h translation.h plot3d.h openfoam.h
+
+build unstruc-dbg : ld plot3d-dbg.o su2-dbg.o grid-dbg.o translation-dbg.o error-dbg.o point-dbg.o element-dbg.o unstruc-dbg.o block-dbg.o vtk-dbg.o openfoam-dbg.o gmsh-dbg.o
