@@ -4,7 +4,7 @@
 #include <cmath>
 
 void dump(Point * p) {
-	std::cerr << p << " -> Point " << p->x << " " << p->y << " " << p->z << std::endl;
+	printf("%p -> Point %8.6g %8.6g %8.6g\n",p,p->x,p->y,p->z);
 };
 
 void dump(Point ** p) {
@@ -41,7 +41,7 @@ bool same(Point &p1, Point &p2, double tol) {
 };
 
 void dump(Vector &v) {
-	printf("Vector [ %g %g %g ]\n",v.x,v.y,v.z);
+	printf("Vector [ % 7.2e % 7.2e % 7.2e ]\n",v.x,v.y,v.z);
 };
 
 Vector subtract_points(Point * p1, Point * p2) {

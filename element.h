@@ -27,7 +27,7 @@ struct Element
 	Element(int T);
 };
 
-void dump(Element * e);
+void dump(Element &e);
 void set_s_by_lowest_id(Element &e);
 bool compare_element(Element &e1, Element &e2);
 bool compare_element_by_name(Element &e1, Element &e2);

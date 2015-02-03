@@ -56,10 +56,10 @@ Element::Element(int T) : type(T) {
 	valid = true;
 }
 
-void dump(Element * e) {
-	std::cerr << e << " -> Element " << e->type << std::endl;
-	for (int i=0; i < e->len; i++) {
-		dump(e->points[i]);
+void dump(Element &e) {
+	std::cerr << "Element " << e.type << " (Volume = " << e.calc_volume() << ")" << std::endl;
+	for (int i=0; i < e.len; i++) {
+		dump(e.points[i]);
 	}
 };
 
@@ -159,7 +159,7 @@ Element * collapse_quad(Element * e) {
 		} else if (*e->points[3] == *e->points[0]) {
 			*e = *tri_from_quad(e,0,1,2);
 		} else {
-			dump(e);
+			dump(*e);
 			throw 1;
 		}
 		collapse_tri(e);
@@ -250,7 +250,7 @@ Element * collapse_pyramid(Element * e) {
 			*e = *tetra_from_pyramid(e,0,1,2,4);
 			return collapse_tetra(e);
 		} else {
-			dump(e);
+			dump(*e);
 			NotImplemented("Don't know how to collapse this pyramid");
 		}
 	}
