@@ -6,9 +6,6 @@
 #include <vector>
 #include <string>
 
-struct Name;
-struct Grid;
-
 struct TranslationTable {
 	std::vector <Name> names;
 	std::vector <int> index;
