@@ -63,6 +63,39 @@ void dump(Element &e) {
 	}
 };
 
+double Element::calc_volume() {
+	Vector v, v1, v2, v3;
+	double volume = 0;
+	switch (type) {
+		case LINE:
+		case TRI:
+		case QUAD:
+			break;
+		case HEXA:
+			NotImplemented("Hexa volume calculation");
+		case TETRA:
+			v1 = subtract_points(*points[1],*points[0]);
+			v2 = subtract_points(*points[2],*points[1]);
+			v = cross(v1,v2);
+			v3 = subtract_points(*points[3],*points[1]);
+			volume = dot(v,v3)/6;
+		case WEDGE:
+			NotImplemented("Wedge volume calculation");
+		case PYRAMID:
+			v1 = subtract_points(*points[2],*points[0]);
+			v2 = subtract_points(*points[3],*points[1]);
+			v = cross(v1,v2);
+			v3 = subtract_points(*points[4],*points[0]);
+			volume += dot(v3,v)/12;
+			v3 = subtract_points(*points[4],*points[1]);
+			volume += dot(v3,v)/12;
+			break;
+		default:
+			Fatal("Invalid Element Type");
+	}
+	return volume;
+}
+
 void set_s_by_lowest_id(Element &e) {
 	if (!e.valid) return;
 	e.s = (*e.points[0]);

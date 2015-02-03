@@ -24,5 +24,7 @@ struct Vector
 void dump(Vector&);
 Vector subtract_points(Point *, Point *);
 double angle_between(const Vector&, const Vector&);
+double dot(const Vector&, const Vector&);
+Vector cross(const Vector&, const Vector&);
 
 #endif

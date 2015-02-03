@@ -25,6 +25,8 @@ struct Element
 	bool valid;
 	Element() : valid(false) {};
 	Element(int T);
+
+	double calc_volume();
 };
 
 void dump(Element &e);

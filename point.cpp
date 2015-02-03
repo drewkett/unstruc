@@ -54,3 +54,15 @@ double angle_between(const Vector& v1, const Vector& v2) {
 	double len2 = sqrt(v2.x*v2.x + v2.y*v2.y + v2.z*v2.z) + 1e-15;
 	return 180/M_PI*acos(dot/(len1*len2));
 };
+
+double dot(const Vector& v1, const Vector& v2) {
+	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+};
+
+Vector cross(const Vector& v1, const Vector& v2) {
+	Vector v;
+	v.x = v1.y*v2.z - v1.z*v2.y;
+	v.y = v1.z*v2.x - v1.x*v2.z;
+	v.z = v1.x*v2.y - v1.y*v2.x;
+	return v;
+};
