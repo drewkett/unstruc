@@ -25,14 +25,15 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
 	fprintf(f,"NELEM= %d\n",grid.n_elems);
-	for (i = 0; i < grid.elements.size(); i++) {
-		Element &e = grid.elements[i];
+	for (Element& e : grid.elements) {
 		if (!e.valid or e.dim != grid.dim) continue;
 		fprintf(f,"%d",e.type);
 		for (j = 0; j < e.len; j++) {
+			if ((**e.points[j]).i >= grid.n_points)
+				Fatal("Invalid point number");
 			fprintf(f," %d",(**e.points[j]).i);
 		}
-		fprintf(f," %d\n",i);
+		fprintf(f,"\n");
 	}
 	fprintf(f,"\n");
 	std::cerr << "Writing Points" << std::endl;
@@ -40,6 +41,8 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 	for (i = 0; i < grid.ppoints.size(); i++) {
 		if (!grid.ppoints[i]) continue;
 		p = *grid.ppoints[i];
+		if (p->i >= grid.n_points)
+			Fatal("Invalid point number");
 		if (grid.dim == 2)
 			fprintf(f,"%.17g %.17g %d\n",p->x,p->y,p->i);
 		else
@@ -73,6 +76,8 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 			if (e.name_i != i) continue;
 			fprintf(f,"%d",e.type);
 			for (int k = 0; k < e.len; k++) {
+				if ((**e.points[k]).i >= grid.n_points)
+					Fatal("Invalid point number");
 				fprintf(f," %d",(**e.points[k]).i);
 			}
 			fprintf(f,"\n");
