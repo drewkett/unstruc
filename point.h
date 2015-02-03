@@ -5,6 +5,8 @@ struct Point
 {
 	double x,y,z,s;
 	int i;
+	Point () : x(0), y(0), z(0), s(0), i(0) {};
+	Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 };
 
 void dump(Point * p);
