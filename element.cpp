@@ -64,7 +64,6 @@ void dump(Element &e) {
 };
 
 double Element::calc_volume() {
-	Vector v, v1, v2, v3;
 	double volume = 0;
 	switch (type) {
 		case LINE:
@@ -74,21 +73,46 @@ double Element::calc_volume() {
 		case HEXA:
 			NotImplemented("Hexa volume calculation");
 		case TETRA:
-			v1 = subtract_points(*points[1],*points[0]);
-			v2 = subtract_points(*points[2],*points[1]);
-			v = cross(v1,v2);
-			v3 = subtract_points(*points[3],*points[1]);
-			volume = dot(v,v3)/6;
+			{
+				Vector v1 = subtract_points(*points[1],*points[0]);
+				Vector v2 = subtract_points(*points[2],*points[1]);
+				Vector v = cross(v1,v2);
+				Vector v3 = subtract_points(*points[3],*points[1]);
+				volume = dot(v,v3)/6;
+			}
+			break;
 		case WEDGE:
-			NotImplemented("Wedge volume calculation");
+			{
+				Point c1, c2;
+				c1.x = ((*points[0])->x + (*points[1])->x + (*points[2])->x)/3;
+				c1.y = ((*points[0])->y + (*points[1])->y + (*points[2])->y)/3;
+				c1.z = ((*points[0])->z + (*points[1])->z + (*points[2])->z)/3;
+				c2.x = ((*points[3])->x + (*points[4])->x + (*points[5])->x)/3;
+				c2.y = ((*points[3])->y + (*points[4])->y + (*points[5])->y)/3;
+				c2.z = ((*points[3])->z + (*points[4])->z + (*points[5])->z)/3;
+				Vector l = c1 - c2;
+				Vector v01 = subtract_points(*points[1],*points[0]);
+				Vector v12 = subtract_points(*points[2],*points[1]);
+				Vector n1 = cross(v01,v12)/2;
+				Vector v34 = subtract_points(*points[4],*points[3]);
+				Vector v45 = subtract_points(*points[5],*points[4]);
+				Vector n2 = cross(v34,v45)/2;
+				volume = (dot(l,n1) + dot(l,n2))/2;
+				dump(n1);
+				dump(n2);
+				dump(l);
+				if (volume < 0)
+					dump(*this);
+			}
 		case PYRAMID:
-			v1 = subtract_points(*points[2],*points[0]);
-			v2 = subtract_points(*points[3],*points[1]);
-			v = cross(v1,v2);
-			v3 = subtract_points(*points[4],*points[0]);
-			volume += dot(v3,v)/12;
-			v3 = subtract_points(*points[4],*points[1]);
-			volume += dot(v3,v)/12;
+			{
+				Vector v1 = subtract_points(*points[2],*points[0]);
+				Vector v2 = subtract_points(*points[3],*points[1]);
+				Vector v = cross(v1,v2);
+				Vector v3 = subtract_points(*points[4],*points[0]);
+				Vector v4 = subtract_points(*points[4],*points[1]);
+				volume = dot(v3,v)/12 + dot(v4,v)/12;
+			}
 			break;
 		default:
 			Fatal("Invalid Element Type");
