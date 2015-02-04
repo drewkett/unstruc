@@ -57,7 +57,7 @@ Element::Element(int T) : type(T) {
 }
 
 void dump(Element &e) {
-	std::cerr << "Element " << e.type << " (Volume = " << e.calc_volume() << ")" << std::endl;
+	std::cerr << "Element " << e.type << std::endl;
 	for (int i=0; i < e.len; i++) {
 		dump(e.points[i]);
 	}
