@@ -11,8 +11,9 @@ struct Grid;
 struct Block {
 	int size1, size2, size3;
 	std::vector <Point> points;
+
 	Block(int s1, int s2, int s3);
-	Point * at(int i, int j, int k);
+	Point at(int i, int j, int k);
 	double * at_ref(int i, int j, int k, int l);
 	int index(int i, int j, int k);
 };

@@ -45,7 +45,6 @@ void applyTranslation(Grid &grid, TranslationTable &transt) {
 	}
 	for (int i = 0; i < grid.elements.size(); i++) {
 		Element &e = grid.elements[i];
-		if (!e.valid) continue;
 		if (e.name_i != -1) e.name_i = transt.index[e.name_i];
 	}
 }

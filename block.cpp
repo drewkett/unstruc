@@ -11,8 +11,9 @@
 Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 	points = std::vector <Point> (size1*size2*size3);
 };
-Point * Block::at(int i, int j, int k) {
-	return &(points[i*(size2*size3) + j*size3 + k]);
+
+Point Block::at(int i, int j, int k) {
+	return points[i*(size2*size3) + j*size3 + k];
 };
 double * Block::at_ref(int i, int j, int k, int l) {
 	int ii = i*(size2*size3) + j*size3 + k;
@@ -46,18 +47,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		si = blk.size1;
 		sj = blk.size2;
 		sk = blk.size3;
-		for (int i = 0; i < si; i++) {
-			for (int j = 0; j < sj; j++) {
-				for (int k = 0; k < sk; k++) {
-					Point * p = new Point;
-					p->x = blk.at(i,j,k)->x;
-					p->y = blk.at(i,j,k)->y;
-					p->z = blk.at(i,j,k)->z;
-					grid.points.push_back(p);
-					grid.ppoints.push_back(&grid.points.back());
-				}
-			}
-		}
+		for (int i = 0; i < si; i++)
+			for (int j = 0; j < sj; j++)
+				for (int k = 0; k < sk; k++)
+					grid.points.push_back(blk.at(i,j,k));
 		ss.str("");
 		ss.clear();
 		ss << "Block" << ib+1;
@@ -66,14 +59,14 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 			for (int j = 0; j < sj-1; j++) {
 				for (int k = 0; k < sk-1; k++) {
 					Element e = Element(HEXA);
-					e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-					e.points[1] = grid.ppoints[offset+blk.index(i+1,j,k)];
-					e.points[2] = grid.ppoints[offset+blk.index(i+1,j+1,k)];
-					e.points[3] = grid.ppoints[offset+blk.index(i,j+1,k)];
-					e.points[4] = grid.ppoints[offset+blk.index(i,j,k+1)];
-					e.points[5] = grid.ppoints[offset+blk.index(i+1,j,k+1)];
-					e.points[6] = grid.ppoints[offset+blk.index(i+1,j+1,k+1)];
-					e.points[7] = grid.ppoints[offset+blk.index(i,j+1,k+1)];
+					e.points[0] = offset+blk.index(i,j,k);
+					e.points[1] = offset+blk.index(i+1,j,k);
+					e.points[2] = offset+blk.index(i+1,j+1,k);
+					e.points[3] = offset+blk.index(i,j+1,k);
+					e.points[4] = offset+blk.index(i,j,k+1);
+					e.points[5] = offset+blk.index(i+1,j,k+1);
+					e.points[6] = offset+blk.index(i+1,j+1,k+1);
+					e.points[7] = offset+blk.index(i,j+1,k+1);
 					e.name_i = grid.names.size()-1;
 					grid.elements.push_back(e);
 				}
@@ -87,10 +80,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i,j+1,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i,j+1,k+1)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j,k+1)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i,j+1,k);
+				e.points[2] = offset+blk.index(i,j+1,k+1);
+				e.points[3] = offset+blk.index(i,j,k+1);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -103,10 +96,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i,j+1,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i,j+1,k+1)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j,k+1)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i,j+1,k);
+				e.points[2] = offset+blk.index(i,j+1,k+1);
+				e.points[3] = offset+blk.index(i,j,k+1);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -119,10 +112,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i+1,j,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i+1,j,k+1)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j,k+1)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i+1,j,k);
+				e.points[2] = offset+blk.index(i+1,j,k+1);
+				e.points[3] = offset+blk.index(i,j,k+1);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -135,10 +128,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i+1,j,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i+1,j,k+1)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j,k+1)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i+1,j,k);
+				e.points[2] = offset+blk.index(i+1,j,k+1);
+				e.points[3] = offset+blk.index(i,j,k+1);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -151,10 +144,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i+1,j,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i+1,j+1,k)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j+1,k)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i+1,j,k);
+				e.points[2] = offset+blk.index(i+1,j+1,k);
+				e.points[3] = offset+blk.index(i,j+1,k);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}
@@ -167,10 +160,10 @@ void to_grid(Grid &grid, MultiBlock &mb) {
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
 				Element e = Element(QUAD);
-				e.points[0] = grid.ppoints[offset+blk.index(i,j,k)];
-				e.points[1] = grid.ppoints[offset+blk.index(i+1,j,k)];
-				e.points[2] = grid.ppoints[offset+blk.index(i+1,j+1,k)];
-				e.points[3] = grid.ppoints[offset+blk.index(i,j+1,k)];
+				e.points[0] = offset+blk.index(i,j,k);
+				e.points[1] = offset+blk.index(i+1,j,k);
+				e.points[2] = offset+blk.index(i+1,j+1,k);
+				e.points[3] = offset+blk.index(i,j+1,k);
 				e.name_i = grid.names.size()-1;
 				grid.elements.push_back(e);
 			}

@@ -108,17 +108,10 @@ int main (int argc, char* argv[])
 				break;
 		}
 	}
-	set_i_points(grid);
+	//set_i_points(grid);
 	if (mergepoints) {
-		sort_points_by_location(grid);
 		merge_points(grid,TOL);
-		sort_points_by_index(grid);
-
-		set_i_elements(grid);
-		sort_elements(grid);
 		delete_inner_faces(grid);
-		sort_elements_by_index(grid);
-
 		collapse_elements(grid);
 	}
 	if (c_translationfile) {
