@@ -1419,6 +1419,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				for (int j = 0; j < 4; ++j)
 					e.points[j] = face.points[j];
 			} else {
+				assert (face.split_faces.size() > 0);
 				for (OFFace& new_face : face.split_faces) {
 					if (new_face.points.size() == 3) {
 						grid.elements.emplace_back(TRI);
