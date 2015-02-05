@@ -243,39 +243,39 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace& side_face, O
 			}
 		} else if (!p0_on_main_face && p1_on_main_face){
 			if (side_faces_out) {
-				order[0] = 1;
-				order[1] = 2;
-				order[2] = 0;
-				order[3] = 3;
-			} else {
 				order[0] = 2;
 				order[1] = 1;
 				order[2] = 3;
 				order[3] = 0;
+			} else {
+				order[0] = 1;
+				order[1] = 2;
+				order[2] = 0;
+				order[3] = 3;
 			}
 		} else if (p0_on_main_face && !p1_on_main_face){
 			if (side_faces_out) {
-				order[0] = 3;
-				order[1] = 0;
-				order[2] = 2;
-				order[3] = 1;
-			} else {
 				order[0] = 0;
 				order[1] = 3;
 				order[2] = 1;
 				order[3] = 2;
+			} else {
+				order[0] = 3;
+				order[1] = 0;
+				order[2] = 2;
+				order[3] = 1;
 			}
 		} else {
 			if (side_faces_out) {
-				order[0] = 2;
-				order[1] = 3;
-				order[2] = 1;
-				order[3] = 0;
-			} else {
 				order[0] = 3;
 				order[1] = 2;
 				order[2] = 0;
 				order[3] = 1;
+			} else {
+				order[0] = 2;
+				order[1] = 3;
+				order[2] = 1;
+				order[3] = 0;
 			}
 		}
 		new_elements.emplace_back(WEDGE);
