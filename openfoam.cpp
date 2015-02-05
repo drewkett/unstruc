@@ -1249,21 +1249,15 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					if (p1_on_first_face != p2_on_first_face) {
 						if (p1_on_first_face) {
 							for (int l = 0; l < 4; ++l) {
-								if (first_face->points[l] == p1) {
-									if (faces_out)
-										e.points[7-l] = p2;
-									else
-										e.points[l+4] = p2;
+								if (e.points[l] == p1) {
+									e.points[l+4] = p2;
 									break;
 								}
 							}
 						} else {
 							for (int l = 0; l < 4; ++l) {
-								if (first_face->points[l] == p2) {
-									if (faces_out)
-										e.points[7-l] = p1;
-									else
-										e.points[l+4] = p1;
+								if (e.points[l] == p2) {
+									e.points[l+4] = p1;
 									break;
 								}
 							}
@@ -1404,11 +1398,12 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	int n_volume_elements = grid.elements.size();
 	std::vector<Element> negative_elements;
 	int negative_volumes = 0;
-	for (Element& e : grid.elements)
+	for (Element& e : grid.elements) {
 		if (e.calc_volume(grid) < 0) {
 			negative_volumes++;
 			negative_elements.push_back(e);
 		}
+	}
 	if (negative_volumes) {
 		Grid g = grid.grid_from_elements(negative_elements);
 		toVTK("negative_elements.vtk",g,true);
