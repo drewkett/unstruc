@@ -1246,10 +1246,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 								new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());
 							}
 						}
-						for (Element& e : new_elements) {
-							if (e.calc_volume(grid) < 0)
-								negative_volumes++;
-						}
 						grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
 						break;
 					}
@@ -1360,6 +1356,9 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		}
 	}
 	int n_volume_elements = grid.elements.size();
+	for (Element& e : grid.elements)
+		if (e.calc_volume(grid) < 0)
+			negative_volumes++;
 
 	for (OFBoundary& boundary : boundaries) {
 		int name_i = grid.names.size();
@@ -1403,7 +1402,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	printf("Mergeable: %d of %d\n",n_mergeable-n_merge_failed,n_mergeable);
 	int n_boundary_elems = grid.elements.size() - n_volume_elements;
 	printf("Created Points: %zu\n",grid.points.size());
-	printf("Created Elements: %d\n",n_volume_elements);
-	printf("Created Boundary Elements: %d\n",n_boundary_elems);
+	printf("Created Volume Elements: %d\n",n_volume_elements);
 	printf("Negative Volume Elements: %d\n",negative_volumes);
+	printf("Created Boundary Elements: %d\n",n_boundary_elems);
 }
