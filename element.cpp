@@ -96,9 +96,9 @@ double Element::calc_volume(Grid& grid) {
 					double l = (pj - pi).length();
 					total_length1 += l;
 
-					face_center1.x = (pi.x + pj.x)/l/2;
-					face_center1.y = (pi.y + pj.y)/l/2;
-					face_center1.z = (pi.z + pj.z)/l/2;
+					face_center1.x += l*(pi.x + pj.x)/2;
+					face_center1.y += l*(pi.y + pj.y)/2;
+					face_center1.z += l*(pi.z + pj.z)/2;
 				}
 				face_center1.x /= total_length1;
 				face_center1.y /= total_length1;
@@ -113,9 +113,9 @@ double Element::calc_volume(Grid& grid) {
 					double l = (pj - pi).length();
 					total_length2 += l;
 
-					face_center2.x = (pi.x + pj.x)/l/2;
-					face_center2.y = (pi.y + pj.y)/l/2;
-					face_center2.z = (pi.z + pj.z)/l/2;
+					face_center2.x += l*(pi.x + pj.x)/2;
+					face_center2.y += l*(pi.y + pj.y)/2;
+					face_center2.z += l*(pi.z + pj.z)/2;
 				}
 				face_center2.x /= total_length2;
 				face_center2.y /= total_length2;
@@ -128,7 +128,7 @@ double Element::calc_volume(Grid& grid) {
 
 				Vector v46 = p6 - p4;
 				Vector v57 = p7 - p5;
-				Vector n2 = cross(v57,v46)/2;
+				Vector n2 = cross(v46,v57)/2;
 
 				volume = (dot(l,n1) + dot(l,n2))/2;
 			}
