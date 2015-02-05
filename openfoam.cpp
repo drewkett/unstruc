@@ -191,9 +191,9 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 			for (int _p = 0; _p < 3; ++_p) {
 				int p;
 				if (side_faces_out)
-					p = (start - _p + 3) % 3;
-				else
 					p = (start + _p) % 3;
+				else
+					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
 		} else if (n_on_face == 1) {
@@ -210,9 +210,9 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 			for (int _p = 0; _p < 3; ++_p) {
 				int p;
 				if (side_faces_out)
-					p = (start - _p + 3) % 3;
-				else
 					p = (start + _p) % 3;
+				else
+					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
 		} else {
