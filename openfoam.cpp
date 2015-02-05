@@ -801,8 +801,8 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int tri1_j = -1;
 			int tri2_j = -1;
 			int quad1_j = -1;
-			for (int j = 0; j < 5; ++j) {
 				if (faces[cell_faces[j]].points.size() == 3) {
+			for (int j = 0; j < 4; ++j) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else
@@ -1028,8 +1028,8 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFPrism) {
 			int tri1_j = -1;
 			int tri2_j = -1;
-			for (int j = 0; j < 6; ++j) {
 				if (faces[cell_faces[j]].points.size() == 3) {
+			for (int j = 0; j < 5; ++j) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else if (tri2_j == -1)
