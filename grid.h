@@ -22,10 +22,10 @@ struct Grid {
 	int dim;
 
 	Grid () : dim(0) {};
+	void merge_points(double tol);
+	void delete_inner_faces();
+	void collapse_elements();
 };
 
-void merge_points(Grid &grid, double tol);
-void delete_inner_faces(Grid &grid);
-void collapse_elements(Grid &grid);
 
 #endif

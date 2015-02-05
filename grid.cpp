@@ -9,15 +9,15 @@
 #include <iostream>
 #include <algorithm>
 
-void merge_points(Grid &grid, double tol) {
+void Grid::merge_points(double tol) {
 	std::cerr << "Merging Points" << std::endl;
 	int n_merged = 0;
-	int n_points = grid.points.size();
+	int n_points = this->points.size();
 
 	std::cerr << "Sorting Points By Location" << std::endl;
 	std::vector< std::pair<double,int> > s (n_points);
 	for (int i = 0; i < n_points; ++i) {
-		Point& p = grid.points[i];
+		Point& p = this->points[i];
 		s[i] = std::make_pair(p.x+p.y+p.z,i);
 	}
 
@@ -31,14 +31,14 @@ void merge_points(Grid &grid, double tol) {
 	for (int _i = 0; _i < n_points; _i++) {
 		double si = s[_i].first;
 		int i = s[_i].second;
-		Point& p1 = grid.points[i];
+		Point& p1 = this->points[i];
 		for (int _j = _i+1; _j < n_points; _j++) {
 			double sj = s[_j].first;
 			int j = s[_j].second;
 			// Check if point has already been merged
 			if (merged_index[j] != j) continue;
 
-			Point& p2 = grid.points[j];
+			Point& p2 = this->points[j];
 			if (fabs(si - sj) > 3*tol) break;
 			if (same(p1,p2,tol)) {
 				merged_index[j] = i;
@@ -54,33 +54,33 @@ void merge_points(Grid &grid, double tol) {
 	int new_i = 0;
 	for (int i = 0; i < n_points; ++i) {
 		if (merged_index[i] == i) {
-			grid.points[new_i] = grid.points[i];
+			this->points[new_i] = this->points[i];
 			new_index[i] = new_i;
 			new_i++;
 		}
 	}
-	grid.points.resize(new_i);
+	this->points.resize(new_i);
 	for (int i = 0; i < n_points; ++i) {
 		if (merged_index[i] != i)
 			new_index[i] = new_index[merged_index[i]];
 	}
 	std::cerr << n_merged << " Points Merged" << std::endl;
 	std::cerr << "Updating Elements" << std::endl;
-	for (Element& e : grid.elements)
+	for (Element& e : this->elements)
 		for (int& p : e.points)
 			p = new_index[p];
 }
 
-void delete_inner_faces(Grid &grid) {
+void Grid::delete_inner_faces() {
 	std::cerr << "Deleting Inner Faces" << std::endl;
-	int n_elements = grid.elements.size();
-	int n_points = grid.points.size();
+	int n_elements = this->elements.size();
+	int n_points = this->points.size();
 
 	std::cerr << "Sorting Points By Location" << std::endl;
 	std::vector< std::pair<int,int> > s (n_elements);
 	for (int i = 0; i < n_elements; ++i) {
 		int min_p = n_points;
-		for (int p : grid.elements[i].points)
+		for (int p : this->elements[i].points)
 			if (p < min_p)
 				min_p = p;
 		s[i] = std::make_pair(min_p,i);
@@ -96,13 +96,13 @@ void delete_inner_faces(Grid &grid) {
 	for (int _i = 0; _i < n_elements; _i++) {
 		int si = s[_i].first;
 		int i = s[_i].second;
-		Element &ei = grid.elements[i];
-		if (ei.dim == grid.dim) continue;
+		Element &ei = this->elements[i];
+		if (ei.dim == this->dim) continue;
 		for (int _j = _i+1; _j < n_elements; _j++) {
 			int sj = s[_j].first;
 			int j = s[_j].second;
-			Element &ej = grid.elements[j];
-			if (ej.dim == grid.dim) continue;
+			Element &ej = this->elements[j];
+			if (ej.dim == this->dim) continue;
 			if (deleted_index[j]) continue;
 		    if (si != sj) break;
 			if (same(ei,ej)) {
@@ -117,23 +117,23 @@ void delete_inner_faces(Grid &grid) {
 		if (deleted_index[i]) {
 			n_deleted++;
 		} else {
-			grid.elements[new_i] = grid.elements[i];
+			this->elements[new_i] = this->elements[i];
 			new_i++;
 		}
 	}
-	grid.elements.resize(new_i);
+	this->elements.resize(new_i);
 	fprintf(stderr,"%d Faces Deleted\n",n_deleted);
 }
 
-void collapse_elements(Grid &grid) {
-	int n_elements = grid.elements.size();
+void Grid::collapse_elements() {
+	int n_elements = this->elements.size();
 
 	std::vector<Element> new_elements;
 	int n_collapsed = 0;
 	int n_deleted = 0;
 	std::vector<bool> deleted_elements (n_elements,false);
 	for (int i = 0; i < n_elements; ++i) {
-		Element& e = grid.elements[i];
+		Element& e = this->elements[i];
 		if (can_collapse(e)) {
 			bool deleted = collapse(e,new_elements);
 			if (deleted) {

@@ -110,9 +110,9 @@ int main (int argc, char* argv[])
 	}
 	//set_i_points(grid);
 	if (mergepoints) {
-		merge_points(grid,TOL);
-		delete_inner_faces(grid);
-		collapse_elements(grid);
+		grid.merge_points(TOL);
+		grid.delete_inner_faces();
+		grid.collapse_elements();
 	}
 	if (c_translationfile) {
 		std::string translationfile (c_translationfile);
