@@ -1202,6 +1202,11 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				if (face.points.size() < 5) continue;
 				for (int k = j+1; k < cell_faces.size(); ++k) {
 					OFFace &other_face = faces[cell_faces[k]];
+					bool share_points = false;
+					for (int p : face.points)
+						for (int po : other_face.points)
+							share_points |= (p == po);
+					if (share_points) continue;
 					if (face.points.size() + other_face.points.size() == point_set.size()) {
 						mergeable = true;
 						n_mergeable++;
