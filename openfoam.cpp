@@ -1208,6 +1208,14 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 							share_points |= (p == po);
 					if (share_points) continue;
 					if (face.points.size() + other_face.points.size() == point_set.size()) {
+						bool side_face_is_split = false;
+						for (int l = 0; l < cell_faces.size(); ++l) {
+							if (l == j || l == k) continue;
+							OFFace &side_face = faces[cell_faces[l]];
+							side_face_is_split |= side_face.split;
+						}
+						if (side_face_is_split)
+							break;
 						mergeable = true;
 						n_mergeable++;
 
@@ -1246,7 +1254,11 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 								new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());
 							}
 						}
-						grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
+						if (new_elements.size() > 0) {
+							face.split = true;
+							other_face.split = true;
+							grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
+						}
 						break;
 					}
 				}
