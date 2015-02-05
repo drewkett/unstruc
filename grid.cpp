@@ -146,14 +146,14 @@ void Grid::collapse_elements() {
 	int new_i = 0;
 	for (int i = 0; i < n_elements; ++i) {
 		if (!deleted_elements[i]) {
-			grid.elements[new_i] = grid.elements[i];
+			this->elements[new_i] = this->elements[i];
 			new_i++;
 		}
 	}
-	grid.elements.resize(new_i);
+	this->elements.resize(new_i);
 
 	int n_added = new_elements.size();
-	grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
+	this->elements.insert(this->elements.end(),new_elements.begin(),new_elements.end());
 
 	std::cerr << n_collapsed << " Elements Collapsed" << std::endl;
 	std::cerr << n_added << " Elements Created On Collapse" << std::endl;
