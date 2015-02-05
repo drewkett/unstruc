@@ -22,7 +22,12 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
-	fprintf(f,"NELEM= %zu\n",grid.elements.size());
+	int n_volume_elements = 0;
+	for (Element& e : grid.elements)
+		if (e.dim == grid.dim)
+			n_volume_elements++;
+
+	fprintf(f,"NELEM= %d\n",n_volume_elements);
 	for (Element& e : grid.elements) {
 		if (e.dim != grid.dim) continue;
 		fprintf(f,"%d",e.type);
@@ -74,6 +79,7 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 			fprintf(f,"\n");
 		}
 	}
+	fprintf(f,"\n");
 	fclose(f);
 	return true;
 }
