@@ -5,6 +5,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -32,6 +33,7 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 		if (e.dim != grid.dim) continue;
 		fprintf(f,"%d",e.type);
 		for (int p : e.points) {
+			assert (p < grid.points.size());
 			fprintf(f," %d",p);
 		}
 		fprintf(f,"\n");
@@ -74,6 +76,7 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 			if (e.name_i != i) continue;
 			fprintf(f,"%d",e.type);
 			for (int p : e.points) {
+				assert (p < grid.points.size());
 				fprintf(f," %d",p);
 			}
 			fprintf(f,"\n");
