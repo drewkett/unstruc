@@ -689,37 +689,32 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 			Fatal("Bad Cell");
 		case 4:
 			if (n_tri == 4)
-				cell_type = OFTetra;
+				return OFTetra;
 			else if (n_quad == 2 && n_tri == 2)
-				cell_type = OFTetraWedge;
+				return OFTetraWedge;
 			else
-				cell_type = OFPoly;
-			break;
+				return OFPoly;
 		case 5:
 			if (n_quad == 3 && n_tri == 2)
-				cell_type = OFPrism;
+				return OFPrism;
 			else if (n_quad == 1 && n_tri == 4)
-				cell_type = OFPyramid;
+				return OFPyramid;
 			else
-				cell_type = OFPoly;
-			break;
+				return OFPoly;
 		case 6:
 			if (n_quad == 6)
-				cell_type = OFHexa;
+				return OFHexa;
 			else if (n_quad == 4 && n_tri == 2)
-				cell_type = OFWedge;
+				return OFWedge;
 			else
-				cell_type = OFPoly;
-			break;
+				return OFPoly;
 		default:
-			cell_type = OFPoly;
-			break;
+			return OFPoly;
 	}
 	if (cell_type == OFUnknown) {
 		printf("nFaces %zu nTri %d nQuad %d\n",faces.size(),n_tri,n_quad);
 		Fatal("Unknown Cell Type");
 	}
-	return cell_type;
 }
 
 void readOpenFoam(Grid& grid, std::string &polymesh) {
