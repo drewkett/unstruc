@@ -1069,8 +1069,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e.points[4] = tri2_face.points[1];
 				e.points[5] = tri2_face.points[2];
 			}
-			if (e.calc_volume(grid) < 0)
-				negative_volumes++;
 		} else if (cell_type == OFHexa) {
 			grid.elements.emplace_back(HEXA);
 			Element& e = grid.elements.back();
@@ -1289,9 +1287,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						e.points[2] = current_face.points[2];
 					}
 					e.points[3] = cell_center_id;
-					if (e.calc_volume(grid) < 0) {
-						negative_volumes++;
-					}
 				} else if (current_face.points.size() == 4) {
 					// If current face only has 4 points, create a pyramid with face plus cell center
 					grid.elements.emplace_back(PYRAMID);
@@ -1310,9 +1305,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						e.points[3] = current_face.points[3];
 					}
 					e.points[4] = cell_center_id;
-					if (e.calc_volume(grid) < 0) {
-						negative_volumes++;
-					}
 				} else {
 					// Split polygon face into tris and quads
 					//std::vector<OFFace> split_faces = splitPolyFace(current_face,grid);
@@ -1334,9 +1326,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 								e.points[2] = new_face.points[2];
 							}
 							e.points[3] = cell_center_id;
-							if (e.calc_volume(grid) < 0) {
-								negative_volumes++;
-							}
 						} else if (new_face.points.size() == 4) {
 							grid.elements.emplace_back(PYRAMID);
 							Element& e = grid.elements.back();
@@ -1353,9 +1342,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 								e.points[3] = new_face.points[3];
 							}
 							e.points[4] = cell_center_id;
-							if (e.calc_volume(grid) < 0) {
-								negative_volumes++;
-							}
 						}
 
 					}
