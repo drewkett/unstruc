@@ -704,7 +704,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		faces_per_cell[neighbours[i]].push_back(i);
 	}
 
-	int negative_volumes = 0;
 	int n_mergeable = 0;
 	int n_merge_failed = 0;
 	for (int i = 0; i < info.n_cells; ++i) {
@@ -1350,9 +1349,17 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		}
 	}
 	int n_volume_elements = grid.elements.size();
+	std::vector<Element> negative_elements;
+	int negative_volumes = 0;
 	for (Element& e : grid.elements)
-		if (e.calc_volume(grid) < 0)
+		if (e.calc_volume(grid) < 0) {
 			negative_volumes++;
+			negative_elements.push_back(e);
+		}
+	if (negative_volumes) {
+		Grid g = grid.grid_from_elements(negative_elements);
+		toVTK("negative_elements.vtk",g,true);
+	}
 
 	for (OFBoundary& boundary : boundaries) {
 		int name_i = grid.names.size();
