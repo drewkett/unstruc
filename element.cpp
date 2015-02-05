@@ -48,6 +48,10 @@ Element::Element(int T) : type(T) {
 			len = 5;
 			dim = 3;
 			break;
+		case POLYGON:
+			len = 0;
+			dim = 2;
+			break;
 		default:
 			std::ostringstream oss;
 			oss << "Element Type " << T;

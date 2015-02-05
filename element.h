@@ -7,6 +7,7 @@
 
 enum Shapes { LINE = 3,
 			  TRI = 5,
+			  POLYGON = 7,
 			  QUAD = 9,
 			  TETRA = 10,
 			  HEXA = 12,
