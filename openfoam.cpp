@@ -197,10 +197,10 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
-			if (e.calc_volume(grid) < 0) {
-				printf("Pyramid %g\n",e.calc_volume(grid));
+			if (e.calc_volume(grid) < -1e-3)
+				Fatal("Large negative volume");
+			if (e.calc_volume(grid) < 0)
 				new_elements.clear();
-			}
 		} else if (n_on_face == 1) {
 			if (pt_on_main_face[0])
 				start = 0;
@@ -220,14 +220,12 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
-			if (e.calc_volume(grid) < 0) {
-				printf("Pyramid %g\n",e.calc_volume(grid));
+			if (e.calc_volume(grid) < -1e-3)
+				Fatal("Large negative volume");
+			if (e.calc_volume(grid) < 0)
 				new_elements.clear();
-			}
 		} else {
-			printf("Pyramid\n");
 			new_elements.clear();
-			//printf("");
 		}
 	} else if (side_face->points.size() == 4) {
 		int p0 = side_face->points[0];
@@ -294,10 +292,10 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 		e.points[3] = opp_face_center_id;
 		e.points[4] = side_face->points[order[2]];
 		e.points[5] = side_face->points[order[3]];
-		if (e.calc_volume(grid) < 0) {
-			printf("Wedge %g\n",e.calc_volume(grid));
+		if (e.calc_volume(grid) < -1e-3)
+			Fatal("Large negative volume");
+		if (e.calc_volume(grid) < 0)
 			new_elements.clear();
-		}
 	} else {
 		for (OFFace& split_face : side_face->split_faces) {
 			std::vector<Element> split_elements;
@@ -850,19 +848,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						std::vector<Element> face_elements;
 						face_elements = createElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id);
 						if (face_elements.empty()) {
-							new_elements.clear();
-
-							std::vector<Element> elements;
-							for (OFFace* f : cell_faces) {
-								Element e (POLYGON);
-								e.name_i = 0;
-								e.points.insert(e.points.end(),f->points.begin(),f->points.end());
-								elements.push_back(e);
-							}
-
-							Grid g = grid.grid_from_elements(elements);
-							toVTK("error.vtk",g,true);
-							//Fatal("NegVolume");
 							break;
 						} else {
 							new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());
