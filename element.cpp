@@ -122,6 +122,7 @@ double Element::calc_volume(Grid& grid) {
 				if (volume < 0)
 					dump(*this);
 			}
+			break;
 		case PYRAMID:
 			{
 				Point& p0 = grid.points[points[0]];
