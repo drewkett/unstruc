@@ -196,6 +196,10 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
+			if (e.calc_volume(grid) < 0) {
+				printf("Pyramid %g\n",e.calc_volume(grid));
+				new_elements.clear();
+			}
 		} else if (n_on_face == 1) {
 			if (pt_on_main_face[0])
 				start = 0;
@@ -214,6 +218,10 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 				else
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
+			}
+			if (e.calc_volume(grid) < 0) {
+				printf("Pyramid %g\n",e.calc_volume(grid));
+				new_elements.clear();
 			}
 		} else {
 			printf("Pyramid\n");
@@ -287,12 +295,6 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 		e.points[5] = side_face->points[order[3]];
 		if (e.calc_volume(grid) < 0) {
 			printf("Wedge %g\n",e.calc_volume(grid));
-			//dump(e,grid);
-			//printf("%d %d %d\n",side_faces_out,p0_on_main_face,p1_on_main_face);
-			std::vector<Element> elements;
-			elements.push_back(e);
-			Grid g = grid.grid_from_elements(elements);
-			toVTK("error2.vtk",g,true);		
 			new_elements.clear();
 		}
 	} else {
