@@ -1078,10 +1078,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					break;
 				}
 			}
-			if (e.calc_volume(grid) < 0) {
-				dump(e,grid);
-				Fatal("Negative Volume in Pyramid");
-			}
 		} else if (cell_type == OFWedge) {
 			int tri1_j = -1;
 			int tri2_j = -1;
@@ -1161,10 +1157,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e1.points[3] = quad1_face->points[3];
 			}
 			e1.points[4] = common_point;
-			if (e1.calc_volume(grid) < 0) {
-				dump(e1,grid);
-				Fatal("Negative Volume");
-			}
 
 			grid.elements.emplace_back(PYRAMID);
 			Element& e2 = grid.elements.back();
@@ -1181,10 +1173,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e2.points[3] = quad2_face->points[3];
 			}
 			e2.points[4] = common_point;
-			if (e2.calc_volume(grid) < 0) {
-				dump(e2,grid);
-				Fatal("Negative Volume");
-			}
 		} else if (cell_type == OFPrism) {
 			int tri1_j = -1;
 			int tri2_j = -1;
