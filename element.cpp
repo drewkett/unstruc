@@ -60,11 +60,10 @@ Element::Element(int T) : type(T) {
 	points.resize(len);
 }
 
-void dump(Element &e) {
+void dump(Element &e,Grid &grid) {
 	std::cerr << "Element " << e.type << std::endl;
-	//for (int i=0; i < e.len; i++) {
-	//	dump(e.points[i]);
-	//}
+	for (int p : e.points)
+		dump(grid.points[p]);
 };
 
 double Element::calc_volume(Grid& grid) {

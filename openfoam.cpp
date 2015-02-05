@@ -915,7 +915,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				}
 			}
 			if (e.calc_volume(grid) < 0) {
-				dump(e);
+				dump(e,grid);
 				Fatal("Negative Volume in Pyramid");
 			}
 		} else if (cell_type == OFWedge) {
@@ -999,7 +999,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 			e1.points[4] = common_point;
 			if (e1.calc_volume(grid) < 0) {
-				dump(e1);
+				dump(e1,grid);
 				Fatal("Negative Volume");
 			}
 
@@ -1019,7 +1019,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			}
 			e2.points[4] = common_point;
 			if (e2.calc_volume(grid) < 0) {
-				dump(e2);
+				dump(e2,grid);
 				Fatal("Negative Volume");
 			}
 		} else if (cell_type == OFPrism) {

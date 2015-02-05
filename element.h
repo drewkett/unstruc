@@ -29,7 +29,7 @@ struct Element
 	double calc_volume(Grid& grid);
 };
 
-void dump(Element &e);
+void dump(Element &e, Grid& grid);
 bool same(Element &e1, Element &e2);
 bool can_collapse(Element& e);
 bool collapse(Element& e,std::vector<Element>& new_elements);
