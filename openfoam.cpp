@@ -6,11 +6,11 @@
 #include "error.h"
 #include "vtk.h"
 
-#include <assert.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <cassert>
+#include <cstring>
 #include <string>
 #include <algorithm>
 #include <sstream>
