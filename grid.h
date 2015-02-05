@@ -25,6 +25,7 @@ struct Grid {
 	void merge_points(double tol);
 	void delete_inner_faces();
 	void collapse_elements();
+	Grid grid_from_elements(std::vector<Element>&);
 };
 
 

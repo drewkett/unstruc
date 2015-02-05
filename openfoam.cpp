@@ -4,6 +4,7 @@
 #include "element.h"
 #include "point.h"
 #include "error.h"
+#include "vtk.h"
 
 #include <assert.h>
 #include <string.h>
@@ -216,6 +217,7 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace& side_face, O
 				e.points[2+_p] = side_face.points[p];
 			}
 		} else {
+			printf("Pyramid\n");
 			new_elements.clear();
 			//printf("");
 		}
@@ -285,12 +287,14 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace& side_face, O
 		e.points[4] = side_face.points[order[2]];
 		e.points[5] = side_face.points[order[3]];
 		if (e.calc_volume(grid) < 0) {
-			dump(e);
-			printf("%g\n",e.calc_volume(grid));
-			printf("%d\n",side_faces_out);
-			printf("%d\n",p0_on_main_face);
-			printf("%d\n",p1_on_main_face);
-			Fatal();
+			printf("Wedge %g\n",e.calc_volume(grid));
+			//dump(e,grid);
+			//printf("%d %d %d\n",side_faces_out,p0_on_main_face,p1_on_main_face);
+			std::vector<Element> elements;
+			elements.push_back(e);
+			Grid g = grid.grid_from_elements(elements);
+			toVTK("error2.vtk",g,true);		
+			new_elements.clear();
 		}
 	} else {
 		for (OFFace& split_face : side_face.split_faces) {
@@ -1217,6 +1221,19 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 								merge_failed = true;
 								new_elements.clear();
 								n_merge_failed++;
+
+								std::vector<Element> elements;
+								for (int _f : cell_faces) {
+									OFFace& f = faces[_f];
+									Element e (POLYGON);
+									e.name_i = 0;
+									e.points.insert(e.points.end(),f.points.begin(),f.points.end());
+									elements.push_back(e);
+								}
+
+								Grid g = grid.grid_from_elements(elements);
+								toVTK("error.vtk",g,true);
+								//Fatal("NegVolume");
 								break;
 							} else {
 								new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());

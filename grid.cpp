@@ -159,3 +159,21 @@ void Grid::collapse_elements() {
 	std::cerr << n_added << " Elements Created On Collapse" << std::endl;
 	std::cerr << n_deleted << " Elements Deleted On Collapse" << std::endl;
 };
+
+Grid Grid::grid_from_elements(std::vector<Element>& elements) {
+	Grid g;
+	g.dim = 3;
+	g.names.emplace_back(3,"Volume");
+	for (Element &e_orig : elements) {
+		Element e (e_orig.type);
+		e.name_i = 0;
+		e.points.resize(e_orig.points.size());
+		for (int i = 0; i < e_orig.points.size(); ++i)
+			e.points[i] = i + g.points.size();;
+		g.elements.push_back(e);
+
+		for (int p : e_orig.points)
+			g.points.push_back(this->points[p]);
+	}
+	return g;
+}
