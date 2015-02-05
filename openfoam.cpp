@@ -46,14 +46,13 @@ struct OFBoundary {
 };
 
 struct OFFace {
-	int n_points;
 	bool split;
 	double area;
 	std::vector<int> points;
 	Vector normal;
 	Point center;
 	std::vector<OFFace> split_faces;
-	OFFace () : n_points(0), split(false) {};
+	OFFace () : split(false) {};
 };
 
 struct OFInfo {
@@ -63,10 +62,10 @@ struct OFInfo {
 int removeStraightEdges(OFFace& face, Grid& grid) {
 	int n_large_angles = 0;
 	bool large_angles[face.points.size()];
-	for (int i = 0; i < face.n_points; ++i) {
+	for (int i = 0; i < face.points.size(); ++i) {
 		Point& p0 = grid.points[face.points[i]];
-		Point& p1 = grid.points[face.points[((i-1)+face.n_points)%face.n_points]];
-		Point& p2 = grid.points[face.points[(i+1)%face.n_points]];
+		Point& p1 = grid.points[face.points[((i-1)+face.points.size())%face.points.size()]];
+		Point& p2 = grid.points[face.points[(i+1)%face.points.size()]];
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p0;
 		double angle = angle_between(v2,v1);
@@ -81,26 +80,26 @@ int removeStraightEdges(OFFace& face, Grid& grid) {
 	if (face.points.size() - n_large_angles < 3) {
 		Fatal("angles");
 	} else {
-		for (int i = 0; i < face.n_points; ++i) {
+		for (int i = 0; i < face.points.size(); ++i) {
 			if (large_angles[i]) continue;
 			new_points.push_back(face.points[i]);
 		}
 	}
 	face.points = new_points;
-	face.n_points = new_points.size();
 	return n_large_angles;
 }
 
 std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
-	if (face.n_points < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
+	if (face.points.size() < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
 	std::vector<OFFace> split_faces;
 
 	double max_angle = 0;
 	int max_i = -1;
-	for (int i = 0; i < face.n_points; ++i) {
+	int n_points = face.points.size();
+	for (int i = 0; i < n_points; ++i) {
 		Point& p0 = grid.points[face.points[i]];
-		Point& p1 = grid.points[face.points[((i-1)+face.n_points)%face.n_points]];
-		Point& p2 = grid.points[face.points[(i+1)%face.n_points]];
+		Point& p1 = grid.points[face.points[((i-1)+n_points)%n_points]];
+		Point& p2 = grid.points[face.points[(i+1)%n_points]];
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p0;
 		double angle = angle_between(v2,v1);
@@ -116,12 +115,12 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 	assert (max_i != -1);
 
 	Point& p0 = grid.points[face.points[max_i]];
-	Point& p1 = grid.points[face.points[(max_i+1)%face.n_points]];
+	Point& p1 = grid.points[face.points[(max_i+1)%n_points]];
 	Vector v1 = p1 - p0;
 	double min_diff = 180;
 	int min_i = -1;
-	for (int i_offset = 2; i_offset < face.n_points-1; ++i_offset) {
-		int i = (max_i + i_offset) % face.n_points;
+	for (int i_offset = 2; i_offset < n_points-1; ++i_offset) {
+		int i = (max_i + i_offset) % n_points;
 		Point& p2 = grid.points[face.points[i]];
 		Vector v2 = p2 - p0;
 		double diff = fabs(max_angle/2 - angle_between(v1,v2));
@@ -134,14 +133,14 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 	if (debug)
 		printf(" => %d, %d\n",max_i,min_i);
 	OFFace face1;
-	face1.n_points = ((min_i - max_i + 1) + face.n_points) % face.n_points;
-	for (int i_off = 0; i_off < face1.n_points; ++i_off) {
-		int i = (max_i + i_off) % face.n_points;
+	int face1_points = ((min_i - max_i + 1) + n_points) % n_points;
+	for (int i_off = 0; i_off < face1_points; ++i_off) {
+		int i = (max_i + i_off) % n_points;
 		face1.points.push_back(face.points[i]);
 	}
 
-	assert (face1.n_points > 2);
-	if (face1.n_points == 3 || face1.n_points == 4) {
+	assert (face1_points > 2);
+	if (face1_points == 3 || face1_points == 4) {
 		split_faces.push_back(face1);
 	} else {
 		std::vector<OFFace> new_split_faces = splitPolyFace(face1,grid,debug);
@@ -149,14 +148,14 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 	}
 
 	OFFace face2;
-	face2.n_points = ((max_i - min_i + 1) + face.n_points) % face.n_points;
-	for (int i_off = 0; i_off < face2.n_points; ++i_off) {
-		int i = (min_i + i_off) % face.n_points;
+	int face2_points = ((max_i - min_i + 1) + n_points) % n_points;
+	for (int i_off = 0; i_off < face2_points; ++i_off) {
+		int i = (min_i + i_off) % n_points;
 		face2.points.push_back(face.points[i]);
 	}
 
-	assert (face2.n_points > 2);
-	if (face2.n_points == 3 || face2.n_points == 4) {
+	assert (face2_points > 2);
+	if (face2_points == 3 || face2_points == 4) {
 		split_faces.push_back(face2);
 	} else {
 		std::vector<OFFace> new_split_faces = splitPolyFace(face2,grid,debug);
@@ -509,10 +508,8 @@ std::vector<OFFace> readFaces(const std::string& polymesh) {
 	std::vector<int> points = readBinary<int>(f,header);
 
 	faces.resize(index.size() - 1);
-	for (int i = 0; i < index.size() - 1; ++i) {
-		faces[i].n_points = index[i+1] - index[i];
+	for (int i = 0; i < index.size() - 1; ++i)
 		faces[i].points = std::vector<int> (&points[index[i]],&points[index[i+1]]);
-	}
 
 	return faces;
 }
@@ -718,7 +715,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		std::vector<int>& cell_faces = faces_per_cell[i];
 		for (int j : cell_faces) {
 			OFFace& current_face = faces[j];
-			switch (current_face.n_points) {
+			switch (current_face.points.size()) {
 				case 0:
 				case 1:
 				case 2:
@@ -808,7 +805,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int tri2_j = -1;
 			int quad1_j = -1;
 			for (int j = 0; j < 5; ++j) {
-				if (faces[cell_faces[j]].n_points == 3) {
+				if (faces[cell_faces[j]].points.size() == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else
@@ -886,7 +883,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			std::vector<int>& cell_faces = faces_per_cell[i];
 			int quad_j = -1;
 			for (int j = 0; j < 5; ++j) {
-				if (faces[cell_faces[j]].n_points == 4) {
+				if (faces[cell_faces[j]].points.size() == 4) {
 					quad_j = j;
 					break;
 				}
@@ -934,7 +931,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
-				if (faces[cell_faces[j]].n_points == 3) {
+				if (faces[cell_faces[j]].points.size() == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else if (tri2_j == -1)
@@ -964,7 +961,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int quad2_j = -1;
 			for (int j = 0; j < 6; ++j) {
 				OFFace& current_face = faces[cell_faces[j]];
-				if (current_face.n_points == 3) continue;
+				if (current_face.points.size() == 3) continue;
 				bool match1 = false;
 				bool match2 = false;
 				for (int p : current_face.points) {
@@ -1038,7 +1035,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
-				if (faces[cell_faces[j]].n_points == 3) {
+				if (faces[cell_faces[j]].points.size() == 3) {
 					if (tri1_j == -1)
 						tri1_j = j;
 					else if (tri2_j == -1)
@@ -1282,7 +1279,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				bool faces_out = (j < n_owners_per_cell[i]);
 				OFFace& current_face = faces[cell_faces[j]];
 
-				if (current_face.n_points == 3) {
+				if (current_face.points.size() == 3) {
 					// If current face only has 3 points, create a tetrahedral with face plus cell center
 					grid.elements.emplace_back(TETRA);
 					Element& e = grid.elements.back();
@@ -1301,7 +1298,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					if (e.calc_volume(grid) < 0) {
 						negative_volumes++;
 					}
-				} else if (current_face.n_points == 4) {
+				} else if (current_face.points.size() == 4) {
 					// If current face only has 4 points, create a pyramid with face plus cell center
 					grid.elements.emplace_back(PYRAMID);
 					Element& e = grid.elements.back();
@@ -1329,7 +1326,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 					//create element from each of the split faces and the cell center
 					for (OFFace& new_face : current_face.split_faces) {
-						if (new_face.n_points == 3) {
+						if (new_face.points.size() == 3) {
 							grid.elements.emplace_back(TETRA);
 							Element& e = grid.elements.back();
 							e.name_i = name_i;
@@ -1346,7 +1343,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 							if (e.calc_volume(grid) < 0) {
 								negative_volumes++;
 							}
-						} else if (new_face.n_points == 4) {
+						} else if (new_face.points.size() == 4) {
 							grid.elements.emplace_back(PYRAMID);
 							Element& e = grid.elements.back();
 							e.name_i = name_i;
@@ -1382,28 +1379,28 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		grid.names.emplace_back(2,boundary.name);
 		for (int i = boundary.start_face; i < boundary.start_face+boundary.n_faces; ++i) {
 			OFFace& face = faces[i];
-			if (face.n_points == 3) {
+			if (face.points.size() == 3) {
 				grid.elements.emplace_back(TRI);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 3; ++j)
 					e.points[j] = face.points[j];
-			} else if (face.n_points == 4) {
+			} else if (face.points.size() == 4) {
 				grid.elements.emplace_back(QUAD);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 4; ++j)
 					e.points[j] = face.points[j];
-			} else if (face.n_points > 4) {
+			} else if (face.points.size() > 4) {
 				//std::vector<OFFace> split_faces = splitPolyFace(face,grid);
-				for (OFFace new_face : face.split_faces) {
-					if (new_face.n_points == 3) {
+				for (OFFace& new_face : face.split_faces) {
+					if (new_face.points.size() == 3) {
 						grid.elements.emplace_back(TRI);
 						Element &e = grid.elements.back();
 						e.name_i = name_i;
 						for (int j = 0; j < 3; ++j)
 							e.points[j] = new_face.points[j];
-					} else if (new_face.n_points == 4) {
+					} else if (new_face.points.size() == 4) {
 						grid.elements.emplace_back(QUAD);
 						Element &e = grid.elements.back();
 						e.name_i = name_i;
