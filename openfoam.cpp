@@ -658,6 +658,69 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 	}
 }
 
+OFCellType determineCellType (std::vector<OFFace*>& faces) {
+	OFCellType cell_type = OFUnknown;
+	int n_tri = 0;
+	int n_quad = 0;
+	int n_poly = 0;
+	for (OFFace* face : faces) {
+		switch (face->points.size()) {
+			case 0:
+			case 1:
+			case 2:
+				Fatal("Bad Face");
+			case 3:
+				n_tri++;
+				break;
+			case 4:
+				n_quad++;
+				break;
+			default:
+				n_poly++;
+				break;
+		}
+	}
+	switch (faces.size()) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+			Fatal("Bad Cell");
+		case 4:
+			if (n_tri == 4)
+				cell_type = OFTetra;
+			else if (n_quad == 2 && n_tri == 2)
+				cell_type = OFTetraWedge;
+			else
+				cell_type = OFPoly;
+			break;
+		case 5:
+			if (n_quad == 3 && n_tri == 2)
+				cell_type = OFPrism;
+			else if (n_quad == 1 && n_tri == 4)
+				cell_type = OFPyramid;
+			else
+				cell_type = OFPoly;
+			break;
+		case 6:
+			if (n_quad == 6)
+				cell_type = OFHexa;
+			else if (n_quad == 4 && n_tri == 2)
+				cell_type = OFWedge;
+			else
+				cell_type = OFPoly;
+			break;
+		default:
+			cell_type = OFPoly;
+			break;
+	}
+	if (cell_type == OFUnknown) {
+		printf("nFaces %zu nTri %d nQuad %d\n",faces.size(),n_tri,n_quad);
+		Fatal("Unknown Cell Type");
+	}
+	return cell_type;
+}
+
 void readOpenFoam(Grid& grid, std::string &polymesh) {
 	struct stat s;
 	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
@@ -707,66 +770,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	int n_mergeable = 0;
 	int n_merge_failed = 0;
 	for (int i = 0; i < info.n_cells; ++i) {
-		OFCellType cell_type = OFUnknown;
-		int n_tri = 0;
-		int n_quad = 0;
-		int n_poly = 0;
 		std::vector<OFFace*>& cell_faces = faces_per_cell[i];
-		for (OFFace* face : cell_faces) {
-			switch (face->points.size()) {
-				case 0:
-				case 1:
-				case 2:
-					Fatal("Bad Face");
-				case 3:
-					n_tri++;
-					break;
-				case 4:
-					n_quad++;
-					break;
-				default:
-					n_poly++;
-					break;
-			}
-		}
-		switch (n_faces_per_cell[i]) {
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-				Fatal("Bad Cell");
-			case 4:
-				if (n_tri == 4)
-					cell_type = OFTetra;
-				else if (n_quad == 2 && n_tri == 2)
-					cell_type = OFTetraWedge;
-				else
-					cell_type = OFPoly;
-				break;
-			case 5:
-				if (n_quad == 3 && n_tri == 2)
-					cell_type = OFPrism;
-				else if (n_quad == 1 && n_tri == 4)
-					cell_type = OFPyramid;
-				else
-					cell_type = OFPoly;
-				break;
-			case 6:
-				if (n_quad == 6)
-					cell_type = OFHexa;
-				else if (n_quad == 4 && n_tri == 2)
-					cell_type = OFWedge;
-				else
-					cell_type = OFPoly;
-				break;
-			default:
-				cell_type = OFPoly;
-				break;
-		}
-		if (cell_type == OFUnknown) {
-			printf("Cell %d nFaces %d nTri %d nQuad %d\n",i,n_faces_per_cell[i],n_tri,n_quad);
-			Fatal("Unknown Cell Type");
-		} else if (cell_type == OFTetra) {
+		OFCellType cell_type = determineCellType(cell_faces);
+
+		if (cell_type == OFTetra) {
 			grid.elements.emplace_back(TETRA);
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
