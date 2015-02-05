@@ -165,22 +165,22 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 }
 
 std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id) {
-	bool pt_on_face [side_face->points.size()];
+	bool pt_on_main_face [side_face->points.size()];
 	int n_on_face = 0;
 	std::vector<Element> new_elements;
 	for (int _p = 0; _p < side_face->points.size(); ++_p) {
 		int p = side_face->points[_p];
 		auto it = std::find(main_face->points.begin(),main_face->points.end(),p);
-		pt_on_face[_p] = it != main_face->points.end();
-		if (pt_on_face[_p])
+		pt_on_main_face[_p] = it != main_face->points.end();
+		if (pt_on_main_face[_p])
 			n_on_face++;
 	}
 	if (side_face->points.size() == 3) {
 		int start;
 		if (n_on_face == 2) {
-			if (!pt_on_face[0])
+			if (!pt_on_main_face[0])
 				start = 0;
-			else if (!pt_on_face[1])
+			else if (!pt_on_main_face[1])
 				start = 1;
 			else
 				start = 2;
@@ -197,9 +197,9 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 				e.points[2+_p] = side_face->points[p];
 			}
 		} else if (n_on_face == 1) {
-			if (pt_on_face[0])
+			if (pt_on_main_face[0])
 				start = 0;
-			else if (pt_on_face[1])
+			else if (pt_on_main_face[1])
 				start = 1;
 			else
 				start = 2;
