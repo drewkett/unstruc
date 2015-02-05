@@ -890,25 +890,31 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	printf("Failed Wedge Split: %d\n",n_wedge_split_failed);
 	Grid g = grid.grid_from_elements(failed_split_elements);
 	toVTK("failed_split_elements.vtk",g,true);		
+
+	// For faces that were split by edge split. Split face in triangles using the 
+	// face center with each edge
+	for (OFFace& face : faces) {
+		if (face.split) {
+			face.split_faces.clear();
+			for (int j1 = 0; j1 < face.points.size(); ++j1) {
+				int j2 = (j1 + 1) % face.points.size();
+				OFFace new_face;
+				new_face.points.push_back(face.points[j1]);
+				new_face.points.push_back(face.points[j2]);
+				new_face.points.push_back(face.face_center_id);
+				face.split_faces.push_back(new_face);
+			}
+		}
+	}
 	for (int i = 0; i < info.n_cells; ++i) {
 		std::vector<OFFace*>& cell_faces = faces_per_cell[i];
 		OFCellType cell_type = cell_types[i];
 		if (processed_cells[i]) continue;
+
 		int n_split_faces = 0;
-		for (OFFace* face : cell_faces) {
-			if (face->split) {
+		for (OFFace* face : cell_faces)
+			if (face->split)
 				n_split_faces++;
-				face->split_faces.clear();
-				for (int j1 = 0; j1 < face->points.size(); ++j1) {
-					int j2 = (j1 + 1)%face->points.size();
-					OFFace new_face;
-					new_face.points.push_back(face->face_center_id);
-					new_face.points.push_back(face->points[j1]);
-					new_face.points.push_back(face->points[j2]);
-					face->split_faces.push_back(new_face);
-				}
-			}
-		}
 
 		if (n_split_faces) cell_type = OFPoly;
 
