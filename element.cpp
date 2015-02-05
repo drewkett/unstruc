@@ -116,11 +116,6 @@ double Element::calc_volume(Grid& grid) {
 				Vector v45 = p5 - p4;
 				Vector n2 = cross(v34,v45)/2;
 				volume = (dot(l,n1) + dot(l,n2))/2;
-				dump(n1);
-				dump(n2);
-				dump(l);
-				if (volume < 0)
-					dump(*this);
 			}
 			break;
 		case PYRAMID:
@@ -192,7 +187,6 @@ bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
 		} else if (e.points[3] == e.points[0]) {
 			tri_from_quad(e,0,1,2);
 		} else {
-			dump(e);
 			throw 1;
 		}
 		return collapse_tri(e,new_elements);
@@ -279,7 +273,6 @@ bool collapse_pyramid(Element& e,std::vector<Element>& new_elements) {
 			tetra_from_pyramid(e,0,1,2,4);
 			return collapse_tetra(e,new_elements);
 		} else {
-			dump(e);
 			NotImplemented("Don't know how to collapse this pyramid");
 		}
 	}
