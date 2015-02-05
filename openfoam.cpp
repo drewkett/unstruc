@@ -772,7 +772,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(TETRA);
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			int first_face = cell_faces[0];
 			bool faces_out = (n_owners_per_cell[i] > 0);
 
@@ -800,7 +799,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				}
 			}
 		} else if (cell_type == OFTetraWedge) {
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			int tri1_j = -1;
 			int tri2_j = -1;
 			int quad1_j = -1;
@@ -880,7 +878,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(PYRAMID);
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			int quad_j = -1;
 			for (int j = 0; j < 5; ++j) {
 				if (faces[cell_faces[j]].points.size() == 4) {
@@ -927,7 +924,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				Fatal("Negative Volume in Pyramid");
 			}
 		} else if (cell_type == OFWedge) {
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
@@ -1031,7 +1027,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				Fatal("Negative Volume");
 			}
 		} else if (cell_type == OFPrism) {
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			int tri1_j = -1;
 			int tri2_j = -1;
 			for (int j = 0; j < 6; ++j) {
@@ -1080,7 +1075,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			grid.elements.emplace_back(HEXA);
 			Element& e = grid.elements.back();
 			e.name_i = name_i;
-			std::vector<int>& cell_faces = faces_per_cell[i];
 			bool faces_out = (n_owners_per_cell[i] > 0);
 			OFFace& first_face = faces[cell_faces[0]];
 			if (faces_out) {
