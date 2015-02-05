@@ -164,16 +164,22 @@ Grid Grid::grid_from_elements(std::vector<Element>& elements) {
 	Grid g;
 	g.dim = 3;
 	g.names.emplace_back(3,"Volume");
+	std::vector<int> index (points.size(),-1);
+	int n_points = 0;
 	for (Element &e_orig : elements) {
 		Element e (e_orig.type);
 		e.name_i = 0;
 		e.points.resize(e_orig.points.size());
-		for (int i = 0; i < e_orig.points.size(); ++i)
-			e.points[i] = i + g.points.size();;
+		for (int i = 0; i < e_orig.points.size(); ++i) {
+			int p = e_orig.points[i];
+			if (index[p] == -1) {
+				index[p] = n_points;
+				g.points.push_back(points[p]);
+				n_points++;
+			}
+			e.points[i] = index[p];
+		}
 		g.elements.push_back(e);
-
-		for (int p : e_orig.points)
-			g.points.push_back(this->points[p]);
 	}
 	return g;
 }
