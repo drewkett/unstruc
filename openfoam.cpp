@@ -662,6 +662,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					temp_center.y /= total_length;
 					temp_center.z /= total_length;
 
+					double total_area = 0;
 					for (int i1 = 0; i1 < n; ++i1) {
 						int i2 = (i1 + 1) % n;
 						Point& p1 = grid.points[face.points[i1]];
@@ -672,15 +673,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						Vector n = cross(v1,v2);
 						double area = n.length()/2;
 
+						total_area += area;
 						face.center.x += area*(p1.x + p2.x + temp_center.x)/3;
 						face.center.y += area*(p1.y + p2.y + temp_center.y)/3;
 						face.center.z += area*(p1.z + p2.z + temp_center.z)/3;
 						face.normal += n/2;
 					}
 					face.area = face.normal.length();
-					face.center.x /= face.area;
-					face.center.y /= face.area;
-					face.center.z /= face.area;
+					face.center.x /= total_area;
+					face.center.y /= total_area;
+					face.center.z /= total_area;
 
 					face.split_faces = splitPolyFace(face,grid,false);
 				}
