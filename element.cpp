@@ -69,13 +69,12 @@ void dump(Element &e,Grid &grid) {
 };
 
 double Element::calc_volume(Grid& grid) {
-	double volume = 0;
 	switch (type) {
 		case LINE:
 		case TRI:
 		case QUAD:
 		case POLYGON:
-			break;
+			return 0;
 		case HEXA:
 			{
 				Point& p0 = grid.points[points[0]];
@@ -130,9 +129,8 @@ double Element::calc_volume(Grid& grid) {
 				Vector v57 = p7 - p5;
 				Vector n2 = cross(v46,v57)/2;
 
-				volume = (dot(l,n1) + dot(l,n2))/2;
+				return (dot(l,n1) + dot(l,n2))/2;
 			}
-			break;
 		case TETRA:
 			{
 				Point& p0 = grid.points[points[0]];
@@ -143,9 +141,8 @@ double Element::calc_volume(Grid& grid) {
 				Vector v2 = p2 - p1;
 				Vector v = cross(v1,v2);
 				Vector v3 = p3 - p1;
-				volume = dot(v,v3)/6;
+				return dot(v,v3)/6;
 			}
-			break;
 		case WEDGE:
 			{
 				Point& p0 = grid.points[points[0]];
@@ -172,9 +169,8 @@ double Element::calc_volume(Grid& grid) {
 				Vector v34 = p4 - p3;
 				Vector v45 = p5 - p4;
 				Vector n2 = cross(v34,v45)/2;
-				volume = (dot(l,n1) + dot(l,n2))/2;
+				return (dot(l,n1) + dot(l,n2))/2;
 			}
-			break;
 		case PYRAMID:
 			{
 				Point& p0 = grid.points[points[0]];
@@ -188,13 +184,12 @@ double Element::calc_volume(Grid& grid) {
 				Vector v = cross(v1,v2);
 				Vector v3 = p4 - p0;
 				Vector v4 = p4 - p1;
-				volume = dot(v3,v)/12 + dot(v4,v)/12;
+				return dot(v3,v)/12 + dot(v4,v)/12;
 			}
-			break;
 		default:
 			Fatal("Invalid Element Type");
 	}
-	return volume;
+	return 0;
 }
 
 bool same(Element &e1, Element &e2) {
