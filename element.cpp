@@ -72,9 +72,65 @@ double Element::calc_volume(Grid& grid) {
 		case LINE:
 		case TRI:
 		case QUAD:
+		case POLYGON:
 			break;
 		case HEXA:
-			NotImplemented("Hexa volume calculation");
+			{
+				Point& p0 = grid.points[points[0]];
+				Point& p1 = grid.points[points[1]];
+				Point& p2 = grid.points[points[2]];
+				Point& p3 = grid.points[points[3]];
+				Point& p4 = grid.points[points[4]];
+				Point& p5 = grid.points[points[5]];
+				Point& p6 = grid.points[points[6]];
+				Point& p7 = grid.points[points[7]];
+
+				Point face_center1;
+				double total_length1 = 0;
+				for (int i = 0; i < 4; ++i) {
+					int j = (i + 1)%4;
+					Point& pi = grid.points[points[i]];
+					Point& pj = grid.points[points[j]];
+					double l = (pj - pi).length();
+					total_length1 += l;
+
+					face_center1.x = (pi.x + pj.x)/l/2;
+					face_center1.y = (pi.y + pj.y)/l/2;
+					face_center1.z = (pi.z + pj.z)/l/2;
+				}
+				face_center1.x /= total_length1;
+				face_center1.y /= total_length1;
+				face_center1.z /= total_length1;
+
+				Point face_center2;
+				double total_length2 = 0;
+				for (int i = 4; i < 8; ++i) {
+					int j = 4 + (i + 1)%4;
+					Point& pi = grid.points[points[i]];
+					Point& pj = grid.points[points[j]];
+					double l = (pj - pi).length();
+					total_length2 += l;
+
+					face_center2.x = (pi.x + pj.x)/l/2;
+					face_center2.y = (pi.y + pj.y)/l/2;
+					face_center2.z = (pi.z + pj.z)/l/2;
+				}
+				face_center2.x /= total_length2;
+				face_center2.y /= total_length2;
+				face_center2.z /= total_length2;
+
+				Vector l = face_center2 - face_center1;
+				Vector v02 = p2 - p0;
+				Vector v13 = p3 - p1;
+				Vector n1 = cross(v02,v13)/2;
+
+				Vector v46 = p6 - p4;
+				Vector v57 = p7 - p5;
+				Vector n2 = cross(v57,v46)/2;
+
+				volume = (dot(l,n1) + dot(l,n2))/2;
+			}
+			break;
 		case TETRA:
 			{
 				Point& p0 = grid.points[points[0]];
