@@ -1418,13 +1418,34 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	int n_volume_elements = grid.elements.size();
 	std::vector<Element> negative_elements;
 	int negative_volumes = 0;
+	int negative_hexas = 0;
+	int negative_wedges = 0;
+	int negative_tetras = 0;
+	int negative_pyramids = 0;
 	for (Element& e : grid.elements) {
 		if (e.calc_volume(grid) < 0) {
 			negative_volumes++;
 			negative_elements.push_back(e);
+			if (e.type == HEXA)
+				negative_hexas++;
+			else if (e.type == WEDGE)
+				negative_wedges++;
+			else if (e.type == TETRA)
+				negative_tetras++;
+			else if (e.type == PYRAMID)
+				negative_pyramids++;
 		}
 	}
 	if (negative_volumes) {
+		printf("Negative Volume Elements: %d\n",negative_volumes);
+		if (negative_hexas)
+			printf("  Hexas: %d\n",negative_hexas);
+		if (negative_wedges)
+			printf("  Wedges: %d\n",negative_wedges);
+		if (negative_tetras)
+			printf("  Tetras: %d\n",negative_tetras);
+		if (negative_pyramids)
+			printf("  Pyramids: %d\n",negative_pyramids);
 		Grid g = grid.grid_from_elements(negative_elements);
 		toVTK("negative_elements.vtk",g,true);
 	}
@@ -1470,6 +1491,5 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	int n_boundary_elems = grid.elements.size() - n_volume_elements;
 	printf("Created Points: %zu\n",grid.points.size());
 	printf("Created Volume Elements: %d\n",n_volume_elements);
-	printf("Negative Volume Elements: %d\n",negative_volumes);
 	printf("Created Boundary Elements: %d\n",n_boundary_elems);
 }
