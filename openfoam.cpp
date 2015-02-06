@@ -878,8 +878,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	}
 	printf("Wedge Split: %d\n",n_wedge_split);
 	printf("Failed Wedge Split: %d\n",n_wedge_split_failed);
-	Grid g = grid.grid_from_elements(failed_split_elements);
-	toVTK("failed_split_elements.vtk",g,true);		
+	if (n_wedge_split_failed) {
+		Grid g = grid.grid_from_elements(failed_split_elements);
+		toVTK("failed_split_elements.vtk",g,true);		
+	}
 
 	// For faces that were split by edge split. Split face in triangles using the 
 	// face center with each edge
