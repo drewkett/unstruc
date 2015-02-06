@@ -715,6 +715,53 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 		printf("nFaces %zu nTri %d nQuad %d\n",faces.size(),n_tri,n_quad);
 		Fatal("Unknown Cell Type");
 	}
+	return OFUnknown;
+}
+
+Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
+	// Calculate temp_center which is a rough guess at the center of the cell
+	Point temp_center;
+	double total_area = 0;
+	for (OFFace* face : faces) {
+		temp_center.x += face->center.x * face->area;
+		temp_center.y += face->center.y * face->area;
+		temp_center.z += face->center.z * face->area;
+		total_area += face->area;
+	}
+	temp_center.x /= total_area;
+	temp_center.y /= total_area;
+	temp_center.z /= total_area;
+
+	Point cell_center;
+	double total_volume = 0;
+	for (int j = 0; j < faces.size(); ++j) {
+		bool faces_out = (j < n_owners);
+		OFFace* face = faces[j];
+		int n = face->points.size();
+		double face_volume = 0;
+		for (int k1 = 0; k1 < n; ++k1) {
+			int k2 = (k1 + 1) % n;
+
+			Point& p1 = grid.points[face->points[k1]];
+			Point& p2 = grid.points[face->points[k2]];
+
+			Vector v1 = p1 - face->center;
+			Vector v2 = p2 - p1;
+			Vector v3 = temp_center - face->center;
+			double volume = dot(v3,cross(v1,v2))/6;
+			if (faces_out) volume *= -1;
+
+			face_volume += volume;
+			total_volume += volume;
+			cell_center.x += volume*(p1.x + p2.x + face->center.x + temp_center.x)/4;
+			cell_center.y += volume*(p1.y + p2.y + face->center.y + temp_center.y)/4;
+			cell_center.z += volume*(p1.z + p2.z + face->center.z + temp_center.z)/4;
+		}
+	}
+	cell_center.x /= total_volume;
+	cell_center.y /= total_volume;
+	cell_center.z /= total_volume;
+	return cell_center;
 }
 
 void readOpenFoam(Grid& grid, std::string &polymesh) {
@@ -940,82 +987,88 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					break;
 				}
 			}
-		} else if (cell_type == OFTetraWedge) {
-			int tri1_j = -1;
-			int tri2_j = -1;
-			int quad1_j = -1;
-			for (int j = 0; j < 4; ++j) {
-				if (cell_faces[j]->points.size() == 3) {
-					if (tri1_j == -1)
-						tri1_j = j;
-					else
-						tri2_j = j;
-				} else {
-					if (quad1_j == -1)
-						quad1_j = j;
-				}
-			}
-			assert (tri1_j != -1);
-			assert (tri2_j != -1);
-			assert (quad1_j != -1);
+		//} else if (cell_type == OFTetraWedge) {
+		//	int tri1_j = -1;
+		//	int tri2_j = -1;
+		//	int quad1_j = -1;
+		//	for (int j = 0; j < 4; ++j) {
+		//		assert (!cell_faces[j]->split);
+		//		if (cell_faces[j]->points.size() == 3) {
+		//			if (tri1_j == -1)
+		//				tri1_j = j;
+		//			else if (tri2_j == -1)
+		//				tri2_j = j;
+		//			else
+		//				Fatal("Shouldn't be Possible");
+		//		} else {
+		//			if (quad1_j == -1)
+		//				quad1_j = j;
+		//		}
+		//	}
+		//	assert (tri1_j != tri2_j);
+		//	assert (tri1_j != quad1_j);
+		//	assert (tri2_j != quad1_j);
+		//	assert (tri1_j != -1);
+		//	assert (tri2_j != -1);
+		//	assert (quad1_j != -1);
 
-			bool tri1_faces_out = (tri1_j < n_owners_per_cell[i]);
-			bool tri2_faces_out = (tri2_j < n_owners_per_cell[i]);
+		//	bool tri1_faces_out = (tri1_j < n_owners_per_cell[i]);
+		//	bool tri2_faces_out = (tri2_j < n_owners_per_cell[i]);
 
-			OFFace* tri1_face = cell_faces[tri1_j];
-			OFFace* tri2_face = cell_faces[tri2_j];
-			OFFace* quad1_face = cell_faces[quad1_j];
+		//	OFFace* tri1_face = cell_faces[tri1_j];
+		//	OFFace* tri2_face = cell_faces[tri2_j];
+		//	OFFace* quad1_face = cell_faces[quad1_j];
 
-			int extra_point = -1;
-			for (int p : quad1_face->points) {
-				bool match = true;
-				for (int tp1 : tri1_face->points) {
-					if (p == tp1) {
-						match = false;
-						break;
-					}
-				}
-				if (!match) continue;
-				for (int tp2 : tri2_face->points) {
-					if (p == tp2) {
-						match = false;
-						break;
-					}
-				}
-				if (match) {
-					extra_point = p;
-					break;
-				}
-			}
-			if (extra_point == -1) Fatal("TETRAWEDGE: Shouldn't be possible");
+		//	int extra_point = -1;
+		//	for (int p : quad1_face->points) {
+		//		bool match = false;
+		//		for (int tp1 : tri1_face->points) {
+		//			if (p == tp1) {
+		//				match = true;
+		//				break;
+		//			}
+		//		}
+		//		if (match) continue;
+		//		for (int tp2 : tri2_face->points) {
+		//			if (p == tp2) {
+		//				match = true;
+		//				break;
+		//			}
+		//		}
+		//		if (!match) {
+		//			assert (extra_point == -1);
+		//			extra_point = p;
+		//		}
+		//	}
+		//	assert (extra_point != -1);
 
-			grid.elements.emplace_back(TETRA);
-			Element& e1 = grid.elements.back();
-			e1.name_i = name_i;
-			if (tri1_faces_out) {
-				e1.points[2] = tri1_face->points[0];
-				e1.points[1] = tri1_face->points[1];
-				e1.points[0] = tri1_face->points[2];
-			} else {
-				e1.points[0] = tri1_face->points[0];
-				e1.points[1] = tri1_face->points[1];
-				e1.points[2] = tri1_face->points[2];
-			}
-			e1.points[3] = extra_point;
+		//	grid.elements.emplace_back(TETRA);
+		//	Element& e1 = grid.elements.back();
+		//	e1.name_i = name_i;
+		//	if (tri1_faces_out) {
+		//		e1.points[2] = tri1_face->points[0];
+		//		e1.points[1] = tri1_face->points[1];
+		//		e1.points[0] = tri1_face->points[2];
+		//	} else {
+		//		e1.points[0] = tri1_face->points[0];
+		//		e1.points[1] = tri1_face->points[1];
+		//		e1.points[2] = tri1_face->points[2];
+		//	}
+		//	e1.points[3] = extra_point;
 
-			grid.elements.emplace_back(TETRA);
-			Element& e2 = grid.elements.back();
-			e2.name_i = name_i;
-			if (tri2_faces_out) {
-				e2.points[2] = tri2_face->points[0];
-				e2.points[1] = tri2_face->points[1];
-				e2.points[0] = tri2_face->points[2];
-			} else {
-				e2.points[0] = tri2_face->points[0];
-				e2.points[1] = tri2_face->points[1];
-				e2.points[2] = tri2_face->points[2];
-			}
-			e2.points[3] = extra_point;
+		//	grid.elements.emplace_back(TETRA);
+		//	Element& e2 = grid.elements.back();
+		//	e2.name_i = name_i;
+		//	if (tri2_faces_out) {
+		//		e2.points[2] = tri2_face->points[0];
+		//		e2.points[1] = tri2_face->points[1];
+		//		e2.points[0] = tri2_face->points[2];
+		//	} else {
+		//		e2.points[0] = tri2_face->points[0];
+		//		e2.points[1] = tri2_face->points[1];
+		//		e2.points[2] = tri2_face->points[2];
+		//	}
+		//	e2.points[3] = extra_point;
 		} else if (cell_type == OFPyramid) {
 			grid.elements.emplace_back(PYRAMID);
 			Element& e = grid.elements.back();
@@ -1285,49 +1338,8 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					}
 				}
 			}
-		} else if (cell_type == OFPoly) {
-			// Calculate temp_center which is a rough guess at the center of the cell
-			Point temp_center;
-			double total_area = 0;
-			for (OFFace* face : cell_faces) {
-				temp_center.x += face->center.x * face->area;
-				temp_center.y += face->center.y * face->area;
-				temp_center.z += face->center.z * face->area;
-				total_area += face->area;
-			}
-			temp_center.x /= total_area;
-			temp_center.y /= total_area;
-			temp_center.z /= total_area;
-			Point cell_center;
-			double total_volume = 0;
-			for (int j = 0; j < cell_faces.size(); ++j) {
-				bool faces_out = (j < n_owners_per_cell[i]);
-				OFFace* face = cell_faces[j];
-				int n = face->points.size();
-				double face_volume = 0;
-				for (int k1 = 0; k1 < n; ++k1) {
-					int k2 = (k1 + 1) % n;
-
-					Point& p1 = grid.points[face->points[k1]];
-					Point& p2 = grid.points[face->points[k2]];
-
-					Vector v1 = p1 - face->center;
-					Vector v2 = p2 - p1;
-					Vector v3 = temp_center - face->center;
-					double volume = dot(v3,cross(v1,v2))/6;
-					if (faces_out) volume *= -1;
-
-					face_volume += volume;
-					total_volume += volume;
-					cell_center.x += volume*(p1.x + p2.x + face->center.x + temp_center.x)/4;
-					cell_center.y += volume*(p1.y + p2.y + face->center.y + temp_center.y)/4;
-					cell_center.z += volume*(p1.z + p2.z + face->center.z + temp_center.z)/4;
-				}
-			}
-			cell_center.x /= total_volume;
-			cell_center.y /= total_volume;
-			cell_center.z /= total_volume;
-
+		} else if (cell_type == OFPoly || cell_type == OFTetraWedge) {
+			Point cell_center = calcCellCenter(cell_faces, grid, n_owners_per_cell[i]);
 			// need to add new point to grid
 			int cell_center_id = grid.points.size();
 			grid.points.push_back(cell_center);
