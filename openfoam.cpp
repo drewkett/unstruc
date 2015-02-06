@@ -1159,6 +1159,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFPrism) {
 			int tri1_j = -1;
 			int tri2_j = -1;
+			int quad_j = -1;
 			for (int j = 0; j < 5; ++j) {
 				if (cell_faces[j]->points.size() == 3) {
 					if (tri1_j == -1)
@@ -1167,16 +1168,55 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						tri2_j = j;
 					else
 						Fatal("PRISM: Shouldn't be possible");
-				}
+				} else
+					quad_j = j;
 			}
-			if (tri1_j == -1) Fatal("PRISM: Shouldn't be possible (1)");
-			if (tri2_j == -1) Fatal("PRISM: Shouldn't be possible (2)");
+			assert (tri1_j != -1);
+			assert (tri2_j != -1);
+			assert (quad_j != -1);
 
 			bool tri1_faces_out = (tri1_j < n_owners_per_cell[i]);
-			bool tri2_faces_out = (tri2_j < n_owners_per_cell[i]);
 
 			OFFace* tri1_face = cell_faces[tri1_j];
 			OFFace* tri2_face = cell_faces[tri2_j];
+			OFFace* quad_face = cell_faces[quad_j];
+
+			int tri2_points_aligned[3] = {-1, -1, -1};
+			for (int j1 = 0; j1 < 4; ++j1) {
+				int j2 = (j1 + 1) % 4;
+
+				int p1 = quad_face->points[j1];
+				auto it1 = std::find(tri1_face->points.begin(),tri1_face->points.end(),p1);
+				bool p1_on_tri1 = (it1 != tri1_face->points.end());
+
+				int p2 = quad_face->points[j2];
+				auto it2 = std::find(tri1_face->points.begin(),tri1_face->points.end(),p2);
+				bool p2_on_tri1 = (it2 != tri1_face->points.end());
+
+				if (p1_on_tri1 != p2_on_tri1) {
+					if (p1_on_tri1) {
+						int k = it1 - tri1_face->points.begin();
+						tri2_points_aligned[k] = p2;
+					} else {
+						int k = it2 - tri1_face->points.begin();
+						tri2_points_aligned[k] = p1;
+					}
+				}
+			}
+			int missing_k;
+			for (int k = 0; k < 3; ++k) {
+				if (tri2_points_aligned[k] == -1)
+					missing_k = k;
+			}
+			for (int tri2_p : tri2_face->points) {
+				bool matched = false;
+				for (int p : tri2_points_aligned) {
+					if (p == tri2_p)
+						matched = true;
+				}
+				if (!matched)
+					tri2_points_aligned[missing_k] = tri2_p;
+			}
 
 			grid.elements.emplace_back(WEDGE);
 			Element& e = grid.elements.back();
@@ -1185,19 +1225,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 				e.points[0] = tri1_face->points[0];
 				e.points[1] = tri1_face->points[1];
 				e.points[2] = tri1_face->points[2];
+				e.points[3] = tri2_points_aligned[0];
+				e.points[4] = tri2_points_aligned[1];
+				e.points[5] = tri2_points_aligned[2];
 			} else {
 				e.points[2] = tri1_face->points[0];
 				e.points[1] = tri1_face->points[1];
 				e.points[0] = tri1_face->points[2];
-			}
-			if (tri2_faces_out) {
-				e.points[5] = tri2_face->points[0];
-				e.points[4] = tri2_face->points[1];
-				e.points[3] = tri2_face->points[2];
-			} else {
-				e.points[3] = tri2_face->points[0];
-				e.points[4] = tri2_face->points[1];
-				e.points[5] = tri2_face->points[2];
+				e.points[5] = tri2_points_aligned[0];
+				e.points[4] = tri2_points_aligned[1];
+				e.points[3] = tri2_points_aligned[2];
 			}
 		} else if (cell_type == OFHexa) {
 			grid.elements.emplace_back(HEXA);
