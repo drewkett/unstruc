@@ -739,11 +739,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
 
-	//int n_straight_edges_removed = 0;
-	//for (OFFace& face : faces)
-	//	n_straight_edges_removed += removeStraightEdges(face,grid);
-	//printf("%d Straight Edges Removed\n",n_straight_edges_removed);
-
 	for (OFFace& face : faces) {
 		calcFaceCenter(face,grid);
 		if (face.points.size() > 4) 
