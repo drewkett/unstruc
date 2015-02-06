@@ -165,6 +165,25 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 	return split_faces;
 }
 
+
+double calcQuadWarp(Grid& grid, int _p1, int _p2, int _p3, int _p4) {
+	Point& p1 = grid.points[_p1];
+	Point& p2 = grid.points[_p2];
+	Point& p3 = grid.points[_p3];
+	Point& p4 = grid.points[_p4];
+	Vector v13 = p3 - p1;
+	Vector v24 = p4 - p2;
+	Vector n = cross(v13,v24);
+	double area = n.length()/2;
+
+	assert (area > 0);
+	Vector v12 = p2 - p1;
+	double volume = 0.25*dot(n,v12);
+	double height = volume/area;
+	double length = sqrt(area);
+	return height/length;
+}
+
 std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id) {
 	bool pt_on_main_face [side_face->points.size()];
 	int n_on_face = 0;
@@ -197,6 +216,15 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
 			}
+			double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
+			double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
+			if (fabs(warp_other) < fabs(warp)) {
+				int temp1 = e.points[1];
+				e.points[1] = e.points[4];
+				e.points[4] = e.points[3];
+				e.points[3] = temp1;
+				//printf("Correcting pyramid based on warp\n");
+			}
 			if (e.calc_volume(grid) < -1e-3)
 				Fatal("Large negative volume");
 			if (e.calc_volume(grid) < 0)
@@ -219,6 +247,15 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 				else
 					p = (start - _p + 3) % 3;
 				e.points[2+_p] = side_face->points[p];
+			}
+			double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
+			double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
+			if (fabs(warp_other) < fabs(warp)) {
+				int temp1 = e.points[1];
+				e.points[1] = e.points[4];
+				e.points[4] = e.points[3];
+				e.points[3] = temp1;
+				//printf("Correcting pyramid based on warp\n");
 			}
 			if (e.calc_volume(grid) < -1e-3)
 				Fatal("Large negative volume");
