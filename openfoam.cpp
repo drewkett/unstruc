@@ -885,6 +885,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						std::vector<Element> face_elements;
 						face_elements = createElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id);
 						if (face_elements.empty()) {
+							new_elements.clear();
 							break;
 						} else {
 							new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());
