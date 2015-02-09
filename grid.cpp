@@ -9,6 +9,10 @@
 #include <iostream>
 #include <algorithm>
 
+Grid::Grid(int _dim) : dim(_dim) {
+	names.emplace_back(dim, "default");
+}
+
 void Grid::merge_points(double tol) {
 	std::cerr << "Merging Points" << std::endl;
 	int n_merged = 0;
@@ -161,14 +165,11 @@ void Grid::collapse_elements() {
 };
 
 Grid Grid::grid_from_elements(std::vector<Element>& elements) {
-	Grid g;
-	g.dim = 3;
-	g.names.emplace_back(3,"Volume");
+	Grid g (3);
 	std::vector<int> index (points.size(),-1);
 	int n_points = 0;
 	for (Element &e_orig : elements) {
 		Element e (e_orig.type);
-		e.name_i = 0;
 		e.points.resize(e_orig.points.size());
 		for (int i = 0; i < e_orig.points.size(); ++i) {
 			int p = e_orig.points[i];

@@ -818,8 +818,8 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	printf("Points: %d\nFaces: %d\nInternal Faces: %d\nCells: %d\n",info.n_points,info.n_faces,info.n_internal_faces,info.n_cells);
 	if (info.n_points != grid.points.size()) Fatal("Invalid FoamFile: number of points do not match");
 
-	int name_i = grid.names.size();
-	grid.names.emplace_back(3,"volume");
+	int name_i = 0;
+	grid.names.emplace_back(3,"default");
 
 	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
 

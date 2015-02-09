@@ -23,7 +23,7 @@ struct Element
 	int dim;
 	std::vector<int> points;
 
-	Element() : type(0), name_i(-1), dim(0) {};
+	Element() : type(0), name_i(0), dim(0) {};
 	Element(int T);
 
 	double calc_volume(Grid& grid);

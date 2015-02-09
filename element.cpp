@@ -17,7 +17,7 @@ void WrongElement(int T1, int T2) {
 }
 
 Element::Element(int T) : type(T) {
-	name_i = -1;
+	name_i = 0;
 	int len = 0;
 	switch (T) {
 		case LINE:
