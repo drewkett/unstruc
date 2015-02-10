@@ -212,6 +212,110 @@ std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 }
 
 
+void calcFaceCenter(OFFace& face, Grid& grid) {
+	if (face.center_calculated) return;
+
+	int n = face.points.size();
+	switch (n) {
+		case 0:
+		case 1:
+		case 2:
+			Fatal("calcFaceCenter passed face with less than 3 points");
+		case 3:
+			{
+				Point& p0 = grid.points[face.points[0]];
+				Point& p1 = grid.points[face.points[1]];
+				Point& p2 = grid.points[face.points[2]];
+
+				face.center.x = (p0.x + p1.x + p2.x)/n;
+				face.center.y = (p0.y + p1.y + p2.y)/n;
+				face.center.z = (p0.z + p1.z + p2.z)/n;
+
+				Vector v1 = p1 - p0;
+				Vector v2 = p2 - p1;
+				face.normal = cross(v1,v2)/2;
+				face.area = face.normal.length();
+				face.center_calculated = true;
+			}
+			break;
+		case 4:
+			{
+				Point& p0 = grid.points[face.points[0]];
+				Point& p1 = grid.points[face.points[1]];
+				Point& p2 = grid.points[face.points[2]];
+				Point& p3 = grid.points[face.points[3]];
+
+				double total_length = 0;
+				for (int i1 = 0; i1 < n; ++i1) {
+					int i2 = (i1 + 1) % n;
+					Point& p1 = grid.points[face.points[i1]];
+					Point& p2 = grid.points[face.points[i2]];
+
+					Vector v = p1 - p2;
+					double l = v.length();
+					total_length += l;
+					face.center.x += (p1.x+p2.x)*l/2;
+					face.center.y += (p1.y+p2.y)*l/2;
+					face.center.z += (p1.z+p2.z)*l/2;
+				}
+				face.center.x /= total_length;
+				face.center.y /= total_length;
+				face.center.z /= total_length;
+
+				Vector v02 = p2 - p0;
+				Vector v13 = p3 - p1;
+				face.normal = cross(v13,v02)/2;
+				face.area = face.normal.length();
+				face.center_calculated = true;
+			}
+			break;
+		default:
+			{
+				Point temp_center;
+				double total_length = 0;
+				for (int i1 = 0; i1 < n; ++i1) {
+					int i2 = (i1 + 1) % n;
+					Point& p1 = grid.points[face.points[i1]];
+					Point& p2 = grid.points[face.points[i2]];
+
+					Vector v = p1 - p2;
+					double l = v.length();
+					total_length += l;
+					temp_center.x += (p1.x+p2.x)*l/2;
+					temp_center.y += (p1.y+p2.y)*l/2;
+					temp_center.z += (p1.z+p2.z)*l/2;
+				}
+				temp_center.x /= total_length;
+				temp_center.y /= total_length;
+				temp_center.z /= total_length;
+
+				double total_area = 0;
+				for (int i1 = 0; i1 < n; ++i1) {
+					int i2 = (i1 + 1) % n;
+					Point& p1 = grid.points[face.points[i1]];
+					Point& p2 = grid.points[face.points[i2]];
+
+					Vector v1 = p1 - temp_center;
+					Vector v2 = p2 - p1;
+					Vector n = cross(v1,v2);
+					double area = n.length()/2;
+
+					total_area += area;
+					face.center.x += area*(p1.x + p2.x + temp_center.x)/3;
+					face.center.y += area*(p1.y + p2.y + temp_center.y)/3;
+					face.center.z += area*(p1.z + p2.z + temp_center.z)/3;
+					face.normal += n/2;
+				}
+				face.area = face.normal.length();
+				face.center.x /= total_area;
+				face.center.y /= total_area;
+				face.center.z /= total_area;
+				face.center_calculated = true;
+			}
+			break;
+	}
+}
+
 double calcQuadWarp(Grid& grid, int _p1, int _p2, int _p3, int _p4) {
 	Point& p1 = grid.points[_p1];
 	Point& p2 = grid.points[_p2];
@@ -642,106 +746,6 @@ std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
 
 	return boundaries;
 }
-
-void calcFaceCenter(OFFace& face, Grid& grid) {
-	int n = face.points.size();
-	switch (n) {
-		case 0:
-		case 1:
-		case 2:
-			Fatal();
-		case 3:
-			{
-				Point& p0 = grid.points[face.points[0]];
-				Point& p1 = grid.points[face.points[1]];
-				Point& p2 = grid.points[face.points[2]];
-
-				face.center.x = (p0.x + p1.x + p2.x)/n;
-				face.center.y = (p0.y + p1.y + p2.y)/n;
-				face.center.z = (p0.z + p1.z + p2.z)/n;
-
-				Vector v1 = p1 - p0;
-				Vector v2 = p2 - p1;
-				face.normal = cross(v1,v2)/2;
-				face.area = face.normal.length();
-			}
-			break;
-		case 4:
-			{
-				Point& p0 = grid.points[face.points[0]];
-				Point& p1 = grid.points[face.points[1]];
-				Point& p2 = grid.points[face.points[2]];
-				Point& p3 = grid.points[face.points[3]];
-
-				double total_length = 0;
-				for (int i1 = 0; i1 < n; ++i1) {
-					int i2 = (i1 + 1) % n;
-					Point& p1 = grid.points[face.points[i1]];
-					Point& p2 = grid.points[face.points[i2]];
-
-					Vector v = p1 - p2;
-					double l = v.length();
-					total_length += l;
-					face.center.x += (p1.x+p2.x)*l/2;
-					face.center.y += (p1.y+p2.y)*l/2;
-					face.center.z += (p1.z+p2.z)*l/2;
-				}
-				face.center.x /= total_length;
-				face.center.y /= total_length;
-				face.center.z /= total_length;
-
-				Vector v02 = p2 - p0;
-				Vector v13 = p3 - p1;
-				face.normal = cross(v13,v02)/2;
-				face.area = face.normal.length();
-			}
-			break;
-		default:
-			{
-				Point temp_center;
-				double total_length = 0;
-				for (int i1 = 0; i1 < n; ++i1) {
-					int i2 = (i1 + 1) % n;
-					Point& p1 = grid.points[face.points[i1]];
-					Point& p2 = grid.points[face.points[i2]];
-
-					Vector v = p1 - p2;
-					double l = v.length();
-					total_length += l;
-					temp_center.x += (p1.x+p2.x)*l/2;
-					temp_center.y += (p1.y+p2.y)*l/2;
-					temp_center.z += (p1.z+p2.z)*l/2;
-				}
-				temp_center.x /= total_length;
-				temp_center.y /= total_length;
-				temp_center.z /= total_length;
-
-				double total_area = 0;
-				for (int i1 = 0; i1 < n; ++i1) {
-					int i2 = (i1 + 1) % n;
-					Point& p1 = grid.points[face.points[i1]];
-					Point& p2 = grid.points[face.points[i2]];
-
-					Vector v1 = p1 - temp_center;
-					Vector v2 = p2 - p1;
-					Vector n = cross(v1,v2);
-					double area = n.length()/2;
-
-					total_area += area;
-					face.center.x += area*(p1.x + p2.x + temp_center.x)/3;
-					face.center.y += area*(p1.y + p2.y + temp_center.y)/3;
-					face.center.z += area*(p1.z + p2.z + temp_center.z)/3;
-					face.normal += n/2;
-				}
-				face.area = face.normal.length();
-				face.center.x /= total_area;
-				face.center.y /= total_area;
-				face.center.z /= total_area;
-			}
-			break;
-	}
-}
-
 OFCellType determineCellType (std::vector<OFFace*>& faces) {
 	OFCellType cell_type = OFUnknown;
 	int n_tri = 0;
