@@ -1146,12 +1146,12 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		OFCellType cell_type = cell_types[i];
 		if (processed_cells[i]) continue;
 
-		int n_split_faces = 0;
-		for (OFFace* face : cell_faces)
-			if (face->split_faces.size())
-				n_split_faces++;
-
-		if (n_split_faces) cell_type = OFPoly;
+		for (OFFace* face : cell_faces) {
+			if (face->split_faces.size()) {
+				cell_type = OFPoly;
+				break;
+			}
+		}
 
 		if (cell_type == OFTetra) {
 			grid.elements.emplace_back(TETRA);
