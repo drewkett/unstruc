@@ -486,7 +486,6 @@ bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main
 			//	//printf("Correcting pyramid based on warp\n");
 			//}
 		} else if (n_on_main_face == 1) {
-			return false;
 			if (pt_on_main_face[0])
 				start = 0;
 			else if (pt_on_main_face[1])
@@ -543,18 +542,6 @@ bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main
 			createElementsFromFaceCenter(main_face,false,cell_center_id,new_elements);
 			createElementsFromFaceCenter(face1,false,cell_center_id,new_elements);
 			createElementsFromFaceCenter(face2,false,cell_center_id,new_elements);
-
-			bool fail = false;
-			for (Element& e: new_elements)
-				if (e.calc_volume(grid) < -1e-5)
-					fail = true;
-			if (fail) {
-				for (Element& e: new_elements) {
-					dump(e,grid);
-					printf("Volume = %g\n",e.calc_volume(grid));
-				}
-				Fatal();
-			}
 
 			//if (pt_on_main_face[0])
 			//	start = 0;
