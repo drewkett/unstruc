@@ -46,6 +46,7 @@ struct OFBoundary {
 };
 
 struct OFFace {
+	bool is_finished;
 	bool is_tri_split;
 	bool center_calculated;
 	bool center_id_assigned;
@@ -55,7 +56,7 @@ struct OFFace {
 	Vector normal;
 	Point center;
 	std::vector<OFFace> split_faces;
-	OFFace () : is_tri_split(false), center_calculated(false), center_id_assigned(false) {};
+	OFFace () : is_finished(false), is_tri_split(false), center_calculated(false), center_id_assigned(false) {};
 };
 
 struct OFInfo {
@@ -1048,8 +1049,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		for (int j = 0; j < cell_faces.size()-1; ++j) {
 			OFFace *face = cell_faces[j];
 			if (face->points.size() < 5) continue;
+			if (face->is_finished) continue;
 			for (int k = j+1; k < cell_faces.size(); ++k) {
 				OFFace *other_face = cell_faces[k];
+				if (other_face->is_finished) continue;
 				bool share_points = false;
 				for (int p : face->points)
 					for (int po : other_face->points)
@@ -1112,6 +1115,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 							other_face->center_id_assigned = true;
 							//Must assign face center id before splitting
 							triangleFaceSplit(other_face);
+						}
+
+						for (OFFace* face : cell_faces) {
+							face->is_finished = true;
 						}
 
 						processed_cells[i] = true;
