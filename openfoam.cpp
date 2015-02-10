@@ -1310,101 +1310,101 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					break;
 				}
 			}
-		} else if (cell_type == OFWedge) {
-			int tri1_j = -1;
-			int tri2_j = -1;
-			for (int j = 0; j < 6; ++j) {
-				if (cell_faces[j]->points.size() == 3) {
-					if (tri1_j == -1)
-						tri1_j = j;
-					else if (tri2_j == -1)
-						tri2_j = j;
-					else
-						Fatal("WEDGE: Shouldn't be possible");
-				}
-			}
-			if (tri1_j == -1) Fatal("WEDGE: Shouldn't be possible (2)");
-			if (tri2_j == -1) Fatal("WEDGE: Shouldn't be possible (3)");
-			OFFace* tri1_face = cell_faces[tri1_j];
-			OFFace* tri2_face = cell_faces[tri2_j];
+		//} else if (cell_type == OFWedge) {
+		//	int tri1_j = -1;
+		//	int tri2_j = -1;
+		//	for (int j = 0; j < 6; ++j) {
+		//		if (cell_faces[j]->points.size() == 3) {
+		//			if (tri1_j == -1)
+		//				tri1_j = j;
+		//			else if (tri2_j == -1)
+		//				tri2_j = j;
+		//			else
+		//				Fatal("WEDGE: Shouldn't be possible");
+		//		}
+		//	}
+		//	if (tri1_j == -1) Fatal("WEDGE: Shouldn't be possible (2)");
+		//	if (tri2_j == -1) Fatal("WEDGE: Shouldn't be possible (3)");
+		//	OFFace* tri1_face = cell_faces[tri1_j];
+		//	OFFace* tri2_face = cell_faces[tri2_j];
 
-			int common_point = -1;
-			for (int p1 : tri1_face->points) {
-				for (int p2 : tri2_face->points) {
-					if (p1 == p2) {
-						common_point = p1;
-						break;
-					}
-				}
-				if (common_point != -1) break;
-			}
-			if (common_point == -1) Fatal("WEDGE: Shouldn't be possible (4)");
+		//	int common_point = -1;
+		//	for (int p1 : tri1_face->points) {
+		//		for (int p2 : tri2_face->points) {
+		//			if (p1 == p2) {
+		//				common_point = p1;
+		//				break;
+		//			}
+		//		}
+		//		if (common_point != -1) break;
+		//	}
+		//	if (common_point == -1) Fatal("WEDGE: Shouldn't be possible (4)");
 
-			int quad1_j = -1;
-			int quad2_j = -1;
-			for (int j = 0; j < 6; ++j) {
-				OFFace* current_face = cell_faces[j];
-				if (current_face->points.size() == 3) continue;
-				bool match1 = false;
-				bool match2 = false;
-				for (int p : current_face->points) {
-					for (int p1 : tri1_face->points) {
-						if (p == p1) {
-							match1 = true;
-							break;
-						}
-					}
-					for (int p2 : tri2_face->points) {
-						if (p == p2) {
-							match2 = true;
-							break;
-						}
-					}
-					if (match1 && match2) break;
-				}
-				if (!match1) quad1_j = j;
-				if (!match2) quad2_j = j;
-			}
-			if (quad1_j == -1) Fatal("WEDGE: Shouldn't be possible (5)");
-			if (quad2_j == -1) Fatal("WEDGE: Shouldn't be possible (6)");
+		//	int quad1_j = -1;
+		//	int quad2_j = -1;
+		//	for (int j = 0; j < 6; ++j) {
+		//		OFFace* current_face = cell_faces[j];
+		//		if (current_face->points.size() == 3) continue;
+		//		bool match1 = false;
+		//		bool match2 = false;
+		//		for (int p : current_face->points) {
+		//			for (int p1 : tri1_face->points) {
+		//				if (p == p1) {
+		//					match1 = true;
+		//					break;
+		//				}
+		//			}
+		//			for (int p2 : tri2_face->points) {
+		//				if (p == p2) {
+		//					match2 = true;
+		//					break;
+		//				}
+		//			}
+		//			if (match1 && match2) break;
+		//		}
+		//		if (!match1) quad1_j = j;
+		//		if (!match2) quad2_j = j;
+		//	}
+		//	if (quad1_j == -1) Fatal("WEDGE: Shouldn't be possible (5)");
+		//	if (quad2_j == -1) Fatal("WEDGE: Shouldn't be possible (6)");
 
-			bool quad1_faces_out = (quad1_j < n_owners_per_cell[i]);
-			bool quad2_faces_out = (quad2_j < n_owners_per_cell[i]);
+		//	bool quad1_faces_out = (quad1_j < n_owners_per_cell[i]);
+		//	bool quad2_faces_out = (quad2_j < n_owners_per_cell[i]);
 
-			OFFace* quad1_face = cell_faces[quad1_j];
-			OFFace* quad2_face = cell_faces[quad2_j];
+		//	OFFace* quad1_face = cell_faces[quad1_j];
+		//	OFFace* quad2_face = cell_faces[quad2_j];
 
-			grid.elements.emplace_back(PYRAMID);
-			Element& e1 = grid.elements.back();
-			e1.name_i = name_i;
-			if (quad1_faces_out) {
-				e1.points[3] = quad1_face->points[0];
-				e1.points[2] = quad1_face->points[1];
-				e1.points[1] = quad1_face->points[2];
-				e1.points[0] = quad1_face->points[3];
-			} else {
-				e1.points[0] = quad1_face->points[0];
-				e1.points[1] = quad1_face->points[1];
-				e1.points[2] = quad1_face->points[2];
-				e1.points[3] = quad1_face->points[3];
-			}
-			e1.points[4] = common_point;
+		//	grid.elements.emplace_back(PYRAMID);
+		//	Element& e1 = grid.elements.back();
+		//	e1.name_i = name_i;
+		//	if (quad1_faces_out) {
+		//		e1.points[3] = quad1_face->points[0];
+		//		e1.points[2] = quad1_face->points[1];
+		//		e1.points[1] = quad1_face->points[2];
+		//		e1.points[0] = quad1_face->points[3];
+		//	} else {
+		//		e1.points[0] = quad1_face->points[0];
+		//		e1.points[1] = quad1_face->points[1];
+		//		e1.points[2] = quad1_face->points[2];
+		//		e1.points[3] = quad1_face->points[3];
+		//	}
+		//	e1.points[4] = common_point;
 
-			grid.elements.emplace_back(PYRAMID);
-			Element& e2 = grid.elements.back();
-			e2.name_i = name_i;
-			if (quad2_faces_out) {
-				e2.points[3] = quad2_face->points[0];
-				e2.points[2] = quad2_face->points[1];
-				e2.points[1] = quad2_face->points[2];
-				e2.points[0] = quad2_face->points[3];
-			} else {
-				e2.points[0] = quad2_face->points[0];
-				e2.points[1] = quad2_face->points[1];
-				e2.points[2] = quad2_face->points[2];
-				e2.points[3] = quad2_face->points[3];
-			}
-			e2.points[4] = common_point;
+		//	grid.elements.emplace_back(PYRAMID);
+		//	Element& e2 = grid.elements.back();
+		//	e2.name_i = name_i;
+		//	if (quad2_faces_out) {
+		//		e2.points[3] = quad2_face->points[0];
+		//		e2.points[2] = quad2_face->points[1];
+		//		e2.points[1] = quad2_face->points[2];
+		//		e2.points[0] = quad2_face->points[3];
+		//	} else {
+		//		e2.points[0] = quad2_face->points[0];
+		//		e2.points[1] = quad2_face->points[1];
+		//		e2.points[2] = quad2_face->points[2];
+		//		e2.points[3] = quad2_face->points[3];
+		//	}
+		//	e2.points[4] = common_point;
 		} else if (cell_type == OFPrism) {
 			int tri1_j = -1;
 			int tri2_j = -1;
