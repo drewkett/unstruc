@@ -392,7 +392,7 @@ void createElementsFromFaceCenter(OFFace& face, bool faces_out, int center_id, s
 		}
 	}
 }
-bool createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id, std::vector<Element>& new_elements) {
+bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id, std::vector<Element>& new_elements) {
 	bool pt_on_main_face [side_face->points.size()];
 	int n_on_main_face = 0;
 	for (int _p = 0; _p < side_face->points.size(); ++_p) {
@@ -653,7 +653,7 @@ bool createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face
 	} else {
 		assert (side_face->split_faces.size());
 		for (OFFace& split_face : side_face->split_faces) {
-			bool success = createElementsFromSideFace(grid,&split_face,main_face,opp_face,side_faces_out,main_face_center_id,opp_face_center_id,new_elements);
+			bool success = createWedgeElementsFromSideFace(grid,&split_face,main_face,opp_face,side_faces_out,main_face_center_id,opp_face_center_id,new_elements);
 			if (!success)
 				return false;
 		}
@@ -1086,7 +1086,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						if (l == j || l == k) continue;
 						OFFace* side_face = cell_faces[l];
 						bool side_faces_out = (l < n_owners_per_cell[i]);
-						bool success = createElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id,new_elements);
+						bool success = createWedgeElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id,new_elements);
 						for (Element& e : new_elements) {
 							if (e.calc_volume(grid) < -1e-3)
 								Fatal("Large negative volume");
