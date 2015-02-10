@@ -46,14 +46,16 @@ struct OFBoundary {
 };
 
 struct OFFace {
-	bool split;
+	bool is_tri_split;
+	bool center_calculated;
+	bool center_id_assigned;
 	int face_center_id;
 	double area;
 	std::vector<int> points;
 	Vector normal;
 	Point center;
 	std::vector<OFFace> split_faces;
-	OFFace () : split(false) {};
+	OFFace () : is_tri_split(false), center_calculated(false), center_id_assigned(false) {};
 };
 
 struct OFInfo {
@@ -316,6 +318,20 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 	}
 }
 
+void triangleFaceSplit(OFFace* face) {
+	assert (face->center_calculated);
+	assert (face->center_id_assigned);
+	face->split_faces.resize(face->points.size());
+	for (int j1 = 0; j1 < face->points.size(); ++j1) {
+		int j2 = (j1 + 1) % face->points.size();
+		OFFace new_face;
+		new_face.points.push_back(face->points[j1]);
+		new_face.points.push_back(face->points[j2]);
+		new_face.points.push_back(face->face_center_id);
+		face->split_faces[j1] = new_face;
+	}
+}
+
 double calcQuadWarp(Grid& grid, int _p1, int _p2, int _p3, int _p4) {
 	Point& p1 = grid.points[_p1];
 	Point& p2 = grid.points[_p2];
@@ -334,87 +350,242 @@ double calcQuadWarp(Grid& grid, int _p1, int _p2, int _p3, int _p4) {
 	return height/length;
 }
 
-std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id) {
+void createElementsFromFaceCenter(OFFace& face, bool faces_out, int center_id, std::vector<Element>& new_elements) {
+	assert (face.points.size() > 2);
+	if (face.points.size() == 3 && !face.is_tri_split) {
+		// If current face only has 3 points, create a tetrahedral with face plus cell center
+		Element e (TETRA);
+		e.name_i = 0;
+
+		if (faces_out) {
+			e.points[2] = face.points[0];
+			e.points[1] = face.points[1];
+			e.points[0] = face.points[2];
+		} else {
+			e.points[0] = face.points[0];
+			e.points[1] = face.points[1];
+			e.points[2] = face.points[2];
+		}
+		e.points[3] = center_id;
+		new_elements.push_back(e);
+	} else if (face.points.size() == 4 && !face.is_tri_split) {
+		// If current face only has 4 points, create a pyramid with face plus cell center
+		Element e (PYRAMID);
+
+		if (faces_out) {
+			e.points[3] = face.points[0];
+			e.points[2] = face.points[1];
+			e.points[1] = face.points[2];
+			e.points[0] = face.points[3];
+		} else {
+			e.points[0] = face.points[0];
+			e.points[1] = face.points[1];
+			e.points[2] = face.points[2];
+			e.points[3] = face.points[3];
+		}
+		e.points[4] = center_id;
+		new_elements.push_back(e);
+	} else {
+		assert (face.split_faces.size());
+		for (OFFace& new_face : face.split_faces) {
+			createElementsFromFaceCenter(new_face, faces_out, center_id, new_elements);
+		}
+	}
+}
+bool createElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id, std::vector<Element>& new_elements) {
 	bool pt_on_main_face [side_face->points.size()];
-	int n_on_face = 0;
-	std::vector<Element> new_elements;
+	int n_on_main_face = 0;
 	for (int _p = 0; _p < side_face->points.size(); ++_p) {
 		int p = side_face->points[_p];
 		auto it = std::find(main_face->points.begin(),main_face->points.end(),p);
 		pt_on_main_face[_p] = it != main_face->points.end();
 		if (pt_on_main_face[_p])
-			n_on_face++;
+			n_on_main_face++;
 	}
-	if (side_face->points.size() == 3) {
+	if (side_face->points.size() == 3 && !side_face->is_tri_split) {
+		return false;
 		int start;
-		if (n_on_face == 2) {
+		if (n_on_main_face == 2) {
 			if (!pt_on_main_face[0])
 				start = 0;
 			else if (!pt_on_main_face[1])
 				start = 1;
 			else
 				start = 2;
-			new_elements.emplace_back(PYRAMID);
-			Element& e = new_elements.back();
-			e.points[0] = main_face_center_id;
-			e.points[1] = opp_face_center_id;
-			for (int _p = 0; _p < 3; ++_p) {
-				int p;
-				if (side_faces_out)
-					p = (start + _p) % 3;
-				else
-					p = (start - _p + 3) % 3;
-				e.points[2+_p] = side_face->points[p];
+
+			int _p0, _p1, _p2;
+			if (side_faces_out) {
+				_p0 = (start + 0) % 3;
+				_p1 = (start + 1) % 3;
+				_p2 = (start + 2) % 3;
+			} else {
+				_p0 = (start - 0 + 3) % 3;
+				_p1 = (start - 1 + 3) % 3;
+				_p2 = (start - 2 + 3) % 3;
 			}
-			double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
-			double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
-			if (fabs(warp_other) < fabs(warp)) {
-				int temp1 = e.points[1];
-				e.points[1] = e.points[4];
-				e.points[4] = e.points[3];
-				e.points[3] = temp1;
-				//printf("Correcting pyramid based on warp\n");
-			}
-			if (e.calc_volume(grid) < -1e-3)
-				Fatal("Large negative volume");
-			if (e.calc_volume(grid) < 0)
-				new_elements.clear();
-		} else if (n_on_face == 1) {
+
+			std::vector<OFFace *> new_faces;
+
+			calcFaceCenter(*side_face,grid);
+			new_faces.push_back(side_face);
+
+			OFFace face0;
+			face0.points.push_back(main_face_center_id);
+			face0.points.push_back(side_face->points[_p1]);
+			face0.points.push_back(side_face->points[_p2]);
+			calcFaceCenter(face0,grid);
+			new_faces.push_back(&face0);
+
+			OFFace face1;
+			face1.points.push_back(opp_face_center_id);
+			face1.points.push_back(main_face_center_id);
+			face1.points.push_back(side_face->points[_p2]);
+			face1.points.push_back(side_face->points[_p0]);
+			calcFaceCenter(face1,grid);
+			new_faces.push_back(&face1);
+
+			OFFace face2;
+			face2.points.push_back(main_face_center_id);
+			face2.points.push_back(opp_face_center_id);
+			face2.points.push_back(side_face->points[_p0]);
+			face2.points.push_back(side_face->points[_p1]);
+			calcFaceCenter(face2,grid);
+			new_faces.push_back(&face2);
+
+			int n_owners = side_faces_out;
+			Point cell_center = calcCellCenter(new_faces,grid,n_owners);
+
+			int cell_center_id = grid.points.size();
+			grid.points.push_back(cell_center);
+
+			createElementsFromFaceCenter(*side_face,side_faces_out,cell_center_id,new_elements);
+			createElementsFromFaceCenter(face0,false,cell_center_id,new_elements);
+			createElementsFromFaceCenter(face1,false,cell_center_id,new_elements);
+			createElementsFromFaceCenter(face2,false,cell_center_id,new_elements);
+
+			//new_elements.emplace_back(PYRAMID);
+			//Element& e = new_elements.back();
+			//e.points[0] = main_face_center_id;
+			//e.points[1] = opp_face_center_id;
+			//for (int _p = 0; _p < 3; ++_p) {
+			//	int p;
+			//	if (side_faces_out)
+			//		p = (start + _p) % 3;
+			//	else
+			//		p = (start - _p + 3) % 3;
+			//	e.points[2+_p] = side_face->points[p];
+			//}
+			//double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
+			//double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
+			//if (fabs(warp_other) < fabs(warp)) {
+			//	int temp1 = e.points[1];
+			//	e.points[1] = e.points[4];
+			//	e.points[4] = e.points[3];
+			//	e.points[3] = temp1;
+			//	//printf("Correcting pyramid based on warp\n");
+			//}
+		} else if (n_on_main_face == 1) {
+			return false;
 			if (pt_on_main_face[0])
 				start = 0;
 			else if (pt_on_main_face[1])
 				start = 1;
 			else
 				start = 2;
-			new_elements.emplace_back(PYRAMID);
-			Element& e = new_elements.back();
-			e.points[0] = opp_face_center_id;
-			e.points[1] = main_face_center_id;
-			for (int _p = 0; _p < 3; ++_p) {
-				int p;
-				if (side_faces_out)
-					p = (start + _p) % 3;
-				else
-					p = (start - _p + 3) % 3;
-				e.points[2+_p] = side_face->points[p];
+
+			int _p0, _p1, _p2;
+			if (side_faces_out) {
+				_p0 = (start + 0) % 3;
+				_p1 = (start + 1) % 3;
+				_p2 = (start + 2) % 3;
+			} else {
+				_p0 = (start - 0 + 3) % 3;
+				_p1 = (start - 1 + 3) % 3;
+				_p2 = (start - 2 + 3) % 3;
 			}
-			double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
-			double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
-			if (fabs(warp_other) < fabs(warp)) {
-				int temp1 = e.points[1];
-				e.points[1] = e.points[4];
-				e.points[4] = e.points[3];
-				e.points[3] = temp1;
-				//printf("Correcting pyramid based on warp\n");
+
+			std::vector<OFFace *> new_faces;
+
+			calcFaceCenter(*side_face,grid);
+			new_faces.push_back(side_face);
+
+			OFFace main_face;
+			main_face.points.push_back(opp_face_center_id);
+			main_face.points.push_back(side_face->points[_p1]);
+			main_face.points.push_back(side_face->points[_p2]);
+			calcFaceCenter(main_face,grid);
+			new_faces.push_back(&main_face);
+
+			OFFace face1;
+			face1.points.push_back(main_face_center_id);
+			face1.points.push_back(opp_face_center_id);
+			face1.points.push_back(side_face->points[_p2]);
+			face1.points.push_back(side_face->points[_p0]);
+			calcFaceCenter(face1,grid);
+			new_faces.push_back(&face1);
+
+			OFFace face2;
+			face2.points.push_back(opp_face_center_id);
+			face2.points.push_back(main_face_center_id);
+			face2.points.push_back(side_face->points[_p0]);
+			face2.points.push_back(side_face->points[_p1]);
+			calcFaceCenter(face2,grid);
+			new_faces.push_back(&face2);
+
+			int n_owners = side_faces_out;
+			Point cell_center = calcCellCenter(new_faces,grid,n_owners);
+
+			int cell_center_id = grid.points.size();
+			grid.points.push_back(cell_center);
+
+			createElementsFromFaceCenter(*side_face,side_faces_out,cell_center_id,new_elements);
+			createElementsFromFaceCenter(main_face,false,cell_center_id,new_elements);
+			createElementsFromFaceCenter(face1,false,cell_center_id,new_elements);
+			createElementsFromFaceCenter(face2,false,cell_center_id,new_elements);
+
+			bool fail = false;
+			for (Element& e: new_elements)
+				if (e.calc_volume(grid) < -1e-5)
+					fail = true;
+			if (fail) {
+				for (Element& e: new_elements) {
+					dump(e,grid);
+					printf("Volume = %g\n",e.calc_volume(grid));
+				}
+				Fatal();
 			}
-			if (e.calc_volume(grid) < -1e-3)
-				Fatal("Large negative volume");
-			if (e.calc_volume(grid) < 0)
-				new_elements.clear();
+
+			//if (pt_on_main_face[0])
+			//	start = 0;
+			//else if (pt_on_main_face[1])
+			//	start = 1;
+			//else
+			//	start = 2;
+			//new_elements.emplace_back(PYRAMID);
+			//Element& e = new_elements.back();
+			//e.points[0] = opp_face_center_id;
+			//e.points[1] = main_face_center_id;
+			//for (int _p = 0; _p < 3; ++_p) {
+			//	int p;
+			//	if (side_faces_out)
+			//		p = (start + _p) % 3;
+			//	else
+			//		p = (start - _p + 3) % 3;
+			//	e.points[2+_p] = side_face->points[p];
+			//}
+			//double warp = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[3]);
+			//double warp_other = calcQuadWarp(grid, e.points[0],e.points[1],e.points[2],e.points[4]);
+			//if (fabs(warp_other) < fabs(warp)) {
+			//	int temp1 = e.points[1];
+			//	e.points[1] = e.points[4];
+			//	e.points[4] = e.points[3];
+			//	e.points[3] = temp1;
+			//	//printf("Correcting pyramid based on warp\n");
+			//}
 		} else {
-			new_elements.clear();
+			return false;
 		}
-	} else if (side_face->points.size() == 4) {
+	} else if (side_face->points.size() == 4 && !side_face->is_tri_split) {
 		int p0 = side_face->points[0];
 		int p1 = side_face->points[1];
 		auto it0 = std::find(main_face->points.begin(),main_face->points.end(),p0);
@@ -479,23 +650,15 @@ std::vector<Element> createElementsFromSideFace(Grid& grid, OFFace* side_face, O
 		e.points[3] = opp_face_center_id;
 		e.points[4] = side_face->points[order[2]];
 		e.points[5] = side_face->points[order[3]];
-		if (e.calc_volume(grid) < -1e-3)
-			Fatal("Large negative volume");
-		if (e.calc_volume(grid) < 0)
-			new_elements.clear();
 	} else {
+		assert (side_face->split_faces.size());
 		for (OFFace& split_face : side_face->split_faces) {
-			std::vector<Element> split_elements;
-			split_elements = createElementsFromSideFace(grid,&split_face,main_face,opp_face,side_faces_out,main_face_center_id,opp_face_center_id);
-			if (split_elements.empty()) {
-				new_elements.clear();
-				break;
-			} else {
-				new_elements.insert(new_elements.end(),split_elements.begin(),split_elements.end());
-			}
+			bool success = createElementsFromSideFace(grid,&split_face,main_face,opp_face,side_faces_out,main_face_center_id,opp_face_center_id,new_elements);
+			if (!success)
+				return false;
 		}
 	}
-	return new_elements;
+	return true;
 }
 
 FoamHeader readFoamHeader(std::ifstream& f, std::string filename) {
@@ -893,17 +1056,17 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						share_points |= (p == po);
 				if (share_points) continue;
 				if (face->points.size() + other_face->points.size() == point_set.size()) {
-					bool side_face_is_split = false;
+					bool side_face_is_tri_split = false;
 					for (int l = 0; l < cell_faces.size(); ++l) {
 						if (l == j || l == k) continue;
 						OFFace* side_face = cell_faces[l];
-						side_face_is_split |= side_face->split;
+						side_face_is_tri_split |= side_face->is_tri_split;
 					}
-					if (side_face_is_split)
+					if (side_face_is_tri_split)
 						break;
 
 					int face_center_id;
-					if (face->split) {
+					if (face->is_tri_split) {
 						face_center_id = face->face_center_id;
 					} else {
 						face_center_id = grid.points.size();
@@ -911,7 +1074,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 					}
 
 					int other_face_center_id;
-					if (other_face->split) {
+					if (other_face->is_tri_split) {
 						other_face_center_id = other_face->face_center_id;
 					} else {
 						other_face_center_id = grid.points.size();
@@ -923,21 +1086,33 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						if (l == j || l == k) continue;
 						OFFace* side_face = cell_faces[l];
 						bool side_faces_out = (l < n_owners_per_cell[i]);
-						std::vector<Element> face_elements;
-						face_elements = createElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id);
-						if (face_elements.empty()) {
+						bool success = createElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id,new_elements);
+						for (Element& e : new_elements) {
+							if (e.calc_volume(grid) < -1e-3)
+								Fatal("Large negative volume");
+							if (e.calc_volume(grid) < 0)
+								success = false;
+						}
+						if (!success) {
 							new_elements.clear();
 							break;
-						} else {
-							new_elements.insert(new_elements.end(),face_elements.begin(),face_elements.end());
-						}
+						} 
 					}
 					if (new_elements.size() > 0) {
-						face->split = true;
-						other_face->split = true;
-
-						face->face_center_id = face_center_id;
-						other_face->face_center_id = other_face_center_id;
+						if (!face->is_tri_split) {
+							face->is_tri_split = true;
+							face->face_center_id = face_center_id;
+							face->center_id_assigned = true;
+							//Must assign face center id before splitting
+							triangleFaceSplit(face);
+						}
+						if (!other_face->is_tri_split) {
+							other_face->is_tri_split = true;
+							other_face->face_center_id = other_face_center_id;
+							other_face->center_id_assigned = true;
+							//Must assign face center id before splitting
+							triangleFaceSplit(other_face);
+						}
 
 						processed_cells[i] = true;
 						n_wedge_split++;
@@ -945,16 +1120,16 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 						break;
 					} else {
 						//Delete unused face centers from grid
-						if (!face->split)
-							grid.points.pop_back();
-						if (!other_face->split)
-							grid.points.pop_back();
+						//NOT SURE IF THIS IS SAFE
+						//if (!face->split)
+						//	grid.points.pop_back();
+						//if (!other_face->split)
+						//	grid.points.pop_back();
 
 						n_wedge_split_failed++;
 						//Add faces to failed_split_elements
 						for (OFFace* face : cell_faces) {
 							Element e (POLYGON);
-							e.name_i = 0;
 							for (int p : face->points)
 								e.points.push_back(p);
 							failed_split_elements.push_back(e);
@@ -972,21 +1147,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		toVTK("failed_split_elements.vtk",g,true);		
 	}
 
-	// For faces that were split by edge split. Split face in triangles using the 
-	// face center with each edge
-	for (OFFace& face : faces) {
-		if (face.split) {
-			face.split_faces.clear();
-			for (int j1 = 0; j1 < face.points.size(); ++j1) {
-				int j2 = (j1 + 1) % face.points.size();
-				OFFace new_face;
-				new_face.points.push_back(face.points[j1]);
-				new_face.points.push_back(face.points[j2]);
-				new_face.points.push_back(face.face_center_id);
-				face.split_faces.push_back(new_face);
-			}
-		}
-	}
 	for (int i = 0; i < info.n_cells; ++i) {
 		std::vector<OFFace*>& cell_faces = faces_per_cell[i];
 		OFCellType cell_type = cell_types[i];
@@ -994,7 +1154,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 		int n_split_faces = 0;
 		for (OFFace* face : cell_faces)
-			if (face->split)
+			if (face->split_faces.size())
 				n_split_faces++;
 
 		if (n_split_faces) cell_type = OFPoly;
@@ -1386,87 +1546,15 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int cell_center_id = grid.points.size();
 			grid.points.push_back(cell_center);
 
-			//std::cerr << "Splitting Poly" << std::endl;
+			std::vector<Element> new_elements;
+
 			for (int j = 0; j < cell_faces.size(); ++j) {
 				bool faces_out = (j < n_owners_per_cell[i]);
 				OFFace* current_face = cell_faces[j];
 
-				if (current_face->points.size() == 3 && !current_face->split) {
-					// If current face only has 3 points, create a tetrahedral with face plus cell center
-					grid.elements.emplace_back(TETRA);
-					Element& e = grid.elements.back();
-					e.name_i = name_i;
-
-					if (faces_out) {
-						e.points[2] = current_face->points[0];
-						e.points[1] = current_face->points[1];
-						e.points[0] = current_face->points[2];
-					} else {
-						e.points[0] = current_face->points[0];
-						e.points[1] = current_face->points[1];
-						e.points[2] = current_face->points[2];
-					}
-					e.points[3] = cell_center_id;
-				} else if (current_face->points.size() == 4 && !current_face->split) {
-					// If current face only has 4 points, create a pyramid with face plus cell center
-					grid.elements.emplace_back(PYRAMID);
-					Element& e = grid.elements.back();
-					e.name_i = name_i;
-
-					if (faces_out) {
-						e.points[3] = current_face->points[0];
-						e.points[2] = current_face->points[1];
-						e.points[1] = current_face->points[2];
-						e.points[0] = current_face->points[3];
-					} else {
-						e.points[0] = current_face->points[0];
-						e.points[1] = current_face->points[1];
-						e.points[2] = current_face->points[2];
-						e.points[3] = current_face->points[3];
-					}
-					e.points[4] = cell_center_id;
-				} else {
-					// Split polygon face into tris and quads
-					//std::vector<OFFace> split_faces = splitPolyFace(current_face,grid);
-					//std::cerr << "Splitting " << split_faces.size() << " Faces" << std::endl;
-
-					//create element from each of the split faces and the cell center
-					for (OFFace& new_face : current_face->split_faces) {
-						if (new_face.points.size() == 3) {
-							grid.elements.emplace_back(TETRA);
-							Element& e = grid.elements.back();
-							e.name_i = name_i;
-							if (faces_out) {
-								e.points[2] = new_face.points[0];
-								e.points[1] = new_face.points[1];
-								e.points[0] = new_face.points[2];
-							} else {
-								e.points[0] = new_face.points[0];
-								e.points[1] = new_face.points[1];
-								e.points[2] = new_face.points[2];
-							}
-							e.points[3] = cell_center_id;
-						} else if (new_face.points.size() == 4) {
-							grid.elements.emplace_back(PYRAMID);
-							Element& e = grid.elements.back();
-							e.name_i = name_i;
-							if (faces_out) {
-								e.points[3] = new_face.points[0];
-								e.points[2] = new_face.points[1];
-								e.points[1] = new_face.points[2];
-								e.points[0] = new_face.points[3];
-							} else {
-								e.points[0] = new_face.points[0];
-								e.points[1] = new_face.points[1];
-								e.points[2] = new_face.points[2];
-								e.points[3] = new_face.points[3];
-							}
-							e.points[4] = cell_center_id;
-						}
-
-					}
-				}
+				createElementsFromFaceCenter(*current_face,faces_out,cell_center_id,new_elements);
 			}
+			grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
 		}
 	}
 	int n_volume_elements = grid.elements.size();
@@ -1510,20 +1598,20 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		for (int i = boundary.start_face; i < boundary.start_face+boundary.n_faces; ++i) {
 			OFFace& face = faces[i];
 			if (face.points.size() < 3) Fatal("1D Boundary Element Found");
-			if (face.points.size() == 3 && !face.split) {
+			if (face.points.size() == 3 && !face.is_tri_split) {
 				grid.elements.emplace_back(TRI);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 3; ++j)
 					e.points[j] = face.points[j];
-			} else if (face.points.size() == 4 && !face.split) {
+			} else if (face.points.size() == 4 && !face.is_tri_split) {
 				grid.elements.emplace_back(QUAD);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 4; ++j)
 					e.points[j] = face.points[j];
 			} else {
-				assert (face.split_faces.size() > 0);
+				assert (face.split_faces.size());
 				for (OFFace& new_face : face.split_faces) {
 					if (new_face.points.size() == 3) {
 						grid.elements.emplace_back(TRI);
