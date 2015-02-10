@@ -90,6 +90,52 @@ int removeStraightEdges(OFFace& face, Grid& grid) {
 	return n_large_angles;
 }
 
+Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
+	// Calculate temp_center which is a rough guess at the center of the cell
+	Point temp_center;
+	double total_area = 0;
+	for (OFFace* face : faces) {
+		temp_center.x += face->center.x * face->area;
+		temp_center.y += face->center.y * face->area;
+		temp_center.z += face->center.z * face->area;
+		total_area += face->area;
+	}
+	temp_center.x /= total_area;
+	temp_center.y /= total_area;
+	temp_center.z /= total_area;
+
+	Point cell_center;
+	double total_volume = 0;
+	for (int j = 0; j < faces.size(); ++j) {
+		bool faces_out = (j < n_owners);
+		OFFace* face = faces[j];
+		int n = face->points.size();
+		double face_volume = 0;
+		for (int k1 = 0; k1 < n; ++k1) {
+			int k2 = (k1 + 1) % n;
+
+			Point& p1 = grid.points[face->points[k1]];
+			Point& p2 = grid.points[face->points[k2]];
+
+			Vector v1 = p1 - face->center;
+			Vector v2 = p2 - p1;
+			Vector v3 = temp_center - face->center;
+			double volume = dot(v3,cross(v1,v2))/6;
+			if (faces_out) volume *= -1;
+
+			face_volume += volume;
+			total_volume += volume;
+			cell_center.x += volume*(p1.x + p2.x + face->center.x + temp_center.x)/4;
+			cell_center.y += volume*(p1.y + p2.y + face->center.y + temp_center.y)/4;
+			cell_center.z += volume*(p1.z + p2.z + face->center.z + temp_center.z)/4;
+		}
+	}
+	cell_center.x /= total_volume;
+	cell_center.y /= total_volume;
+	cell_center.z /= total_volume;
+	return cell_center;
+}
+
 std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
 	if (face.points.size() < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
 	std::vector<OFFace> split_faces;
@@ -753,52 +799,6 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 		Fatal("Unknown Cell Type");
 	}
 	return OFUnknown;
-}
-
-Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
-	// Calculate temp_center which is a rough guess at the center of the cell
-	Point temp_center;
-	double total_area = 0;
-	for (OFFace* face : faces) {
-		temp_center.x += face->center.x * face->area;
-		temp_center.y += face->center.y * face->area;
-		temp_center.z += face->center.z * face->area;
-		total_area += face->area;
-	}
-	temp_center.x /= total_area;
-	temp_center.y /= total_area;
-	temp_center.z /= total_area;
-
-	Point cell_center;
-	double total_volume = 0;
-	for (int j = 0; j < faces.size(); ++j) {
-		bool faces_out = (j < n_owners);
-		OFFace* face = faces[j];
-		int n = face->points.size();
-		double face_volume = 0;
-		for (int k1 = 0; k1 < n; ++k1) {
-			int k2 = (k1 + 1) % n;
-
-			Point& p1 = grid.points[face->points[k1]];
-			Point& p2 = grid.points[face->points[k2]];
-
-			Vector v1 = p1 - face->center;
-			Vector v2 = p2 - p1;
-			Vector v3 = temp_center - face->center;
-			double volume = dot(v3,cross(v1,v2))/6;
-			if (faces_out) volume *= -1;
-
-			face_volume += volume;
-			total_volume += volume;
-			cell_center.x += volume*(p1.x + p2.x + face->center.x + temp_center.x)/4;
-			cell_center.y += volume*(p1.y + p2.y + face->center.y + temp_center.y)/4;
-			cell_center.z += volume*(p1.z + p2.z + face->center.z + temp_center.z)/4;
-		}
-	}
-	cell_center.x /= total_volume;
-	cell_center.y /= total_volume;
-	cell_center.z /= total_volume;
-	return cell_center;
 }
 
 void readOpenFoam(Grid& grid, std::string &polymesh) {
