@@ -1540,15 +1540,12 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			int cell_center_id = grid.points.size();
 			grid.points.push_back(cell_center);
 
-			std::vector<Element> new_elements;
-
 			for (int j = 0; j < cell_faces.size(); ++j) {
 				bool faces_out = (j < n_owners_per_cell[i]);
 				OFFace* current_face = cell_faces[j];
 
-				createElementsFromFaceCenter(*current_face,faces_out,cell_center_id,new_elements);
+				createElementsFromFaceCenter(*current_face,faces_out,cell_center_id,grid.elements);
 			}
-			grid.elements.insert(grid.elements.end(),new_elements.begin(),new_elements.end());
 		}
 	}
 	int n_volume_elements = grid.elements.size();
