@@ -11,7 +11,10 @@ struct Vector
 	Vector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 
 	inline Vector operator/(double value) {return Vector (x/value, y/value, z/value);};
+	inline Vector operator*(double value) {return Vector (x*value, y*value, z*value);};
 	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
+	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
+	inline void operator/=(double value) {x /= value; y /= value; z /= value;};
 	inline double dot(Vector& other) { return x*other.x + y*other.y + z*other.z; };
 	inline double length() {return sqrt(x*x + y*y + z*z);};
 };
@@ -23,6 +26,12 @@ struct Point
 	Point () : x(0), y(0), z(0) {};
 	Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 	inline Vector operator-(Point other) { return Vector (x-other.x,y-other.y,z-other.z); }
+
+	inline Point operator-(Vector other) { return Point (x-other.x,y-other.y,z-other.z); }
+	inline Point operator+(Vector other) { return Point (x+other.x,y+other.y,z+other.z); }
+
+	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
+	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
 };
 
 void dump(Point& p);
