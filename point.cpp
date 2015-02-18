@@ -8,7 +8,7 @@ void dump(Point& p) {
 };
 
 bool same(Point& p1, Point& p2, double tol) {
-	return (fabs(p1.x - p2.x) < tol) && (fabs(p1.y - p2.y) < tol) && (fabs(p1.z - p2.z) < tol);
+	return (fabs(p1.x - p2.x) <= tol) && (fabs(p1.y - p2.y) <= tol) && (fabs(p1.z - p2.z) <= tol);
 };
 
 void dump(Vector& v) {
