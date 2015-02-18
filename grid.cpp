@@ -3,6 +3,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <cassert>
 #include <cmath>
 #include <vector>
 #include <utility>
@@ -183,4 +184,45 @@ Grid Grid::grid_from_elements(std::vector<Element>& elements) {
 		g.elements.push_back(e);
 	}
 	return g;
+}
+
+void Grid::add_grid(Grid& other) {
+	assert (dim == other.dim);
+	int point_offset = points.size();
+	int name_offset = names.size();
+	points.insert(points.end(),other.points.begin(),other.points.end());
+	names.insert(names.end(),other.names.begin(),other.names.end());
+	elements.reserve(elements.size() + other.elements.size());
+	for (Element e : other.elements) {
+		for (int i = 0; i < e.points.size(); ++i) {
+			e.points[i] += point_offset;
+		}
+		e.name_i += name_offset;
+		elements.push_back(e);
+	}
+}
+
+void Grid::delete_empty_names() {
+	bool name_exists [names.size()];
+	for (int i = 0; i < names.size(); ++i)
+		name_exists[i] = false;
+
+	for (Element& e: elements) {
+		name_exists[e.name_i] = true;
+	}
+
+	int name_map [names.size()];
+	int i = 0;
+	for (int _i = 0; _i < names.size(); ++_i)  {
+		if (name_exists[_i]) {
+			name_map[_i] = i;
+			grid.names[i] = grid.names[_i];
+			i++;
+		} else
+			name_map[_i] = -1;
+	}
+	grid.names.resize(i);
+
+	for (Element& e: elements)
+		e.name_i = name_map[e.name_i];
 }
