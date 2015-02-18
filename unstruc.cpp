@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 
+#include "stl.h"
 #include "su2.h"
 #include "vtk.h"
 #include "gmsh.h"
@@ -19,7 +20,8 @@ enum BLOCKTYPE {
 	PLOT3D = 1,
 	SU2 = 2,
 	VTK = 3,
-	OPENFOAM = 4
+	OPENFOAM = 4,
+	STL = 5
 };
 
 int get_blocktype ( std::string &arg ) {
@@ -27,6 +29,8 @@ int get_blocktype ( std::string &arg ) {
 	std::string ext = arg.substr(n-4,n);
 	if (arg.compare(n-4,4,".su2") == 0)
 		return SU2;
+	else if (arg.compare(n-4,4,".stl") == 0)
+		return STL;
 	else if (arg.compare(n-4,4,".vtk") == 0)
 		return VTK;
 	else if (arg.compare(n-4,4,".xyz") == 0 || arg.compare(n-4,4,".p3d") == 0)
@@ -96,6 +100,8 @@ int main (int argc, char* argv[])
 				break;
 			case SU2:
 				readSU2(grid,inputfiles[i]);
+			case STL:
+				grid = read_stl_ascii(inputfiles[i]);
 				break;
 			case VTK:
 				Fatal("Input file not supported");
