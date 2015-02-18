@@ -69,7 +69,7 @@ int main() {
 		offset.points.push_back(offset_p);
 	}
 
-	toVTK("offset.vtk",offset,true);
+	toVTK("offset.vtk",offset);
 	Grid volume (3);
 	int n_points = grid.points.size();
 	volume.points = grid.points;
@@ -85,7 +85,7 @@ int main() {
 		}
 		volume.elements.push_back(e);
 	}
-	toVTK("volume.vtk",volume,true);
+	toVTK("volume.vtk",volume);
 	int n_negative_volumes = 0;
 	for (Element& e : volume.elements) {
 		if (e.calc_volume(volume) < 0)

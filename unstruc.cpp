@@ -135,7 +135,7 @@ int main (int argc, char* argv[])
 			toSU2(outputfile,grid);
 			break;
 		case VTK:
-			toVTK(outputfile,grid,false);
+			toVTK(outputfile,grid);
 			break;
 		default:
 			Fatal("Output file not recognized");

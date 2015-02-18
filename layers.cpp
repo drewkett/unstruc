@@ -590,13 +590,13 @@ int main() {
 	}
 
 	Grid volume = volume_from_surfaces(surface,featured_surface);
-	toVTK("volume.vtk",volume,true);
+	toVTK("volume.vtk",volume);
 
 	Grid surface_grid = grid_from_surface(surface);
-	toVTK("surface.vtk",surface_grid,true);
+	toVTK("surface.vtk",surface_grid);
 
 	Grid offset_grid = grid_from_surface(featured_surface);
-	toVTK("offset.vtk",offset_grid,true);
+	toVTK("offset.vtk",offset_grid);
 
 	int n_negative_volumes = 0;
 	for (int i = 0; i < volume.elements.size(); ++i) {

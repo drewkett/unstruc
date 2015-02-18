@@ -166,11 +166,11 @@ int main(int argc, char* argv[]) {
 	Grid grid_offset = read_stl_ascii(offset_su2);
 	grid_offset.merge_points(0);
 
-	toVTK("offset.vtk",grid_offset,true);
+	toVTK("offset.vtk",grid_offset);
 	Point hole = find_point_in_surface(grid_offset);
 
 	grid.add_grid(grid_offset);
-	toVTK("input.vtk",grid,true);
+	toVTK("input.vtk",grid);
 
 	//int i_edge = -1;
 	//for (int i = 0; i < grid.names.size(); ++i) {
@@ -264,6 +264,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	grid.delete_empty_names();
-	toVTK(outputname+".vtk",grid,true);
+	toVTK(outputname+".vtk",grid);
 	toSU2(outputname+".su2",grid);
 }

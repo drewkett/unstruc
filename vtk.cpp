@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(std::string outputfile, Grid &grid, bool include_all_elements) {
+bool toVTK(std::string outputfile, Grid &grid) {
 	std::cerr << "Writing '" << outputfile << "'" << std::endl;
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
@@ -32,13 +32,11 @@ bool toVTK(std::string outputfile, Grid &grid, bool include_all_elements) {
 	int n_volume_elements = 0;
 	int n_elvals = 0;
 	for (Element& e : grid.elements) {
-		if (e.dim != grid.dim && !include_all_elements) continue;
 		n_volume_elements++;
 		n_elvals += e.points.size()+1;
 	}
 	f << "CELLS " << n_volume_elements << " " << n_elvals << std::endl;
 	for (Element& e : grid.elements) {
-		if (e.dim != grid.dim && !include_all_elements) continue;
 		f << e.points.size();
 		for (int p : e.points) {
 			f << " " << p;
@@ -48,7 +46,6 @@ bool toVTK(std::string outputfile, Grid &grid, bool include_all_elements) {
 
 	f << "CELL_TYPES " << n_volume_elements << std::endl;
 	for (Element& e : grid.elements) {
-		if (e.dim != grid.dim && !include_all_elements) continue;
 		f << e.type << std::endl;
 	}
 	return true;
