@@ -216,12 +216,12 @@ void Grid::delete_empty_names() {
 	for (int _i = 0; _i < names.size(); ++_i)  {
 		if (name_exists[_i]) {
 			name_map[_i] = i;
-			grid.names[i] = grid.names[_i];
+			names[i] = names[_i];
 			i++;
 		} else
 			name_map[_i] = -1;
 	}
-	grid.names.resize(i);
+	names.resize(i);
 
 	for (Element& e: elements)
 		e.name_i = name_map[e.name_i];
