@@ -42,13 +42,13 @@ int get_blocktype ( std::string &arg ) {
 }
 
 void print_usage () {
-	std::cerr << "unstruc [-m] [-t translation_file] output_file input_file [input_file ...]" << std::endl << std::endl;
-	std::cerr << "This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)" << std::endl << std::endl;
-	std::cerr << "Option Arguments" << std::endl;
-	std::cerr << "-m                   Attempt to merge points that are close together" << std::endl;
-	std::cerr << "-t translation_file  Specify translation file for changing surface/block names" << std::endl;
-	std::cerr << "-h, --help           Print usage" << std::endl;
-	std::cerr << std::endl;
+	std::cerr << 
+"unstruc [-m] [-t translation_file] output_file input_file [input_file ...]\n\n"
+"This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)\n"
+"Option Arguments\n"
+"-m                   Attempt to merge points that are close together\n"
+"-t translation_file  Specify translation file for changing surface/block names\n"
+"-h, --help           Print usage\n";
 }
 int main (int argc, char* argv[])
 {
