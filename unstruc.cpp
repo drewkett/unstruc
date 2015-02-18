@@ -104,9 +104,6 @@ int main (int argc, char* argv[])
 			case STL:
 				grid = read_stl_ascii(inputfiles[i]);
 				break;
-			case VTK:
-				Fatal("Input file not supported");
-				break;
 			case OPENFOAM:
 				grid = readOpenFoam(inputfiles[i]);
 				break;
@@ -128,9 +125,6 @@ int main (int argc, char* argv[])
 		applyTranslation(grid,transt);
 	}
 	switch (get_blocktype(outputfile)) {
-		case PLOT3D:
-			Fatal("Output file not supported");
-			break;
 		case SU2:
 			toSU2(outputfile,grid);
 			break;
