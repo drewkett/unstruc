@@ -12,8 +12,9 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <map>
 
-bool toSU2(std::string &outputfile, Grid& grid) {
+bool toSU2(std::string outputfile, Grid& grid) {
 	int i, j;
 
 	FILE * f;
@@ -87,20 +88,25 @@ bool toSU2(std::string &outputfile, Grid& grid) {
 	return true;
 }
 
-void readSU2(Grid& grid, std::string &inputfile) {
+Grid readSU2(std::string inputfile) {
+	Grid grid(3);
 	int ipoint, iname, i, j, k;
 	int nelem;
 	Name name;
 	std::ifstream f;
 	std::istringstream ls;
 	std::string line, token;
+	std::map<int,int> point_map;
+	bool use_point_map = false;
 	f.open(inputfile.c_str(),std::ios::in);
 	std::cerr << "Opening SU2 File '" << inputfile << "'" << std::endl;
+	bool read_dime = false, read_poin = false, read_elem = false;
 	if (!f.is_open()) Fatal("Could not open file");
 	while (getline(f,line)) {
 		std::stringstream ss(line);
 		ss >> token;
 		if (token.substr(0,6) == "NDIME=") {
+			read_dime = true;
 			if (token.size() > 6) {
 				grid.dim = std::atoi(token.substr(6).c_str());
 			} else {
@@ -115,6 +121,7 @@ void readSU2(Grid& grid, std::string &inputfile) {
 			name.dim = grid.dim;
 			grid.names.push_back(name);
 		} else if (token.substr(0,6) == "NELEM=") {
+			read_elem = true;
 			int n_elems = 0;
 			if (token.size() > 6) {
 				n_elems = std::atoi(token.substr(6).c_str());
@@ -139,6 +146,7 @@ void readSU2(Grid& grid, std::string &inputfile) {
 				grid.elements[i] = elem;
 			}
 		} else if (token.substr(0,6) == "NPOIN=") {
+			read_poin = true;
 			int n_points = 0;
 			if (token.size() > 6) {
 				n_points = std::atoi(token.substr(6).c_str());
@@ -172,10 +180,12 @@ void readSU2(Grid& grid, std::string &inputfile) {
 				if (!ss.eof()) {
 					ss >> token;
 					ipoint = std::atoi(token.c_str());
+					use_point_map = true;
 				} else {
 					ipoint = i;
 				}
-				grid.points[ipoint] = point;
+				point_map[ipoint] = i;
+				grid.points[i] = point;
 			}
 		} else if (token.substr(0,6) == "NMARK=") {
 			int nmark;
@@ -235,8 +245,30 @@ void readSU2(Grid& grid, std::string &inputfile) {
 					grid.elements.push_back(elem);
 				}
 			}
-		} else {
-			std::cerr << "Unhandled Line: " << line << std::endl;
+		} 
+	}
+	assert (read_dime);
+	assert (read_elem);
+	assert (read_poin);
+	int n_negative = 0;
+	for (Element& e : grid.elements) {
+		if (use_point_map) {
+			for (int& p : e.points) {
+				assert (point_map.count(p) == 1);
+				p = point_map[p];
+			}
+		}
+		if (e.calc_volume(grid) < 0) {
+			if (e.type == TETRA) {
+				int temp = e.points[1];
+				e.points[1] = e.points[2];
+				e.points[2] = temp;
+				assert (e.calc_volume(grid) > 0);
+			}
+			n_negative++;
 		}
 	}
+	if (n_negative)
+		fprintf(stderr,"%d Negative Volume Elements\n",n_negative);
+	return grid;
 }
