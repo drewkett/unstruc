@@ -5,6 +5,6 @@
 
 struct Grid;
 
-void readOpenFoam(Grid&, std::string &filename);
+Grid readOpenFoam(std::string filename);
 
 #endif

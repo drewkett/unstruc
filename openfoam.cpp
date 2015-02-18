@@ -956,11 +956,13 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 	return OFUnknown;
 }
 
-void readOpenFoam(Grid& grid, std::string &polymesh) {
+Grid readOpenFoam(std::string polymesh) {
 	struct stat s;
 	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
 		Fatal(polymesh + " isn't a directory");
 	
+	Grid grid (3);
+
 	OFInfo info = readInfoFromOwners(polymesh);
 	grid.points = readPoints(polymesh);
 	std::vector<OFFace> faces = readFaces(polymesh);
@@ -968,14 +970,10 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	std::vector<int> neighbours = readNeighbours(polymesh);
 	std::vector<OFBoundary> boundaries = readBoundaries(polymesh);
 
-	grid.dim = 3;
-
 	printf("Points: %d\nFaces: %d\nInternal Faces: %d\nCells: %d\n",info.n_points,info.n_faces,info.n_internal_faces,info.n_cells);
 	if (info.n_points != grid.points.size()) Fatal("Invalid FoamFile: number of points do not match");
 
-	int name_i = 0;
-	grid.names.emplace_back(3,"default");
-
+	int default_name = 0;
 	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
 
 	for (OFFace& face : faces) {
@@ -1152,7 +1150,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		if (cell_type == OFTetra) {
 			grid.elements.emplace_back(TETRA);
 			Element& e = grid.elements.back();
-			e.name_i = name_i;
+			e.name_i = default_name;
 			bool faces_out = (n_owners_per_cell[i] > 0);
 
 			OFFace* first_face = cell_faces[0];
@@ -1264,7 +1262,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFPyramid) {
 			grid.elements.emplace_back(PYRAMID);
 			Element& e = grid.elements.back();
-			e.name_i = name_i;
+			e.name_i = default_name;
 			int quad_j = -1;
 			for (int j = 0; j < 5; ++j) {
 				if (cell_faces[j]->points.size() == 4) {
@@ -1465,7 +1463,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 
 			grid.elements.emplace_back(WEDGE);
 			Element& e = grid.elements.back();
-			e.name_i = name_i;
+			e.name_i = default_name;
 			if (tri1_faces_out) {
 				e.points[0] = tri1_face->points[0];
 				e.points[1] = tri1_face->points[1];
@@ -1484,7 +1482,7 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 		} else if (cell_type == OFHexa) {
 			grid.elements.emplace_back(HEXA);
 			Element& e = grid.elements.back();
-			e.name_i = name_i;
+			e.name_i = default_name;
 			bool faces_out = (n_owners_per_cell[i] > 0);
 			OFFace* first_face = cell_faces[0];
 			if (faces_out) {

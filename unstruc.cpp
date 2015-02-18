@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
 				Fatal("Input file not supported");
 				break;
 			case OPENFOAM:
-				readOpenFoam(grid,inputfiles[i]);
+				grid = readOpenFoam(inputfiles[i]);
 				break;
 			default:
 				Fatal("Input file not recognized");
