@@ -1136,10 +1136,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 	}
 	printf("Wedge Split: %d\n",n_wedge_split);
 	printf("Failed Wedge Split: %d\n",n_wedge_split_failed);
-	if (n_wedge_split_failed) {
-		Grid g = grid.grid_from_elements(failed_split_elements);
-		toVTK("failed_split_elements.vtk",g,true);		
-	}
 
 	for (int i = 0; i < info.n_cells; ++i) {
 		std::vector<OFFace*>& cell_faces = faces_per_cell[i];
@@ -1579,8 +1575,6 @@ void readOpenFoam(Grid& grid, std::string &polymesh) {
 			printf("  Tetras: %d\n",negative_tetras);
 		if (negative_pyramids)
 			printf("  Pyramids: %d\n",negative_pyramids);
-		Grid g = grid.grid_from_elements(negative_elements);
-		toVTK("negative_elements.vtk",g,true);
 	}
 
 	for (OFBoundary& boundary : boundaries) {
