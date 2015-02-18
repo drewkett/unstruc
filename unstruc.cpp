@@ -99,7 +99,8 @@ int main (int argc, char* argv[])
 				readPlot3DToGrid(grid,inputfiles[i]);
 				break;
 			case SU2:
-				readSU2(grid,inputfiles[i]);
+				grid = readSU2(inputfiles[i]);
+				break;
 			case STL:
 				grid = read_stl_ascii(inputfiles[i]);
 				break;
