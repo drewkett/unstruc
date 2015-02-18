@@ -24,6 +24,7 @@ Point read_vertex_ascii(std::istream& ss) {
 }
 
 Grid read_stl_ascii(std::string filename) {
+	fprintf(stderr,"Reading ASCII STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.emplace_back(2,filename);
 	std::ifstream f;
@@ -85,6 +86,7 @@ Grid read_stl_ascii(std::string filename) {
 			Fatal(std::string(c_msg));
 		}
 	}
+	fprintf(stderr,"%lu Triangles Read\n",grid.elements.size());
 	return grid;
 }
 
@@ -97,6 +99,7 @@ Point read_vertex_binary(std::ifstream& f) {
 }
 
 Grid read_stl_binary(std::string filename) {
+	fprintf(stderr,"Reading Binary STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.emplace_back(2,filename);
 	std::ifstream f;
@@ -104,10 +107,9 @@ Grid read_stl_binary(std::string filename) {
 	char header[80];
 
 	f.read(header, sizeof(header));
-	printf("%s\n",header);
 	uint32_t n_triangles;
 	f.read((char *) &n_triangles, sizeof(n_triangles));
-	printf("%d\n",n_triangles);
+	fprintf(stderr,"Reading %d Triangles\n",n_triangles);
 
 	for (int i = 0; i < n_triangles; ++i) {
 		Point normal = read_vertex_binary(f);
