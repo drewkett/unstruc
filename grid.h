@@ -21,7 +21,7 @@ struct Grid {
 	std::vector <Name> names;
 	int dim;
 
-	Grid () : dim(0);
+	Grid () : dim(0) {};
 	Grid (int _dim);
 	void merge_points(double tol);
 	void delete_inner_faces();
