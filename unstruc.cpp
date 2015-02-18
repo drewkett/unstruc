@@ -102,7 +102,7 @@ int main (int argc, char* argv[])
 				grid = readSU2(inputfiles[i]);
 				break;
 			case STL:
-				grid = read_stl_ascii(inputfiles[i]);
+				grid = read_stl(inputfiles[i]);
 				break;
 			case OPENFOAM:
 				grid = readOpenFoam(inputfiles[i]);

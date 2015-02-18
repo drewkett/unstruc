@@ -7,7 +7,7 @@
 #include "error.h"
 
 int main() {
-	Grid grid = read_stl_ascii("ac.stl");
+	Grid grid = read_stl("ac.stl");
 	grid.merge_points(0);
 	grid.collapse_elements();;
 	printf("%zu triangles\n",grid.elements.size());

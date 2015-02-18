@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
 	std::string offset_su2 (argv[2]);
 	std::string outputname (argv[3]);
 
-	Grid grid = read_stl_ascii(farfield_stl);
+	Grid grid = read_stl(farfield_stl);
 	grid.merge_points(0);
 
 	//Grid grid_offset = readSU2(offset_su2);
-	Grid grid_offset = read_stl_ascii(offset_su2);
+	Grid grid_offset = read_stl(offset_su2);
 	grid_offset.merge_points(0);
 
 	toVTK("offset.vtk",grid_offset);
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
 	tg.plc = 1;
 	tg.nobisect = 1;
 	tg.quality = 1;
-	tg.minratio = 1.1;
+	tg.minratio = 1.03;
 	tg.mindihedral = 0;
 	//tg.verbose = 1;
 	tg.quiet = 1;

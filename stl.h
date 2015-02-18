@@ -6,5 +6,7 @@
 struct Grid;
 
 Grid read_stl_ascii(std::string filename);
+Grid read_stl_binary(std::string filename);
+Grid read_stl(std::string filename);
 
 #endif

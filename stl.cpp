@@ -10,6 +10,7 @@
 #include <sstream>
 #include <array>
 #include <cstdio>
+#include <cassert>
 
 Point read_vertex_ascii(std::istream& ss) {
 	Point p;
@@ -85,4 +86,55 @@ Grid read_stl_ascii(std::string filename) {
 		}
 	}
 	return grid;
+}
+
+Point read_vertex_binary(std::ifstream& f) {
+	float x,y,z;
+	f.read((char *) &x, sizeof(x));
+	f.read((char *) &y, sizeof(y));
+	f.read((char *) &z, sizeof(z));
+	return Point (x,y,z);
+}
+
+Grid read_stl_binary(std::string filename) {
+	Grid grid (3);
+	grid.names.emplace_back(2,filename);
+	std::ifstream f;
+	f.open(filename);
+	char header[80];
+
+	f.read(header, sizeof(header));
+	printf("%s\n",header);
+	uint32_t n_triangles;
+	f.read((char *) &n_triangles, sizeof(n_triangles));
+	printf("%d\n",n_triangles);
+
+	for (int i = 0; i < n_triangles; ++i) {
+		Point normal = read_vertex_binary(f);
+		grid.points.push_back(read_vertex_binary(f));
+		grid.points.push_back(read_vertex_binary(f));
+		grid.points.push_back(read_vertex_binary(f));
+		uint16_t attr;
+		f.read((char *) &attr,sizeof(attr));
+
+		Element e (TRI);
+		e.points[0] = 3*i;
+		e.points[1] = 3*i+1;
+		e.points[2] = 3*i+2;
+		grid.elements.push_back(e);
+	}
+	f.get();
+	assert (f.eof());
+	return grid;
+}
+
+Grid read_stl(std::string filename) {
+	std::ifstream f;
+	f.open(filename);
+	std::string token;
+	f >> token;
+	if (token == "solid")
+		return read_stl_ascii(filename);
+	else
+		return read_stl_binary(filename);
 }

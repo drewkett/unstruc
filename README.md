@@ -4,7 +4,7 @@ This is a collection of utilities related to unstructured meshes. It is written 
 
 Unstructured mesh conversion tool
 
-This tool is a CFD mesh conversion tool. It currently supports reading in [SU2](https://github.com/su2code/SU2), [OpenFoam](http://www.openfoam.com), ASCII STL files, and Plot3D meshes and outputting [SU2](https://github.com/su2code/SU2) and VTK files.
+This tool is a CFD mesh conversion tool. It currently supports reading in [SU2](https://github.com/su2code/SU2), [OpenFoam](http://www.openfoam.com), STL files, and Plot3D meshes and outputting [SU2](https://github.com/su2code/SU2) and VTK files.
 
 ##layers
 
