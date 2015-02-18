@@ -5,14 +5,17 @@
 
 #include <vector>
 
-enum Shapes { LINE = 3,
-			  TRI = 5,
-			  POLYGON = 7,
-			  QUAD = 9,
-			  TETRA = 10,
-			  HEXA = 12,
-			  WEDGE = 13,
-			  PYRAMID = 14};
+enum Shapes {
+	UNDEFINED = 0,
+	LINE = 3,
+	TRI = 5,
+	POLYGON = 7,
+	QUAD = 9,
+	TETRA = 10,
+	HEXA = 12,
+	WEDGE = 13,
+	PYRAMID = 14
+};
 
 struct Grid;
 
