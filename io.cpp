@@ -43,7 +43,7 @@ Grid read_grid(std::string filename) {
 	return grid;
 }
 
-void write_grid(Grid& grid, std::string filename) {
+void write_grid(std::string filename,Grid& grid) {
 	FileType type = filetype_from_filename(filename);
 
 	switch (type) {

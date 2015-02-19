@@ -83,17 +83,6 @@ int main (int argc, char* argv[])
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);
 	}
-	write_grid(grid,outputfile);
-	switch (filetype_from_filename(outputfile)) {
-		case SU2:
-			toSU2(outputfile,grid);
-			break;
-		case VTK:
-			toVTK(outputfile,grid);
-			break;
-		default:
-			Fatal("Output file not recognized");
-			break;
-	}
+	write_grid(outputfile,grid);
 	return 0;
 }

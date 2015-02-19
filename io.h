@@ -15,6 +15,6 @@ enum FileType {
 
 FileType filetype_from_filename(std::string filename);
 Grid read_grid(std::string filename);
-void write_grid(Grid& grid, std::string filename);
+void write_grid(std::string filename, Grid& grid);
 
 #endif

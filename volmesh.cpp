@@ -1,11 +1,12 @@
 
-#include <tetgen.h>
 #include <cstdio>
+#include <algorithm>
+
+#include <tetgen.h>
 
 #include "error.h"
-#include "stl.h"
-#include "su2.h"
-#include "vtk.h"
+#include "element.h"
+#include "io.h"
 #include "grid.h"
 
 void print_usage() {
@@ -33,6 +34,64 @@ Grid grid_from_tetgenio(tetgenio& tg) {
 		grid.elements.push_back(e);
 	}
 	return grid;
+}
+
+Grid tetrahedralize_surface(Grid& surface, double max_area) {
+	tetgenio in;
+	in.mesh_dim = 3;
+	in.firstnumber = 0;
+
+	in.numberofpoints = surface.points.size();
+	in.pointlist  = new REAL[surface.points.size()*3];
+	int i = 0;
+	for (Point& p : surface.points) {
+		in.pointlist[i] = p.x;
+		in.pointlist[i+1] = p.y;
+		in.pointlist[i+2] = p.z;
+		i += 3;
+	}
+
+	in.numberoffacets = surface.elements.size();
+	in.facetlist = new tetgenio::facet[in.numberoffacets];
+	in.facetmarkerlist = new int[in.numberoffacets];
+
+	for (int i = 0; i < surface.elements.size(); ++i) {
+		Element& e = surface.elements[i];
+		tetgenio::facet& f = in.facetlist[i];
+		tetgenio::init(&f);
+
+		in.facetmarkerlist[i] = e.name_i;
+		
+		f.numberofpolygons = 1;
+		f.polygonlist = new tetgenio::polygon[1];
+		tetgenio::polygon& p = f.polygonlist[0];
+		tetgenio::init(&p);
+		assert (e.dim == 2);
+
+		p.numberofvertices = e.points.size();
+		p.vertexlist = new int[e.points.size()];
+		for (int j = 0; j < e.points.size(); ++j)
+			p.vertexlist[j] = e.points[j];
+	}
+
+	in.facetconstraintlist = new REAL[2];
+	in.numberoffacetconstraints = 1;
+	in.facetconstraintlist[0] = 0;
+	in.facetconstraintlist[1] = max_area;
+
+	tetgenbehavior tg;
+	tg.plc = 1;
+	//tg.nobisect = 1;
+	tg.quiet = 1;
+	tg.quality = 1;
+	//tg.minratio = 1.1;
+	//tg.mindihedral = 0;
+	tg.verbose = 1;
+
+	tetgenio out;
+	tetrahedralize(&tg,&in,&out,NULL,NULL);
+
+	return grid_from_tetgenio(out);
 }
 
 Grid volgrid_from_surface(Grid& surface) {
@@ -149,28 +208,87 @@ Point find_point_in_surface(Grid& surface) {
 	return Point();
 }
 
+Grid create_farfield_box(Grid& surface) {
+	double min_x = 1e10;
+	double min_y = 1e10;
+	double min_z = 1e10;
+	double max_x = -1e10;
+	double max_y = -1e10;
+	double max_z = -1e10;
+	for (Point& p : surface.points) {
+		if (p.x < min_x) min_x = p.x;
+		if (p.y < min_y) min_y = p.y;
+		if (p.z < min_z) min_z = p.z;
+		if (p.x > max_x) max_x = p.x;
+		if (p.y > max_y) max_y = p.y;
+		if (p.z > max_z) max_z = p.z;
+	}
+	double dx = max_x-min_x;
+	double dy = max_y-min_y;
+	double dz = max_z-min_z;
+	double max_length = std::max(std::max(dx,dy),dz);
+	double delta = 10*max_length;
+	min_x -= delta;
+	min_y -= delta;
+	min_z -= delta;
+	max_x += delta;
+	max_y += delta;
+	max_z += delta;
+	Grid farfield (3);
+	farfield.points.emplace_back(min_x, min_y, min_z);
+	farfield.points.emplace_back(max_x, min_y, min_z);
+	farfield.points.emplace_back(max_x, max_y, min_z);
+	farfield.points.emplace_back(min_x, max_y, min_z);
+	farfield.points.emplace_back(min_x, min_y, max_z);
+	farfield.points.emplace_back(max_x, min_y, max_z);
+	farfield.points.emplace_back(max_x, max_y, max_z);
+	farfield.points.emplace_back(min_x, max_y, max_z);
+	Element e1 (QUAD);
+	e1.points = {0,1,2,3};
+	farfield.elements.push_back(e1);
+	Element e2 (QUAD);
+	e2.points = {4,5,6,7};
+	farfield.elements.push_back(e2);
+	Element e3 (QUAD);
+	e3.points = {0,1,5,4};
+	farfield.elements.push_back(e3);
+	Element e4 (QUAD);
+	e4.points = {2,3,7,6};
+	farfield.elements.push_back(e4);
+	Element e5 (QUAD);
+	e5.points = {1,2,6,5};
+	farfield.elements.push_back(e5);
+	Element e6 (QUAD);
+	e6.points = {3,0,4,7};
+	farfield.elements.push_back(e6);
+
+	double max_area = 4*(max_length*max_length);
+	Grid tetra_farfield = tetrahedralize_surface(farfield,max_area);
+	return farfield;
+}
+
 int main(int argc, char* argv[]) {
-	if (argc != 4) {
+	if (argc != 3) {
 		print_usage();
-		fprintf(stderr,"\nMust pass 3 arguments\n");
+		fprintf(stderr,"\nMust pass 2 arguments\n");
 		return 1;
 	}
-	std::string farfield_stl (argv[1]);
-	std::string offset_su2 (argv[2]);
-	std::string outputname (argv[3]);
 
-	Grid grid = read_stl(farfield_stl);
-	grid.merge_points(0);
+	std::string offsetname (argv[1]);
+	std::string outputname (argv[2]);
 
-	//Grid grid_offset = readSU2(offset_su2);
-	Grid grid_offset = read_stl(offset_su2);
-	grid_offset.merge_points(0);
+	Grid offset = read_grid(offsetname);
+	offset.merge_points(0);
+	write_grid("offset.vtk",offset);
 
-	toVTK("offset.vtk",grid_offset);
-	Point hole = find_point_in_surface(grid_offset);
+	Grid farfield = create_farfield_box(offset);
+	write_grid("farfield.vtk",farfield);
 
-	grid.add_grid(grid_offset);
-	toVTK("input.vtk",grid);
+	Point hole = find_point_in_surface(offset);
+
+	Grid& grid = offset;
+	grid.add_grid(farfield);
+	write_grid("input.vtk",grid);
 
 	//int i_edge = -1;
 	//for (int i = 0; i < grid.names.size(); ++i) {
@@ -264,6 +382,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	grid.delete_empty_names();
-	toVTK(outputname+".vtk",grid);
-	toSU2(outputname+".su2",grid);
+	write_grid(outputname+".vtk",grid);
+	write_grid(outputname+".su2",grid);
 }
