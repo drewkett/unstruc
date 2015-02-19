@@ -1,4 +1,4 @@
-This is a collection of utilities related to unstructured meshes. It is written in C++. [tetgen](http://wias-berlin.de/software/tetgen/) is the only dependency, which is used by unstruc-volmesh.
+This is a collection of utilities related to unstructured meshes. It is written in C++. The only dependency is [tetgen](http://wias-berlin.de/software/tetgen/), which is used by unstruc-volmesh.
 
 ##unstruc-convert
 
