@@ -265,8 +265,8 @@ Grid create_farfield_box(Grid& surface) {
 
 void print_usage () {
 	fprintf(stderr,
-"unstruc-volmesh surface_mesh output_file\n\n"
-"This tool creates a volume mesh, including creating a farfield surface, using an input surface_mesh\n");
+"unstruc-volmesh surface_file output_file\n\n"
+"This tool creates a volume mesh, including creating a farfield surface, using an input surface mesh\n");
 }
 
 int main(int argc, char* argv[]) {
