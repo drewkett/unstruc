@@ -1,18 +1,18 @@
 
 CC= g++
-CXXFLAGS= -O3 -std=gnu++11 -I./include/grid
+CXXFLAGS= -O3 -std=gnu++11 -I./include
 
-grid_src = $(wildcard src/grid/*.cpp)
+lib_src = $(wildcard src/unstruc/*.cpp)
 
-names= unstruc offset layers volmesh
-executables= $(addprefix bin/,$(names))
+names= convert offset layers volmesh
+executables= $(addprefix bin/unstruc-,$(names))
 
 all: $(executables)
 
-bin/volmesh : src/volmesh/*.cpp $(grid_src)
+bin/unstruc-volmesh : src/volmesh.cpp $(lib_src)
 	$(CC) $(CXXFLAGS) $? -ltet -o $@
 
-bin/% : src/%/*.cpp $(grid_src)
+bin/unstruc-% : src/%.cpp $(lib_src)
 	$(CC) $(CXXFLAGS) $? -o $@
 
 clean:
