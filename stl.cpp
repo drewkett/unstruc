@@ -130,7 +130,7 @@ Grid read_stl_binary(std::string filename) {
 	return grid;
 }
 
-Grid read_stl(std::string filename) {
+Grid readSTL(std::string filename) {
 	std::ifstream f;
 	f.open(filename);
 	std::string token;

@@ -60,6 +60,13 @@ Element::Element(int T) : type(T) {
 	points.resize(len);
 }
 
+void dump(Element &e) {
+	std::cerr << "Element " << e.type << std::endl;
+	for (int p : e.points) {
+		printf("Point %d\n",p);
+	}
+};
+
 void dump(Element &e,Grid &grid) {
 	std::cerr << "Element " << e.type << std::endl;
 	for (int p : e.points) {

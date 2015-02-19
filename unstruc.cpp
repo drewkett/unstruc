@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 
+#include "io.h"
 #include "stl.h"
 #include "su2.h"
 #include "vtk.h"
@@ -14,32 +15,6 @@
 #include "translation.h"
 
 #define TOL 3.e-8
-
-enum BLOCKTYPE {
-	UNKNOWN = 0,
-	PLOT3D = 1,
-	SU2 = 2,
-	VTK = 3,
-	OPENFOAM = 4,
-	STL = 5
-};
-
-int get_blocktype ( std::string &arg ) {
-	int n = arg.size();
-	std::string ext = arg.substr(n-4,n);
-	if (arg.compare(n-4,4,".su2") == 0)
-		return SU2;
-	else if (arg.compare(n-4,4,".stl") == 0)
-		return STL;
-	else if (arg.compare(n-4,4,".vtk") == 0)
-		return VTK;
-	else if (arg.compare(n-4,4,".xyz") == 0 || arg.compare(n-4,4,".p3d") == 0)
-		return PLOT3D;
-	else if (arg.compare(n-8,8,"polyMesh") == 0 || arg.compare(n-9,9,"polyMesh/") == 0)
-		return OPENFOAM;
-	else
-		return UNKNOWN;
-}
 
 void print_usage () {
 	std::cerr << 
@@ -94,23 +69,7 @@ int main (int argc, char* argv[])
 	std::string outputfile (c_outputfile);
 	Grid grid;
 	for (int i = 0; i < inputfiles.size(); ++i) {
-		switch (get_blocktype(inputfiles[i])) {
-			case PLOT3D:
-				readPlot3DToGrid(grid,inputfiles[i]);
-				break;
-			case SU2:
-				grid = readSU2(inputfiles[i]);
-				break;
-			case STL:
-				grid = read_stl(inputfiles[i]);
-				break;
-			case OPENFOAM:
-				grid = readOpenFoam(inputfiles[i]);
-				break;
-			default:
-				Fatal("Input file not recognized");
-				break;
-		}
+		grid = read_grid(inputfiles[i]);
 	}
 	//set_i_points(grid);
 	if (mergepoints) {
@@ -124,7 +83,8 @@ int main (int argc, char* argv[])
 		ReadTranslationFile(translationfile,transt);
 		applyTranslation(grid,transt);
 	}
-	switch (get_blocktype(outputfile)) {
+	write_grid(grid,outputfile);
+	switch (filetype_from_filename(outputfile)) {
 		case SU2:
 			toSU2(outputfile,grid);
 			break;

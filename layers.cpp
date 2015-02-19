@@ -554,7 +554,7 @@ Grid volume_from_surfaces(Surface& surface1, Surface& surface2) {
 }
 
 int main() {
-	Grid grid = read_stl("ac.stl");
+	Grid grid = readSTL("ac.stl");
 	grid.merge_points(0);
 	grid.collapse_elements();;
 

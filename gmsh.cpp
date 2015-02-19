@@ -7,48 +7,43 @@
 
 #include <iostream>
 
-bool toGMSH(Grid &grid) {
-	std::cout.precision(15);
-	Name name;
-	//set_i(grid);
-	std::cout << "$MeshFormat" << std::endl;
-	std::cout << "2.2 0 " << sizeof(double) << std::endl;
-	std::cout << "$EndMeshFormat" << std::endl;
-	std::cout << "$Nodes" << std::endl;
-	std::cout << grid.points.size() << std::endl;
+void toGMSH(std::string filename, Grid &grid) {
+	FILE* f = fopen(filename.c_str(),"w");
+	if (!f) Fatal("Could not open file");
+
+	fprintf(f,"$MeshFormat\n");
+	fprintf(f,"2.2 0 %lu\n",sizeof(double));
+	fprintf(f,"$EndMeshFormat\n");
+	fprintf(f,"$Nodes %lu\n",grid.points.size());
 	for (int i = 0; i < grid.points.size(); i++) {
 		Point& p = grid.points[i];
-		std::cout << i+1 << " " << p.x << " " << p.y << " " << p.z << std::endl;
+		fprintf(f,"%d %.17g %.17g %.17g\n",i+1,p.x,p.y,p.z);
 	}
-	std::cout << "$EndNodes" << std::endl;
-	std::cout << "$Elements" << std::endl;
-	std::cout << grid.elements.size() << std::endl;
+	fprintf(f,"$EndNodes\n");
+	fprintf(f,"$Elements %lu\n",grid.elements.size());
 	for (int i = 0; i < grid.elements.size(); i++) {
 		Element &e = grid.elements[i];
-		std::cout << i+1;
+		int eltype = 0;
 		switch (e.type) {
 			case QUAD:
-				std::cout << " 3";
+				eltype = 3;
 				break;
 			case HEXA:
-				std::cout << " 5";
+				eltype = 5;
 				break;
 			default:
 				NotImplemented("ElType for GMSH");
 		}
-		std::cout << " " << 2 << " " << e.name_i+1 << " " << e.name_i+1;
-		for (int p : e.points) {
-			std::cout << " " << p;
-		}
-		std::cout << std::endl;
+		fprintf(f,"%d %d 2 %d %d",i+1,eltype,e.name_i+1,e.name_i+1);
+		for (int p : e.points)
+			fprintf(f," %d",p);
+		fprintf(f,"\n");
 	}
-	std::cout << "$EndElements" << std::endl;
-	std::cout << "$PhysicalNames" << std::endl;
-	std::cout << grid.names.size() << std::endl;
+	fprintf(f,"$EndElements\n");
+	fprintf(f,"$PhysicalNames %lu",grid.names.size());
 	for (int i = 0; i < grid.names.size(); i++) {
-		name = grid.names[i];
-		std::cout << name.dim << " " << i+1 << " \"" << name.name << "\"" << std::endl;
+		Name& name = grid.names[i];
+		fprintf(f,"%d %d \"%s\"\n",name.dim,i+1,name.name.c_str());
 	}
-	std::cout << "$EndPhysicalNames" << std::endl;
-	return true;
+	fprintf(f,"$EndPhysicalNames\n");
 }

@@ -3,13 +3,14 @@
 #include "block.h"
 #include "error.h"
 #include "math.h"
+#include "grid.h"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 
 
-void readPlot3D(MultiBlock& mb, std::string &filename) {
+MultiBlock readPlot3DToMultiBlock(std::string &filename) {
 	std::ifstream f;
 	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in|std::ios::binary);
@@ -44,6 +45,7 @@ void readPlot3D(MultiBlock& mb, std::string &filename) {
 	bool is_float = !(fabs(temp_f) > 1e8 || fabs(temp_f2) > 1e8);
 	f.seekg(-2*sizeof(temp_f),std::ios_base::cur);
 
+	MultiBlock mb;
 	for (int ib = 0; ib < n_blocks; ib++) {
 		Block blk = Block(dim[ib][0],dim[ib][1],dim[ib][2]); 
 		for (int l = 0; l < 3; l++) {
@@ -62,11 +64,11 @@ void readPlot3D(MultiBlock& mb, std::string &filename) {
 		}
 		mb.blocks.push_back(blk);
 	}
+	return mb;
 }
 
-void readPlot3DToGrid(Grid& grid, std::string &filename) {
-	MultiBlock mb;
-	readPlot3D(mb, filename);
-	to_grid(grid,mb);
+Grid readPlot3D(std::string filename) {
+	MultiBlock mb = readPlot3DToMultiBlock(filename);
+	return mb.to_grid();
 }
 	

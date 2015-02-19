@@ -20,10 +20,8 @@ struct Block {
 
 struct MultiBlock {
 	std::vector <Block> blocks;
+
+	Grid to_grid();
 };
-
-int size(MultiBlock &);
-
-void to_grid(Grid&, MultiBlock &);
 
 #endif

@@ -31,5 +31,4 @@ struct Grid {
 	void delete_empty_names();
 };
 
-
 #endif
