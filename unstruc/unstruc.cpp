@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 #include "io.h"
 #include "stl.h"
@@ -12,9 +14,55 @@
 
 #include "error.h"
 #include "block.h"
-#include "translation.h"
 
 #define TOL 3.e-8
+
+struct TranslationTable {
+	std::vector <Name> names;
+	std::vector <int> index;
+	TranslationTable(int n) : names(0), index(n,-1) {};
+};
+
+void ReadTranslationFile(std::string &filename, TranslationTable &tt) {
+	std::ifstream f;
+	std::string line, s;
+	std::cerr << "Reading Translation File '" << filename << "'" << std::endl;
+	f.open(filename.c_str(),std::ios::in);
+	if (!f.is_open()) Fatal("Could not open file");
+	while (getline(f,line)) {
+		tt.names.resize(tt.names.size() + 1);
+		Name &name = tt.names.back();
+		name.dim = 2;
+		std::istringstream iss(line);
+		iss >> name.name;
+		std::cerr << name.name;
+		while (! iss.eof()) {
+			iss >> s;
+			std::cerr << " " << s;
+			tt.index[atoi(s.c_str())] = tt.names.size()-1;
+		}
+		std::cerr << std::endl;
+	}
+	f.close();
+}
+
+void applyTranslation(Grid &grid, TranslationTable &transt) {
+	int offset = grid.names.size();
+	for (int i=0; i < transt.names.size(); i++) {
+		grid.names.push_back(transt.names[i]);
+	}
+	for (int i=0; i < transt.index.size(); i++) {
+		if (transt.index[i] == -1) {
+			transt.index[i] = i;
+		} else {
+			transt.index[i] += offset;
+		}
+	}
+	for (int i = 0; i < grid.elements.size(); i++) {
+		Element &e = grid.elements[i];
+		if (e.name_i != -1) e.name_i = transt.index[e.name_i];
+	}
+}
 
 void print_usage () {
 	std::cerr << 
