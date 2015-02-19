@@ -9,10 +9,6 @@
 #include "io.h"
 #include "grid.h"
 
-void print_usage() {
-	fprintf(stderr, "volmesh farfield_stl offset_su2 output_name\n");
-}
-
 Grid grid_from_tetgenio(tetgenio& tg) {
 	Grid grid (3);
 	grid.points.reserve(tg.numberofpoints);
@@ -267,6 +263,12 @@ Grid create_farfield_box(Grid& surface) {
 	return farfield;
 }
 
+void print_usage () {
+	fprintf(stderr,
+"unstruc-volmesh surface_mesh output_file\n\n"
+"This tool creates a volume mesh, including creating a farfield surface, using an input surface_mesh\n");
+}
+
 int main(int argc, char* argv[]) {
 	if (argc != 3) {
 		print_usage();
@@ -382,6 +384,5 @@ int main(int argc, char* argv[]) {
 	}
 
 	grid.delete_empty_names();
-	write_grid(outputname+".vtk",grid);
-	write_grid(outputname+".su2",grid);
+	write_grid(outputname,grid);
 }
