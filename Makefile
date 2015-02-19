@@ -12,16 +12,19 @@ executables= $(addprefix bin/unstruc-,$(names))
 all: $(executables)
 
 build/unstruc/%.o : src/unstruc/%.cpp
-	mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)
 	$(CC) $(CXXFLAGS) $< -c -o $@
 
 lib/libunstruc.a : $(lib_obj)
+	@mkdir -p lib
 	ar crf $@ $^
 
 bin/unstruc-volmesh : src/volmesh.cpp lib/libunstruc.a
+	@mkdir -p bin
 	$(CC) $(CXXFLAGS) $^ -ltet -o $@
 
 bin/unstruc-% : src/%.cpp lib/libunstruc.a
+	@mkdir -p bin
 	$(CC) $(CXXFLAGS) $^ -o $@
 
 clean:
