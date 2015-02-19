@@ -19,4 +19,4 @@ This is a work in progress tool for generating prismatic boundary layers of a 3D
 This is a work in progress tool for generating a volume mesh from a farfield surface and a surface object for use with CFD.
 
 ## Build Instructions
-This project is built using [CMake](http://www.cmake.org). To build run `./build.sh`
+This project is built using [CMake](http://www.cmake.org). To build, run `./build.sh`
