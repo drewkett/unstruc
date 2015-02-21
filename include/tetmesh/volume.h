@@ -4,7 +4,7 @@
 struct Grid;
 struct tetgenio;
 
-Grid grid_from_tetgenio(const tetgenio& tg);
-Grid tetrahedralize_surface(const Grid& surface, double max_area);
+Grid grid_from_tetgenio(tetgenio const& tg);
+Grid volgrid_from_surface(Grid const& surface);
 
 #endif
