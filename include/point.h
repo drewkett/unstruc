@@ -10,14 +10,19 @@ struct Vector
 	Vector() : x(0), y(0), z(0) {};
 	Vector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 
-	inline Vector operator/(double value) {return Vector (x/value, y/value, z/value);};
-	inline Vector operator*(double value) {return Vector (x*value, y*value, z*value);};
-	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
-	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
-	inline void operator/=(double value) {x /= value; y /= value; z /= value;};
+	inline Vector operator*(double value) {return Vector(*this) *= value;};
+	inline Vector operator/(double value) {return Vector(*this) /= value;};
+	inline Vector& operator+=(Vector other) {x += other.x; y += other.y; z += other.z; return *this;};
+	inline Vector& operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z; return *this;};
+	inline Vector& operator*=(double value) {x *= value; y *= value; z *= value; return *this;};
+	inline Vector& operator/=(double value) {x /= value; y /= value; z /= value; return *this;};
 	inline double dot(Vector& other) { return x*other.x + y*other.y + z*other.z; };
 	inline double length() {return sqrt(x*x + y*y + z*z);};
 };
+template<typename T>
+Vector operator*(T const& value, Vector vec) {
+	return vec *= value;
+}
 
 struct Point
 {
@@ -25,11 +30,15 @@ struct Point
 
 	Point () : x(0), y(0), z(0) {};
 	Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
+	inline bool operator==(Point other) {return x == other.x && y == other.y && z == other.z;}
+
+	inline Point operator/(double value) { return Point (x/value,y/value,z/value); }
+
+	//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
 	inline Vector operator-(Point other) { return Vector (x-other.x,y-other.y,z-other.z); }
 
 	inline Point operator-(Vector other) { return Point (x-other.x,y-other.y,z-other.z); }
 	inline Point operator+(Vector other) { return Point (x+other.x,y+other.y,z+other.z); }
-	inline bool operator==(Point other) {return x == other.x && y == other.y && z == other.z;}
 
 	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
 	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
