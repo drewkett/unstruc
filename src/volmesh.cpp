@@ -3,11 +3,7 @@
 #include <algorithm>
 
 #include <tetgen.h>
-
-#include "error.h"
-#include "element.h"
-#include "io.h"
-#include "grid.h"
+#include "unstruc.h"
 
 Grid grid_from_tetgenio(tetgenio& tg) {
 	Grid grid (3);

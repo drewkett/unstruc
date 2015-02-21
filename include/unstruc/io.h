@@ -1,7 +1,9 @@
 #ifndef IO_H_0D62E640_6D46_4047_849D_C11CE35E91AE
 #define IO_H_0D62E640_6D46_4047_849D_C11CE35E91AE
 
-#include "grid.h"
+#include <string>
+
+struct Grid;
 
 enum FileType {
 	UNKNOWN = 0,

@@ -1,9 +1,9 @@
 #ifndef ELEMENT_H_DFA32621_EEB4_401F_8C3B_FA778CAD6F42
 #define ELEMENT_H_DFA32621_EEB4_401F_8C3B_FA778CAD6F42
 
-#include "point.h"
-
 #include <vector>
+
+struct Point;
 
 enum Shapes {
 	UNDEFINED = 0,

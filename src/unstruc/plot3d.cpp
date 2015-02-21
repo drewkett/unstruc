@@ -71,4 +71,3 @@ Grid readPlot3D(std::string filename) {
 	MultiBlock mb = readPlot3DToMultiBlock(filename);
 	return mb.to_grid();
 }
-	

@@ -10,8 +10,9 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 ADD_SUBDIRECTORY(src/unstruc)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 add_executable(unstruc-layers src/layers.cpp)
 target_link_libraries(unstruc-layers unstruc)

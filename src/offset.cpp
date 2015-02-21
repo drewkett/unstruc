@@ -2,11 +2,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "io.h"
-#include "grid.h"
-#include "element.h"
-#include "point.h"
-#include "error.h"
+#include "unstruc.h"
 
 struct OEdge {
 	int p1, p2;

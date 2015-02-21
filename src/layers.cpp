@@ -1,11 +1,5 @@
 
-
-#include "vtk.h"
-#include "stl.h"
-#include "grid.h"
-#include "element.h"
-#include "point.h"
-#include "error.h"
+#include "unstruc.h"
 
 #include <algorithm>
 #include <array>
@@ -554,7 +548,7 @@ Grid volume_from_surfaces(Surface& surface1, Surface& surface2) {
 }
 
 int main() {
-	Grid grid = readSTL("ac.stl");
+	Grid grid = read_grid("ac.stl");
 	grid.merge_points(0);
 	grid.collapse_elements();;
 
@@ -590,13 +584,13 @@ int main() {
 	}
 
 	Grid volume = volume_from_surfaces(surface,featured_surface);
-	toVTK("volume.vtk",volume);
+	write_grid("volume.vtk",volume);
 
 	Grid surface_grid = grid_from_surface(surface);
-	toVTK("surface.vtk",surface_grid);
+	write_grid("surface.vtk",surface_grid);
 
 	Grid offset_grid = grid_from_surface(featured_surface);
-	toVTK("offset.vtk",offset_grid);
+	write_grid("offset.vtk",offset_grid);
 
 	int n_negative_volumes = 0;
 	for (int i = 0; i < volume.elements.size(); ++i) {

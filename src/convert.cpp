@@ -4,16 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "io.h"
-#include "stl.h"
-#include "su2.h"
-#include "vtk.h"
-#include "gmsh.h"
-#include "openfoam.h"
-#include "plot3d.h"
-
-#include "error.h"
-#include "block.h"
+#include "unstruc.h"
 
 #define TOL 3.e-8
 
