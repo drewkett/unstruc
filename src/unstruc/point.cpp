@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-void dump(Point& p) {
+void dump(Point p) {
 	printf("Point %8.6g %8.6g %8.6g\n",p.x,p.y,p.z);
 };
 
@@ -11,7 +11,7 @@ bool same(Point& p1, Point& p2, double tol) {
 	return (fabs(p1.x - p2.x) <= tol) && (fabs(p1.y - p2.y) <= tol) && (fabs(p1.z - p2.z) <= tol);
 };
 
-void dump(Vector& v) {
+void dump(Vector v) {
 	printf("Vector [ % 7.2e % 7.2e % 7.2e ]\n",v.x,v.y,v.z);
 };
 

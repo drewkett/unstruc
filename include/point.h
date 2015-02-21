@@ -29,15 +29,16 @@ struct Point
 
 	inline Point operator-(Vector other) { return Point (x-other.x,y-other.y,z-other.z); }
 	inline Point operator+(Vector other) { return Point (x+other.x,y+other.y,z+other.z); }
+	inline bool operator==(Point other) {return x == other.x && y == other.y && z == other.z;}
 
 	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
 	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
 };
 
-void dump(Point& p);
+void dump(Point p);
 bool same(Point& p1, Point& p2, double tol);
 
-void dump(Vector&);
+void dump(Vector);
 double angle_between(const Vector&, const Vector&);
 double dot(const Vector&, const Vector&);
 Vector cross(const Vector&, const Vector&);
