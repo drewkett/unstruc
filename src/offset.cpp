@@ -446,7 +446,7 @@ int main(int argc, char* argv[]) {
 	}
 	write_grid("volume.vtk",volume);
 
-	for (int i = 0; i < 10; ++i) {
+	for (int i = 0; i < 20; ++i) {
 		bool finished = true;
 		std::vector <int> negative_volumes = find_negative_volumes(volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
@@ -490,8 +490,12 @@ int main(int argc, char* argv[]) {
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					//e.points[j] = e.points[j-3];
-					volume.points[_p] = volume.points[_p0];
+					if (i < 5) {
+						Vector v = volume.points[_p0] - volume.points[_p];
+						volume.points[_p] += 0.2*v;
+					} else {
+						volume.points[_p] = volume.points[_p0];
+					}
 					poisoned_points[_p] = false;
 				}
 			}
