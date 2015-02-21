@@ -28,6 +28,7 @@ struct Grid {
 	Grid grid_from_elements(std::vector<Element>&);
 	void add_grid(Grid&);
 	void delete_empty_names();
+	bool test_point_inside(Point const& p);
 };
 
 #endif

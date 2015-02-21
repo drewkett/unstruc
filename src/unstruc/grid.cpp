@@ -226,3 +226,41 @@ void Grid::delete_empty_names() {
 	for (Element& e: elements)
 		e.name_i = name_map[e.name_i];
 }
+
+bool Grid::test_point_inside(Point const& p) {
+	bool inside = false;
+	for (Element const& e : elements) {
+		if (e.type != TETRA)
+			NotImplemented("test_point_inside_volume only surpports Tetra's");
+		Point const& p0 = points[e.points[0]];
+		Point const& p1 = points[e.points[1]];
+		Point const& p2 = points[e.points[2]];
+		Point const& p3 = points[e.points[3]];
+
+		Vector v01 = p1 - p0;
+		Vector v12 = p2 - p1;
+		Vector v20 = p0 - p2;
+		Vector v03 = p3 - p0;
+		Vector v13 = p3 - p1;
+		Vector v23 = p3 - p2;
+		
+		double test1 = dot(p-p0,cross(v01,v12));
+		assert(test1 != 0);
+		double test2 = -dot(p-p0,cross(v01,v13));
+		assert(test2 != 0);
+		if ((test1 > 0) != (test2 > 0))
+			continue;
+		double test3 = -dot(p-p1,cross(v12,v23));
+		assert(test3 != 0);
+		if ((test2 > 0) != (test3 > 0))
+			continue;
+		double test4 = -dot(p-p2,cross(v20,v03));
+		assert(test4 != 0);
+		if ((test3 > 0) != (test4 > 0))
+			continue;
+		inside = true;
+		break;
+	}
+	return inside;
+}
+

@@ -35,10 +35,10 @@ struct Point
 	inline Point operator/(double value) { return Point (x/value,y/value,z/value); }
 
 	//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
-	inline Vector operator-(Point other) { return Vector (x-other.x,y-other.y,z-other.z); }
+	inline Vector operator-(const Point other) const { return Vector (x-other.x,y-other.y,z-other.z);}
 
-	inline Point operator-(Vector other) { return Point (x-other.x,y-other.y,z-other.z); }
-	inline Point operator+(Vector other) { return Point (x+other.x,y+other.y,z+other.z); }
+	inline Point operator-(const Vector other) const { return Point (x-other.x,y-other.y,z-other.z); }
+	inline Point operator+(const Vector other) const { return Point (x+other.x,y+other.y,z+other.z); }
 
 	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
 	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};

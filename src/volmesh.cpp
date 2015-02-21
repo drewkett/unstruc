@@ -6,65 +6,6 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
-bool test_point_in_volume(Grid& vol, Point& p) {
-	bool inside = false;
-	for (Element& e : vol.elements) {
-		Point& p0 = vol.points[e.points[0]];
-		Point& p1 = vol.points[e.points[1]];
-		Point& p2 = vol.points[e.points[2]];
-		Point& p3 = vol.points[e.points[3]];
-
-		Vector v01 = p1 - p0;
-		Vector v12 = p2 - p1;
-		Vector v20 = p0 - p2;
-		Vector v03 = p3 - p0;
-		Vector v13 = p3 - p1;
-		Vector v23 = p3 - p2;
-		
-		double test1 = dot(p-p0,cross(v01,v12));
-		assert(test1 != 0);
-		double test2 = -dot(p-p0,cross(v01,v13));
-		assert(test2 != 0);
-		if ((test1 > 0) != (test2 > 0))
-			continue;
-		double test3 = -dot(p-p1,cross(v12,v23));
-		assert(test3 != 0);
-		if ((test2 > 0) != (test3 > 0))
-			continue;
-		double test4 = -dot(p-p2,cross(v20,v03));
-		assert(test4 != 0);
-		if ((test3 > 0) != (test4 > 0))
-			continue;
-		inside = true;
-		break;
-	}
-	return inside;
-}
-
-Point find_point_in_surface(Grid& surface) {
-	Grid vol = volgrid_from_surface(surface);
-
-	Element& e = surface.elements[0];
-	assert (e.type == TRI);
-	Point& p0 = surface.points[e.points[0]];
-	Point& p1 = surface.points[e.points[1]];
-	Point& p2 = surface.points[e.points[2]];
-	Vector v1 = p1 - p0;
-	Vector v2 = p2 - p1;
-	Vector n = cross(v1,v2);
-	Point test = p0 + n/1000;
-	Point test2 = p0 - n/1000;
-
-	if (test_point_in_volume(vol,test))
-		return test;
-	else if (test_point_in_volume(vol,test2))
-		return test2;
-	else 
-		Fatal("Not sure what to do");
-
-	return Point();
-}
-
 void print_usage () {
 	fprintf(stderr,
 "unstruc-volmesh surface_file output_file\n\n"
@@ -88,7 +29,7 @@ int main(int argc, char* argv[]) {
 	Grid farfield = create_farfield_box(offset);
 	write_grid("farfield.vtk",farfield);
 
-	Point hole = find_point_in_surface(offset);
+	Point hole = find_point_inside_surface(offset);
 
 	Grid& grid = offset;
 	grid.add_grid(farfield);
