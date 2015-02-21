@@ -5,12 +5,12 @@ export CXX=clang++
 
 mkdir -p build/debug
 cd build/debug 
-cmake -DCMAKE_BUILD_TYPE=DEBUG ../.. 
-make $@
+cmake -DCMAKE_BUILD_TYPE=DEBUG ../..
+make $@ || exit 1
 cd ../..
 
 mkdir -p build/release 
 cd build/release 
-cmake -DCMAKE_BUILD_TYPE=RELEASE ../.. 
+cmake -DCMAKE_BUILD_TYPE=RELEASE ../..
 make $@
 cd ../..
