@@ -11,6 +11,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 ADD_SUBDIRECTORY(src/unstruc)
+ADD_SUBDIRECTORY(src/tetmesh)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
@@ -24,4 +25,4 @@ add_executable(unstruc-offset src/offset.cpp)
 target_link_libraries(unstruc-offset unstruc)
 
 add_executable(unstruc-volmesh src/volmesh.cpp)
-target_link_libraries(unstruc-volmesh unstruc tet)
+target_link_libraries(unstruc-volmesh unstruc tet tetmesh)
