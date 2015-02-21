@@ -19,7 +19,7 @@ bool toVTK(std::string outputfile, Grid &grid) {
 	f << "Description" << std::endl;
 	f << "ASCII" << std::endl;
 	f << "DATASET UNSTRUCTURED_GRID" << std::endl;
-	std::cerr << "Writing Points" << std::endl;
+	//std::cerr << "Writing Points" << std::endl;
 	f << "POINTS " << grid.points.size() << " double" << std::endl;
 	for (Point& p : grid.points) {
 		f << p.x << " " << p.y;
@@ -28,7 +28,7 @@ bool toVTK(std::string outputfile, Grid &grid) {
 		else
 			f << " 0.0" << std::endl;
 	}
-	std::cerr << "Writing Cells" << std::endl;
+	//std::cerr << "Writing Cells" << std::endl;
 	int n_volume_elements = 0;
 	int n_elvals = 0;
 	for (Element& e : grid.elements) {
