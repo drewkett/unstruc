@@ -338,6 +338,14 @@ std::vector <int> find_intersections(Grid& grid) {
 	return intersected_list;
 }
 
+void write_reduced_file(Grid& grid, std::vector <int> elements, std::string filename) {
+	Grid reduced_grid (3);
+	reduced_grid.points = grid.points;
+	for (int _e : elements)
+		reduced_grid.elements.push_back(grid.elements[_e]);
+	write_grid(filename,reduced_grid);
+}
+
 void print_usage () {
 	fprintf(stderr,
 "unstruc-offset surface_file offset_size\n");
@@ -445,13 +453,9 @@ int main(int argc, char* argv[]) {
 
 		if (negative_volumes.size() > 0) {
 			finished = false;
-			Grid volume_negative (3);
-			volume_negative.points = volume.points;
-			for (int _e : negative_volumes)
-				volume_negative.elements.push_back(volume.elements[_e]);
-			char filename[30];
-			snprintf(filename,30,"negative_volumes%d.vtk",i);
-			write_grid(std::string(filename),volume_negative);
+			char filename[50];
+			snprintf(filename,50,"negative_volumes%d.vtk",i);
+			write_reduced_file(volume, negative_volumes, std::string(filename));
 		}
 
 		std::vector <int> intersected_elements = find_intersections(volume);
@@ -459,13 +463,9 @@ int main(int argc, char* argv[]) {
 
 		if (intersected_elements.size() > 0) {
 			finished = false;
-			Grid volume_intersected (3);
-			volume_intersected.points = volume.points;
-			for (int _e : intersected_elements)
-				volume_intersected.elements.push_back(volume.elements[_e]);
-			char filename[30];
-			snprintf(filename,30,"intersected_volumes%d.vtk",i);
-			write_grid(filename,volume_intersected);
+			char filename[50];
+			snprintf(filename,50,"intersected_volumes%d.vtk",i);
+			write_reduced_file(volume, intersected_elements, std::string(filename));
 		}
 
 		if (finished) break;
