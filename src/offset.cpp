@@ -271,7 +271,6 @@ std::vector <int> find_intersections(Grid& grid) {
 	std::vector<OFace> faces = get_faces(grid);
 	std::sort(faces.begin(),faces.end(),OFace::compare_by_min_x);
 
-	printf("Checking for intersections\n");
 	int j_current = 0;
 	std::vector <bool> intersected_elements (grid.elements.size(),false);
 	for (int i = 0; i < edges.size(); ++i) {
@@ -470,6 +469,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (finished) break;
+		printf("Iteration %d\n",i+1);
 		std::vector <bool> poisoned_points (volume.points.size(),false);
 
 		for (int _e : negative_volumes) {
