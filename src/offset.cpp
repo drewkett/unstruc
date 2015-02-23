@@ -449,9 +449,9 @@ int main(int argc, char* argv[]) {
 
 		if (negative_volumes.size() > 0) {
 			finished = false;
-			char filename[50];
-			snprintf(filename,50,"negative_volumes%d.vtk",i);
-			write_reduced_file(volume, negative_volumes, std::string(filename));
+			//char filename[50];
+			//snprintf(filename,50,"negative_volumes%d.vtk",i);
+			//write_reduced_file(volume, negative_volumes, std::string(filename));
 		}
 
 		std::vector <int> intersected_elements = find_intersections(volume);
@@ -459,9 +459,9 @@ int main(int argc, char* argv[]) {
 
 		if (intersected_elements.size() > 0) {
 			finished = false;
-			char filename[50];
-			snprintf(filename,50,"intersected_volumes%d.vtk",i);
-			write_reduced_file(volume, intersected_elements, std::string(filename));
+			//char filename[50];
+			//snprintf(filename,50,"intersected_volumes%d.vtk",i);
+			//write_reduced_file(volume, intersected_elements, std::string(filename));
 		}
 
 		if (finished) break;
