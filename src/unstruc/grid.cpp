@@ -266,24 +266,36 @@ bool Grid::test_point_inside(Point const& p) {
 }
 
 bool Grid::check_integrity() const {
-	if (dim < 2 || dim > 3)
+	if (dim < 2 || dim > 3) {
+		fprintf(stderr,"Grid dim incorrectly set\n");
 		return false;
+	}
 	int n_points = points.size();
 	for (const Element& e : elements) {
-		if (e.type == Shape::Undefined)
+		if (e.type == Shape::Undefined) {
+			fprintf(stderr,"Undefined shape\n");
 			return false;
+		}
 		Shape s = Shape::Info[e.type];
-		if (s.n_points && s.n_points != e.points.size())
+		if (s.n_points && s.n_points != e.points.size()) {
+			fprintf(stderr,"Element has wrong number of points\n");
 			return false;
-		if (e.name_i >= names.size())
+		}
+		if (e.name_i >= names.size()) {
+			fprintf(stderr,"Element has invalid name (%d >= %lu)\n",e.name_i,names.size());
 			return false;
+		}
 		for (int p : e.points)
-			if (p >= n_points)
+			if (p >= n_points) {
+				fprintf(stderr,"Element uses non existent point\n");
 				return false;
+			}
 	}
 	for (const Name& name : names) {
-		if (name.dim < 2 || name.dim > 3)
+		if (name.dim < 2 || name.dim > 3) {
+			fprintf(stderr,"Name dimension not correctly set\n");
 			return false;
+		}
 	}
 	return true;
 }
