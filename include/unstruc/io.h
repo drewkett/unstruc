@@ -5,14 +5,15 @@
 
 struct Grid;
 
-enum FileType {
-	UNKNOWN = 0,
-	PLOT3D = 1,
-	SU2 = 2,
-	VTK = 3,
-	OPENFOAM = 4,
-	STL = 5,
-	GMSH = 6,
+enum struct FileType {
+	Unknown,
+	Plot3D,
+	SU2,
+	VTK,
+	OpenFoam,
+	STL,
+	GMSH,
+	Count
 };
 
 FileType filetype_from_filename(std::string filename);

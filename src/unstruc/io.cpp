@@ -13,17 +13,18 @@
 FileType filetype_from_filename(std::string filename) {
 	int n = filename.size();
 	if (filename.compare(n-4,4,".su2") == 0)
-		return SU2;
+		return FileType::SU2;
 	else if (filename.compare(n-4,4,".stl") == 0)
-		return STL;
+		return FileType::STL;
 	else if (filename.compare(n-4,4,".vtk") == 0)
-		return VTK;
+		return FileType::VTK;
 	else if (filename.compare(n-4,4,".xyz") == 0 || filename.compare(n-4,4,".p3d") == 0)
-		return PLOT3D;
+		return FileType::Plot3D;
 	else if (filename.compare(n-8,8,"polyMesh") == 0 || filename.compare(n-9,9,"polyMesh/") == 0)
-		return OPENFOAM;
+		return FileType::OpenFoam;
 	else
 		Fatal("Unknown filetype");
+	return FileType::Unknown;
 }
 
 Grid read_grid(std::string filename) {
@@ -31,11 +32,11 @@ Grid read_grid(std::string filename) {
 
 	Grid grid;
 	switch (type) {
-		case PLOT3D:
+		case FileType::Plot3D:
 			return readPlot3D(filename);
-		case SU2:
+		case FileType::SU2:
 			return readSU2(filename);
-		case STL:
+		case FileType::STL:
 			return readSTL(filename);
 		default:
 			Fatal("Unsupported filetype for reading");
@@ -47,13 +48,13 @@ void write_grid(std::string filename,Grid& grid) {
 	FileType type = filetype_from_filename(filename);
 
 	switch (type) {
-		case SU2:
+		case FileType::SU2:
 			toSU2(filename,grid);
 			break;
-		case VTK:
+		case FileType::VTK:
 			toVTK(filename,grid);
 			break;
-		case GMSH:
+		case FileType::GMSH:
 			toGMSH(filename,grid);
 			break;
 		default:
