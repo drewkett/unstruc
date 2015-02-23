@@ -10,14 +10,14 @@ struct Vector
 	Vector() : x(0), y(0), z(0) {};
 	Vector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 
-	inline Vector operator*(double value) {return Vector(*this) *= value;};
-	inline Vector operator/(double value) {return Vector(*this) /= value;};
-	inline Vector& operator+=(Vector other) {x += other.x; y += other.y; z += other.z; return *this;};
-	inline Vector& operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z; return *this;};
+	inline Vector operator*(double value) const {return Vector(*this) *= value;};
+	inline Vector operator/(double value) const {return Vector(*this) /= value;};
+	inline Vector& operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z; return *this;};
+	inline Vector& operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z; return *this;};
 	inline Vector& operator*=(double value) {x *= value; y *= value; z *= value; return *this;};
 	inline Vector& operator/=(double value) {x /= value; y /= value; z /= value; return *this;};
-	inline double dot(Vector& other) { return x*other.x + y*other.y + z*other.z; };
-	inline double length() {return sqrt(x*x + y*y + z*z);};
+	inline double dot(const Vector& other) const { return x*other.x + y*other.y + z*other.z; };
+	inline double length() const {return sqrt(x*x + y*y + z*z);};
 };
 template<typename T>
 Vector operator*(T const& value, Vector vec) {
@@ -35,13 +35,13 @@ struct Point
 	inline Point operator/(double value) { return Point (x/value,y/value,z/value); }
 
 	//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
-	inline Vector operator-(const Point other) const { return Vector (x-other.x,y-other.y,z-other.z);}
+	inline Vector operator-(const Point& other) const { return Vector (x-other.x,y-other.y,z-other.z);}
 
-	inline Point operator-(const Vector other) const { return Point (x-other.x,y-other.y,z-other.z); }
-	inline Point operator+(const Vector other) const { return Point (x+other.x,y+other.y,z+other.z); }
+	inline Point operator-(const Vector& other) const { return Point (x-other.x,y-other.y,z-other.z); }
+	inline Point operator+(const Vector& other) const { return Point (x+other.x,y+other.y,z+other.z); }
 
-	inline void operator-=(Vector other) {x -= other.x; y -= other.y; z -= other.z;};
-	inline void operator+=(Vector other) {x += other.x; y += other.y; z += other.z;};
+	inline void operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z;};
+	inline void operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z;};
 };
 
 void dump(Point p);
