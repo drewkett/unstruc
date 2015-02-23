@@ -345,38 +345,74 @@ void write_reduced_file(Grid& grid, std::vector <int> elements, std::string file
 
 void print_usage () {
 	fprintf(stderr,
-"unstruc-offset surface_file offset_size\n");
+"unstruc-offset [-s offset_size] [-n number_of_layers] surface_file output_file\n");
 }
 
-int main(int argc, char* argv[]) {
-	if (argc != 3) {
-		print_usage();
-		fprintf(stderr,"\nMust pass 2 arguments\n");
-		return 1;
-	}
-	std::string offsetname (argv[1]);
-	double offsetsize = atof(argv[2]);
-	Grid grid = read_grid(offsetname);
-	grid.merge_points(0);
-	grid.collapse_elements();;
-	printf("%zu triangles\n",grid.elements.size());
-	printf("%zu points\n",grid.points.size());
+void parse_failed (std::string msg) {
+	print_usage();
+	fprintf(stderr,"\n%s\n",msg.c_str());
+	exit(1);
+}
 
+Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
+	if (surface1.elements.size() != surface2.elements.size())
+		Fatal("surfaces don't match");
+	int npoints1 = surface1.points.size();
+
+	Grid volume (3);
+	volume.points = surface1.points;
+	volume.points.insert(volume.points.end(),surface2.points.begin(),surface2.points.end());
+	int n_negative = 0;
+	for (int i = 0; i < surface1.elements.size(); ++i) {
+		const Element& e1 = surface1.elements[i];
+		const Element& e2 = surface2.elements[i];
+		if (e1.type != e2.type)
+			Fatal("elements in surfaces don't match");
+		if (e1.type == Shape::Triangle) {
+			Element e (Shape::Wedge);
+			for (int j = 0; j < 3; ++j) {
+				e.points[j] = e1.points[j];
+				e.points[j+3] = e2.points[j] + npoints1;
+			}
+			if (e.calc_volume(volume) < 0) n_negative++;
+			volume.elements.push_back(e);
+		} else {
+			fprintf(stderr,"%s\n",Shape::Info[e1.type].name.c_str());
+			NotImplemented("Must pass triangle surfaces");
+		}
+	}
+	if (n_negative == 0) {
+	} else if (n_negative == volume.elements.size()) {
+		for (Element& e : volume.elements) {
+			int temp = e.points[1];
+			e.points[1] = e.points[2];
+			e.points[2] = temp;
+			int temp2 = e.points[4];
+			e.points[4] = e.points[5];
+			e.points[5] = temp;
+		}
+	} else {
+		Fatal("Negative Volumes Created");
+	}
+	return volume;
+}
+
+Grid create_offset_surface (const Grid& surface, double offset_size) {
 	std::vector< Vector > normals;
-	normals.resize(grid.elements.size());
+	normals.resize(surface.elements.size());
 
 	std::vector< Point > centers;
-	centers.resize(grid.elements.size());
+	centers.resize(surface.elements.size());
 
 	std::vector< std::vector <int> > point_elements;
-	point_elements.resize(grid.points.size());
+	point_elements.resize(surface.points.size());
 
-	for (int i = 0; i < grid.elements.size(); ++i) {
-		Element& e = grid.elements[i];
+	for (int i = 0; i < surface.elements.size(); ++i) {
+		const Element& e = surface.elements[i];
 
-		Point& p0 = grid.points[e.points[0]];
-		Point& p1 = grid.points[e.points[1]];
-		Point& p2 = grid.points[e.points[2]];
+		const Point& p0 = surface.points[e.points[0]];
+		const Point& p1 = surface.points[e.points[1]];
+		const Point& p2 = surface.points[e.points[2]];
 
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
@@ -390,9 +426,9 @@ int main(int argc, char* argv[]) {
 			point_elements[p].push_back(i);
 	}
 
-	std::vector <Vector> point_normals (grid.points.size());
-	for (int i = 0; i < grid.points.size(); ++i) {
-		Point& p = grid.points[i];
+	std::vector <Vector> point_normals (surface.points.size());
+	for (int i = 0; i < surface.points.size(); ++i) {
+		const Point& p = surface.points[i];
 		std::vector<int>& elements = point_elements[i];
 
 		Vector total_norm;
@@ -409,26 +445,27 @@ int main(int argc, char* argv[]) {
 	}
 
 	Grid offset (3);
-	offset.elements = grid.elements;
-	for (int i = 0; i < grid.points.size(); ++i) {
-		Point& p = grid.points[i];
+	offset.elements = surface.elements;
+	offset.names = surface.names;
+	for (int i = 0; i < surface.points.size(); ++i) {
+		const Point& p = surface.points[i];
 		Vector& n = point_normals[i];
 
-		Point offset_p = p + n*offsetsize;
+		Point offset_p = p + n*offset_size;
 		offset.points.push_back(offset_p);
 	}
 
 	write_grid("offset.vtk",offset);
-	Grid volume (3);
-	int n_points = grid.points.size();
-	volume.points = grid.points;
-	volume.points.insert(volume.points.end(),offset.points.begin(),offset.points.end());
+	Grid offset_volume (3);
+	int n_points = surface.points.size();
+	offset_volume.points = surface.points;
+	offset_volume.points.insert(offset_volume.points.end(),offset.points.begin(),offset.points.end());
 
-	for (int i = 0; i < grid.elements.size(); ++i) {
-		Element& e1 = grid.elements[i];
-		Element& e2 = offset.elements[i];
+	for (int i = 0; i < surface.elements.size(); ++i) {
+		const Element& e1 = surface.elements[i];
+		const Element& e2 = offset.elements[i];
 		Element e (Shape::Wedge);
-		if (offsetsize < 0) {
+		if (offset_size < 0) {
 			for (int j = 0; j < 3; ++j) {
 				e.points[j] = e1.points[j];
 				e.points[j+3] = e2.points[j] + n_points;
@@ -439,13 +476,13 @@ int main(int argc, char* argv[]) {
 				e.points[5-j] = e2.points[j] + n_points;
 			}
 		}
-		volume.elements.push_back(e);
+		offset_volume.elements.push_back(e);
 	}
-	write_grid("volume.vtk",volume);
+	write_grid("offset_volume0.vtk",offset_volume);
 
-	for (int i = 0; i < 20; ++i) {
+	for (int i = 1; i < 20; ++i) {
 		bool finished = true;
-		std::vector <int> negative_volumes = find_negative_volumes(volume);
+		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
 
 		if (negative_volumes.size() > 0) {
@@ -455,7 +492,7 @@ int main(int argc, char* argv[]) {
 			//write_reduced_file(volume, negative_volumes, std::string(filename));
 		}
 
-		std::vector <int> intersected_elements = find_intersections(volume);
+		std::vector <int> intersected_elements = find_intersections(offset_volume);
 		printf("%lu Intersected Elements\n",intersected_elements.size());
 
 		if (intersected_elements.size() > 0) {
@@ -467,31 +504,31 @@ int main(int argc, char* argv[]) {
 
 		if (finished) break;
 		printf("Iteration %d\n",i+1);
-		std::vector <bool> poisoned_points (volume.points.size(),false);
+		std::vector <bool> poisoned_points (offset_volume.points.size(),false);
 
 		for (int _e : negative_volumes) {
-			Element& e = volume.elements[_e];
+			Element& e = offset_volume.elements[_e];
 			for (int p : e.points)
 				poisoned_points[p] = true;
 		}
 
 		for (int _e : intersected_elements) {
-			Element& e = volume.elements[_e];
+			Element& e = offset_volume.elements[_e];
 			for (int p : e.points)
 				poisoned_points[p] = true;
 		}
 
-		for (Element& e : volume.elements) {
+		for (Element& e : offset_volume.elements) {
 			assert (e.points.size() == 6);
 			for (int j = 3; j < 6; ++j) {
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					if (i < 5) {
-						Vector v = volume.points[_p0] - volume.points[_p];
-						volume.points[_p] += 0.2*v;
+					if (i < 0) {
+						Vector v = offset_volume.points[_p0] - offset_volume.points[_p];
+						offset_volume.points[_p] += 0.2*v;
 					} else {
-						volume.points[_p] = volume.points[_p0];
+						offset_volume.points[_p] = offset_volume.points[_p0];
 					}
 					poisoned_points[_p] = false;
 				}
@@ -499,15 +536,90 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	std::vector <int> negative_volumes = find_negative_volumes(volume);
+	std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 	if (negative_volumes.size() > 0) {
 		printf("Still %lu Negative Volumes\n",negative_volumes.size());
 	}
 
-	std::vector <int> intersected_elements = find_intersections(volume);
+	std::vector <int> intersected_elements = find_intersections(offset_volume);
 	if (intersected_elements.size() > 0) {
 		printf("Still %lu Intersected Elements\n",intersected_elements.size());
 	}
 
-	write_grid("fixed_volume.vtk",volume);
+	write_grid("offset_volume.vtk",offset_volume);
+
+	for (int i = 0; i < n_points; ++i) {
+		offset.points[i] = offset_volume.points[i+n_points];
+	}
+	return offset;
+}
+
+int main(int argc, char* argv[]) {
+	int argnum = 0;
+	std::string inputfile, outputfile;
+	double offset_size = 0;
+	int nlayers = 1;
+	for (int i = 1; i < argc; ++i) {
+		if (argv[i][0] == '-') {
+			std::string arg (argv[i]);
+			if (arg == "-s") {
+				++i;
+				if (i == argc) parse_failed("Must pass float option to -s");
+				offset_size = atof(argv[i]);
+			} else if (arg == "-n") {
+				++i;
+				if (i == argc) parse_failed("Must pass integer to -n");
+				nlayers = atoi(argv[i]);
+			} else {
+				parse_failed("Unknown option passed '"+arg+"'");
+			}
+		} else {
+			argnum++;
+			if (argnum == 1) {
+				inputfile = std::string(argv[i]);
+			} else if (argnum == 2) {
+				outputfile = std::string(argv[i]);
+			} else {
+				parse_failed("Extra argument passed");
+			}
+		}
+	}
+	if (argnum != 2)
+		parse_failed("Must pass 2 arguments");
+
+	Grid surface = read_grid(inputfile);
+	surface.merge_points(0);
+	surface.collapse_elements();;
+	printf("%zu triangles\n",surface.elements.size());
+	printf("%zu points\n",surface.points.size());
+
+	Grid farfield_surface = create_farfield_box(surface);
+
+	Point hole;
+	Grid volume;
+	if (offset_size != 0) {
+		Grid offset_surface = create_offset_surface(surface,offset_size);
+		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
+
+		bool found_hole = false;
+		for (Element& e : offset_volume.elements) {
+			if (!(offset_volume.points[e.points[0]] == offset_volume.points[e.points[3]])) {
+				hole = offset_volume.points[e.points[0]];
+				found_hole = true;
+				break;
+			}
+		}
+		if (!found_hole)
+			Fatal("Something went wrong");
+
+		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
+		volume = farfield_volume + offset_volume;
+	} else {
+		Point hole = find_point_inside_surface(surface);
+		volume = volgrid_from_surface(surface+farfield_surface,hole,1.03);
+	}
+	volume += surface;
+	volume += farfield_surface;
+	volume.merge_points(0);
+	write_grid(outputfile,volume);
 }
