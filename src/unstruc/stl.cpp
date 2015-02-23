@@ -10,7 +10,6 @@
 #include <sstream>
 #include <array>
 #include <cstdio>
-#include <cassert>
 
 Point read_vertex_ascii(std::istream& ss) {
 	Point p;
@@ -126,7 +125,8 @@ Grid read_stl_binary(std::string filename) {
 		grid.elements.push_back(e);
 	}
 	f.get();
-	assert (f.eof());
+	if (!f.eof())
+		Fatal("(read_stl_binary) End Of File not reached");
 	return grid;
 }
 

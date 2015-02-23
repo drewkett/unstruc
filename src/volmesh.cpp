@@ -116,6 +116,8 @@ int main(int argc, char* argv[]) {
 		grid.points.push_back(p);
 	}
 	grid.elements.reserve(grid.elements.size()+out.numberoftetrahedra);
+	if (out.numberofcorners != 4)
+		NotImplemented("(unstruc-volmesh) numberofcorners == 10 from tetgen not supported");
 	for (int i = 0; i < out.numberoftetrahedra; ++i) {
 		Element e (Shape::Tetra);
 		e.points[0] = out.tetrahedronlist[4*i];
