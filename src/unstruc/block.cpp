@@ -168,4 +168,5 @@ Grid MultiBlock::to_grid() {
 	}
 	std::cerr << grid.points.size() << " Points" << std::endl;
 	std::cerr << grid.elements.size() << " Elements" << std::endl;
+	return grid;
 }

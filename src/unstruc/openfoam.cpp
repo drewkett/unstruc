@@ -1617,4 +1617,5 @@ Grid readOpenFoam(std::string polymesh) {
 	printf("Created Points: %zu\n",grid.points.size());
 	printf("Created Volume Elements: %d\n",n_volume_elements);
 	printf("Created Boundary Elements: %d\n",n_boundary_elems);
+	return grid;
 }
