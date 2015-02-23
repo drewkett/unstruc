@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 
-Shape Shape::Info[Shape::NShapes] {
+const Shape Shape::Info[Shape::NShapes] {
 	{ "Undefined", 0, 0, 0 },
 	{ "Line"     , 1, 2, 3 },
 	{ "Triangle" , 2, 3, 5 },

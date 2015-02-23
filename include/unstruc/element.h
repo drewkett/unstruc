@@ -10,7 +10,7 @@ struct Shape {
 	std::string name;
 	int dim, n_points, vtk_id;
 
-	static Shape Info[];
+	static const Shape Info[];
 
 	enum Type {
 		Undefined,
