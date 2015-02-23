@@ -264,3 +264,25 @@ bool Grid::test_point_inside(Point const& p) {
 	return inside;
 }
 
+bool Grid::check_integrity() const {
+	if (dim < 2 || dim > 3)
+		return false;
+	int n_points = points.size();
+	for (const Element& e : elements) {
+		if (e.type == Shape::Undefined)
+			return false;
+		Shape s = Shape::Info[e.type];
+		if (s.n_points && s.n_points != e.points.size())
+			return false;
+		if (e.name_i >= names.size())
+			return false;
+		for (int p : e.points)
+			if (p >= n_points)
+				return false;
+	}
+	for (const Name& name : names) {
+		if (name.dim < 2 || name.dim > 3)
+			return false;
+	}
+	return true;
+}

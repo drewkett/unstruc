@@ -45,6 +45,9 @@ Grid read_grid(std::string filename) {
 }
 
 void write_grid(std::string filename,Grid& grid) {
+	if (!grid.check_integrity())
+		Fatal("Grid integrity check failed");
+
 	FileType type = filetype_from_filename(filename);
 
 	switch (type) {

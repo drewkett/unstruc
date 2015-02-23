@@ -29,6 +29,7 @@ struct Grid {
 	void add_grid(Grid&);
 	void delete_empty_names();
 	bool test_point_inside(Point const& p);
+	bool check_integrity() const;
 };
 
 #endif
