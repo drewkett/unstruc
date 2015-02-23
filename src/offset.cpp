@@ -524,7 +524,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size) {
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					if (i < 0) {
+					if (i < 7) {
 						Vector v = offset_volume.points[_p0] - offset_volume.points[_p];
 						offset_volume.points[_p] += 0.2*v;
 					} else {
