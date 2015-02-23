@@ -7,9 +7,6 @@
 #include "point.h"
 #include "element.h"
 
-static const double MIN_DOUBLE = std::numeric_limits<double>::min();
-static const double MAX_DOUBLE = std::numeric_limits<double>::max();
-
 struct Name {
 	int dim;
 	std::string name;
