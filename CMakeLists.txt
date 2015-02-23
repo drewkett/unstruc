@@ -22,7 +22,7 @@ add_executable(unstruc-convert src/convert.cpp)
 target_link_libraries(unstruc-convert unstruc)
 
 add_executable(unstruc-offset src/offset.cpp)
-target_link_libraries(unstruc-offset unstruc)
+target_link_libraries(unstruc-offset unstruc tet tetmesh)
 
 add_executable(unstruc-volmesh src/volmesh.cpp)
 target_link_libraries(unstruc-volmesh unstruc tet tetmesh)

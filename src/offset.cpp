@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "unstruc.h"
+#include "tetmesh.h"
 
 struct OEdge {
 	int p1, p2;
