@@ -41,5 +41,6 @@ Grid create_farfield_box(Grid const& surface) {
 
 	double max_area = 4*(max_length*max_length);
 	Grid tetra_farfield = tetrahedralize_surface(farfield,max_area);
-	return farfield;
+	tetra_farfield.names[0].name = "farfield";
+	return tetra_farfield;
 }

@@ -5,6 +5,29 @@
 
 #include <tetgen.h>
 
+Grid surfacegrid_from_tetgenio(tetgenio const& tg) {
+	Grid grid (3);
+	grid.points.reserve(tg.numberofpoints);
+	for (int i = grid.points.size(); i < tg.numberofpoints; ++i) {
+		Point p;
+		p.x = tg.pointlist[3*i];
+		p.y = tg.pointlist[3*i+1];
+		p.z = tg.pointlist[3*i+2];
+		grid.points.push_back(p);
+	}
+	grid.elements.reserve(tg.numberoftrifaces);
+	for (int i = 0; i < tg.numberoftrifaces; ++i) {
+		Element e (Shape::Triangle);
+		e.name_i = tg.trifacemarkerlist[i];
+		e.points[0] = tg.trifacelist[3*i];
+		e.points[1] = tg.trifacelist[3*i+1];
+		e.points[2] = tg.trifacelist[3*i+2];
+		grid.elements.push_back(e);
+	}
+	grid.names[0].dim = 2;
+	return grid;
+}
+
 Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 	tetgenio in;
 	in.mesh_dim = 3;
@@ -55,10 +78,9 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 	tg.quality = 1;
 	//tg.minratio = 1.1;
 	//tg.mindihedral = 0;
-	tg.verbose = 1;
+	//tg.verbose = 1;
 
 	tetgenio out;
 	tetrahedralize(&tg,&in,&out,NULL,NULL);
-
-	return grid_from_tetgenio(out);
+	return surfacegrid_from_tetgenio(out);
 }
