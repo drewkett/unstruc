@@ -1,4 +1,4 @@
-#include "tetmesh.h"
+#include "volume.h"
 
 #include "unstruc.h"
 
@@ -27,7 +27,7 @@ Grid grid_from_tetgenio(tetgenio const& tg) {
 	return grid;
 }
 
-Grid volgrid_from_surface(Grid const& surface) {
+Grid volgrid_from_surface(Grid const& surface, Point& hole, double min_ratio) {
 	tetgenio in;
 	in.mesh_dim = 3;
 	in.firstnumber = 0;
@@ -57,8 +57,8 @@ Grid volgrid_from_surface(Grid const& surface) {
 		f.polygonlist = new tetgenio::polygon[1];
 		tetgenio::polygon& p = f.polygonlist[0];
 		tetgenio::init(&p);
-		assert (e.type == Shape::Triangle);
-		assert (e.points.size() == 3);
+		if (e.type != Shape::Triangle)
+			NotImplemented("Currently only supports triangles");
 
 		p.numberofvertices = e.points.size();
 		p.vertexlist = new int[e.points.size()];
@@ -67,12 +67,20 @@ Grid volgrid_from_surface(Grid const& surface) {
 		p.vertexlist[2] = e.points[2];
 	}
 
+	if (&hole != &NullPoint) {
+		in.numberofholes = 1;
+		in.holelist = new REAL[3];
+		in.holelist[0] = hole.x;
+		in.holelist[1] = hole.y;
+		in.holelist[2] = hole.z;
+	}
 	tetgenbehavior tg;
 	tg.plc = 1;
 	tg.nobisect = 1;
-	//tg.quiet = 1;
-	//tg.quality = 1;
-	//tg.minratio = 1.1;
+	tg.quiet = 1;
+	tg.quality = 1;
+	if (min_ratio > 1)
+		tg.minratio = min_ratio;
 	//tg.mindihedral = 0;
 	//tg.verbose = 1;
 
