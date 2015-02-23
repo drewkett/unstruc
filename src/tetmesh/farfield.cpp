@@ -4,40 +4,22 @@
 #include "surface.h"
 
 Grid create_farfield_box(Grid const& surface) {
-	double min_x = 1e10;
-	double min_y = 1e10;
-	double min_z = 1e10;
-	double max_x = -1e10;
-	double max_y = -1e10;
-	double max_z = -1e10;
-	for (Point const& p : surface.points) {
-		if (p.x < min_x) min_x = p.x;
-		if (p.y < min_y) min_y = p.y;
-		if (p.z < min_z) min_z = p.z;
-		if (p.x > max_x) max_x = p.x;
-		if (p.y > max_y) max_y = p.y;
-		if (p.z > max_z) max_z = p.z;
-	}
-	double dx = max_x-min_x;
-	double dy = max_y-min_y;
-	double dz = max_z-min_z;
-	double max_length = std::max(std::max(dx,dy),dz);
-	double delta = 10*max_length;
-	min_x -= delta;
-	min_y -= delta;
-	min_z -= delta;
-	max_x += delta;
-	max_y += delta;
-	max_z += delta;
+	Point min = surface.get_bounding_min();
+	Point max = surface.get_bounding_max();
+	Vector d = max - min;
+	double max_length = std::max(std::max(d.x,d.y),d.z);
+	Vector delta = 10*max_length*Vector(1,1,1);
+	min -= delta;
+	max += delta;
 	Grid farfield (3);
-	farfield.points.emplace_back(min_x, min_y, min_z);
-	farfield.points.emplace_back(max_x, min_y, min_z);
-	farfield.points.emplace_back(max_x, max_y, min_z);
-	farfield.points.emplace_back(min_x, max_y, min_z);
-	farfield.points.emplace_back(min_x, min_y, max_z);
-	farfield.points.emplace_back(max_x, min_y, max_z);
-	farfield.points.emplace_back(max_x, max_y, max_z);
-	farfield.points.emplace_back(min_x, max_y, max_z);
+	farfield.points.emplace_back(min.x, min.y, min.z);
+	farfield.points.emplace_back(max.x, min.y, min.z);
+	farfield.points.emplace_back(max.x, max.y, min.z);
+	farfield.points.emplace_back(min.x, max.y, min.z);
+	farfield.points.emplace_back(min.x, min.y, max.z);
+	farfield.points.emplace_back(max.x, min.y, max.z);
+	farfield.points.emplace_back(max.x, max.y, max.z);
+	farfield.points.emplace_back(min.x, max.y, max.z);
 	Element e1 (Shape::Quad);
 	e1.points = {0,1,2,3};
 	farfield.elements.push_back(e1);

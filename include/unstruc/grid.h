@@ -7,6 +7,9 @@
 #include "point.h"
 #include "element.h"
 
+static const double MIN_DOUBLE = std::numeric_limits<double>::min();
+static const double MAX_DOUBLE = std::numeric_limits<double>::max();
+
 struct Name {
 	int dim;
 	std::string name;
@@ -30,6 +33,8 @@ struct Grid {
 	void delete_empty_names();
 	bool test_point_inside(Point const& p);
 	bool check_integrity() const;
+	Point get_bounding_min() const;
+	Point get_bounding_max() const;
 };
 
 #endif

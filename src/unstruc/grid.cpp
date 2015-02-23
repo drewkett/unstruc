@@ -286,3 +286,23 @@ bool Grid::check_integrity() const {
 	}
 	return true;
 }
+
+Point Grid::get_bounding_min() const {
+	Point min ( MAX_DOUBLE, MAX_DOUBLE, MAX_DOUBLE );
+	for (Point const& p : points) {
+		if (p.x < min.x) min.x = p.x;
+		if (p.y < min.y) min.y = p.y;
+		if (p.z < min.z) min.z = p.z;
+	}
+	return min;
+}
+
+Point Grid::get_bounding_max() const {
+	Point max ( MIN_DOUBLE, MIN_DOUBLE, MIN_DOUBLE );
+	for (Point const& p : points) {
+		if (p.x > max.x) max.x = p.x;
+		if (p.y > max.y) max.y = p.y;
+		if (p.z > max.z) max.z = p.z;
+	}
+	return max;
+}
