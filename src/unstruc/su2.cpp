@@ -135,7 +135,7 @@ Grid readSU2(std::string inputfile) {
 				getline(f,line);
 				std::stringstream ss(line);
 				ss >> token;
-				Element elem = Element(atoi(token.c_str()));
+				Element elem = Element((Shape::Type) atoi(token.c_str()));
 				//Assign to default name block
 				elem.name_i = 0;
 				for (j = 0; j < elem.points.size(); ++j) {
@@ -234,7 +234,7 @@ Grid readSU2(std::string inputfile) {
 					ss.clear();
 					ss.str(line);
 					ss >> token;
-					Element elem = Element(atoi(token.c_str()));
+					Element elem = Element((Shape::Type) atoi(token.c_str()));
 					for (k=0; k<elem.points.size(); k++) {
 						ss >> token;
 						ipoint = std::atoi(token.c_str());
@@ -259,7 +259,7 @@ Grid readSU2(std::string inputfile) {
 			}
 		}
 		if (e.calc_volume(grid) < 0) {
-			if (e.type == TETRA) {
+			if (e.type == Shape::Tetra) {
 				int temp = e.points[1];
 				e.points[1] = e.points[2];
 				e.points[2] = temp;

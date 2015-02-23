@@ -54,7 +54,7 @@ Grid MultiBlock::to_grid() {
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
 				for (int k = 0; k < sk-1; k++) {
-					Element e = Element(HEXA);
+					Element e = Element(Shape::Hexa);
 					e.points[0] = offset+blk.index(i,j,k);
 					e.points[1] = offset+blk.index(i+1,j,k);
 					e.points[2] = offset+blk.index(i+1,j+1,k);
@@ -75,7 +75,7 @@ Grid MultiBlock::to_grid() {
 		int i = 0;
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i,j+1,k);
 				e.points[2] = offset+blk.index(i,j+1,k+1);
@@ -91,7 +91,7 @@ Grid MultiBlock::to_grid() {
 		i = si-1;
 		for (int j = 0; j < sj-1; j++) {
 			for (int k = 0; k < sk-1; k++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i,j+1,k);
 				e.points[2] = offset+blk.index(i,j+1,k+1);
@@ -107,7 +107,7 @@ Grid MultiBlock::to_grid() {
 		int j = 0;
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i+1,j,k);
 				e.points[2] = offset+blk.index(i+1,j,k+1);
@@ -123,7 +123,7 @@ Grid MultiBlock::to_grid() {
 		j = sj-1;
 		for (int i = 0; i < si-1; i++) {
 			for (int k = 0; k < sk-1; k++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i+1,j,k);
 				e.points[2] = offset+blk.index(i+1,j,k+1);
@@ -139,7 +139,7 @@ Grid MultiBlock::to_grid() {
 		int k = 0;
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i+1,j,k);
 				e.points[2] = offset+blk.index(i+1,j+1,k);
@@ -155,7 +155,7 @@ Grid MultiBlock::to_grid() {
 		k = sk-1;
 		for (int i = 0; i < si-1; i++) {
 			for (int j = 0; j < sj-1; j++) {
-				Element e = Element(QUAD);
+				Element e = Element(Shape::Quad);
 				e.points[0] = offset+blk.index(i,j,k);
 				e.points[1] = offset+blk.index(i+1,j,k);
 				e.points[2] = offset+blk.index(i+1,j+1,k);

@@ -69,7 +69,7 @@ Grid read_stl_ascii(std::string filename) {
 			grid.points.push_back(read_vertex_ascii(f));
 			grid.points.push_back(read_vertex_ascii(f));
 
-			Element e (TRI);
+			Element e (Shape::Triangle);
 			e.points[0] = i;
 			e.points[1] = i+1;
 			e.points[2] = i+2;
@@ -119,7 +119,7 @@ Grid read_stl_binary(std::string filename) {
 		uint16_t attr;
 		f.read((char *) &attr,sizeof(attr));
 
-		Element e (TRI);
+		Element e (Shape::Triangle);
 		e.points[0] = 3*i;
 		e.points[1] = 3*i+1;
 		e.points[2] = 3*i+2;

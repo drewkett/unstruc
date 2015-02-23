@@ -510,11 +510,11 @@ Grid grid_from_surface(Surface& surface) {
 
 	for (int i = 0; i < surface.elements.size(); ++i) {
 		SurfaceElement& s = surface.elements[i];
-		int eltype = 0;
+		Shape::Type eltype = Shape::Undefined;
 		if (s.points.size() == 3) {
-			eltype = TRI;
+			eltype = Shape::Triangle;
 		} else if (s.points.size() == 4) {
-			eltype = QUAD;
+			eltype = Shape::Quad;
 		} else {
 			Fatal();
 		}
@@ -537,7 +537,7 @@ Grid volume_from_surfaces(Surface& surface1, Surface& surface2) {
 	for (int i = 0; i < surface1.elements.size(); ++i) {
 		SurfaceElement& s1 = surface1.elements[i];
 		SurfaceElement& s2 = surface2.elements[i];
-		Element e (WEDGE);
+		Element e (Shape::Wedge);
 		for (int j = 0; j < 3; ++j) {
 			e.points[j] = s1.points[j];
 			e.points[j+3] = s2.points[j] + n_points1;

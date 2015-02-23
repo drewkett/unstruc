@@ -2,32 +2,41 @@
 #define ELEMENT_H_DFA32621_EEB4_401F_8C3B_FA778CAD6F42
 
 #include <vector>
+#include <string>
 
 struct Point;
 
-enum Shapes {
-	UNDEFINED = 0,
-	LINE = 3,
-	TRI = 5,
-	POLYGON = 7,
-	QUAD = 9,
-	TETRA = 10,
-	HEXA = 12,
-	WEDGE = 13,
-	PYRAMID = 14
+struct Shape {
+	std::string name;
+	int dim, n_points, vtk_id;
+
+	static Shape Info[];
+
+	enum Type {
+		Undefined,
+		Line,
+		Triangle,
+		Quad,
+		Polygon,
+		Tetra,
+		Hexa,
+		Wedge,
+		Pyramid,
+		NShapes
+	};
 };
 
 struct Grid;
 
 struct Element
 {
-	int type;
+	Shape::Type type;
 	int name_i;
 	int dim;
 	std::vector<int> points;
 
-	Element() : type(0), name_i(0), dim(0) {};
-	Element(int T);
+	Element() : type(Shape::Type::Undefined), name_i(0), dim(0) {};
+	Element(Shape::Type T);
 
 	double calc_volume(Grid& grid);
 };

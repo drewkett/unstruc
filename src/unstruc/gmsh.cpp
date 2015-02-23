@@ -25,10 +25,10 @@ void toGMSH(std::string filename, Grid &grid) {
 		Element &e = grid.elements[i];
 		int eltype = 0;
 		switch (e.type) {
-			case QUAD:
+			case Shape::Quad:
 				eltype = 3;
 				break;
-			case HEXA:
+			case Shape::Hexa:
 				eltype = 5;
 				break;
 			default:

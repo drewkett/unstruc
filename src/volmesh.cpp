@@ -80,8 +80,8 @@ int main(int argc, char* argv[]) {
 		f.polygonlist = new tetgenio::polygon[1];
 		tetgenio::polygon& p = f.polygonlist[0];
 		tetgenio::init(&p);
-		assert (e.type == TRI);
-		assert (e.points.size() == 3);
+		if (e.type != Shape::Triangle)
+			Fatal("(unstruc-volmesh) Only Triangle meshes supported as surface");
 
 		p.numberofvertices = e.points.size();
 		p.vertexlist = new int[e.points.size()];
@@ -117,8 +117,7 @@ int main(int argc, char* argv[]) {
 	}
 	grid.elements.reserve(grid.elements.size()+out.numberoftetrahedra);
 	for (int i = 0; i < out.numberoftetrahedra; ++i) {
-		Element e (TETRA);
-		assert (out.numberofcorners == 4);
+		Element e (Shape::Tetra);
 		e.points[0] = out.tetrahedronlist[4*i];
 		e.points[1] = out.tetrahedronlist[4*i+1];
 		e.points[2] = out.tetrahedronlist[4*i+2];

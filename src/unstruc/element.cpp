@@ -10,66 +10,77 @@
 #include <fstream>
 #include <sstream>
 
-void WrongElement(int T1, int T2) {
+Shape Shape::Info[Shape::NShapes] {
+	{ "Undefined", 0, 0, 0 },
+	{ "Line"     , 1, 2, 3 },
+	{ "Triangle" , 2, 3, 5 },
+	{ "Quad"     , 2, 4, 9 },
+	{ "Polygon"  , 2, 0, 7 },
+	{ "Tetra"    , 3, 4, 10 },
+	{ "Hexa"     , 3, 8, 12 },
+	{ "Wedge"    , 3, 6, 13 },
+	{ "Pyramid"  , 3, 5, 14 }
+};
+void WrongElement(Shape::Type T1, Shape::Type T2) {
 	std::ostringstream oss;
 	oss << "Wrong Element Type" << std::endl;
-	oss << "Got: " << T1 << " Expected: " << T2;
+	oss << "Got: " << Shape::Info[T1].name << " Expected: " << Shape::Info[T2].name;
 	Fatal(oss.str());
 }
 
-Element::Element(int T) : type(T) {
+Element::Element(Shape::Type T) : type(T) {
 	name_i = 0;
 	int len = 0;
 	switch (T) {
-		case LINE:
+		case Shape::Line:
 			len = 2;
 			dim = 1;
 			break;
-		case TRI:
+		case Shape::Triangle:
 			len = 3;
 			dim = 2;
 			break;
-		case QUAD:
+		case Shape::Quad:
 			len = 4;
 			dim = 2;
 			break;
-		case HEXA:
+		case Shape::Hexa:
 			len = 8;
 			dim = 3;
 			break;
-		case TETRA:
+		case Shape::Tetra:
 			len = 4;
 			dim = 3;
 			break;
-		case WEDGE:
+		case Shape::Wedge:
 			len = 6;
 			dim = 3;
 			break;
-		case PYRAMID:
+		case Shape::Pyramid:
 			len = 5;
 			dim = 3;
 			break;
-		case POLYGON:
+		case Shape::Polygon:
 			len = 0;
 			dim = 2;
 			break;
 		default:
 			std::ostringstream oss;
-			oss << "Element Type " << T;
+			oss << "Element Type " << Shape::Info[T].name;
 			NotImplemented(oss.str());
 	}
 	points.resize(len);
 }
 
 void dump(Element &e) {
-	std::cerr << "Element " << e.type << std::endl;
+	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
 	for (int p : e.points) {
 		printf("Point %d\n",p);
 	}
 };
 
 void dump(Element &e,Grid &grid) {
-	std::cerr << "Element " << e.type << std::endl;
+	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
 	for (int p : e.points) {
 		printf("Point %d : ",p);
 		dump(grid.points[p]);
@@ -78,12 +89,12 @@ void dump(Element &e,Grid &grid) {
 
 double Element::calc_volume(Grid& grid) {
 	switch (type) {
-		case LINE:
-		case TRI:
-		case QUAD:
-		case POLYGON:
+		case Shape::Line:
+		case Shape::Triangle:
+		case Shape::Quad:
+		case Shape::Polygon:
 			return 0;
-		case HEXA:
+		case Shape::Hexa:
 			{
 				Point& p0 = grid.points[points[0]];
 				Point& p1 = grid.points[points[1]];
@@ -139,7 +150,7 @@ double Element::calc_volume(Grid& grid) {
 
 				return (dot(l,n1) + dot(l,n2))/2;
 			}
-		case TETRA:
+		case Shape::Tetra:
 			{
 				Point& p0 = grid.points[points[0]];
 				Point& p1 = grid.points[points[1]];
@@ -151,7 +162,7 @@ double Element::calc_volume(Grid& grid) {
 				Vector v3 = p3 - p1;
 				return dot(v,v3)/6;
 			}
-		case WEDGE:
+		case Shape::Wedge:
 			{
 				Point& p0 = grid.points[points[0]];
 				Point& p1 = grid.points[points[1]];
@@ -179,7 +190,7 @@ double Element::calc_volume(Grid& grid) {
 				Vector n2 = cross(v34,v45)/2;
 				return (dot(l,n1) + dot(l,n2))/2;
 			}
-		case PYRAMID:
+		case Shape::Pyramid:
 			{
 				Point& p0 = grid.points[points[0]];
 				Point& p1 = grid.points[points[1]];
@@ -221,13 +232,13 @@ bool can_collapse(Element& e) {
 }
 
 bool collapse_tri(Element& e,std::vector<Element>& new_elements) {
-	if (e.type != TRI) WrongElement(e.type,TRI);
+	if (e.type != Shape::Triangle) WrongElement(e.type,Shape::Triangle);
 	return can_collapse(e);
 }
 
 void tri_from_quad(Element& e,int i1, int i2, int i3) {
-	if (e.type != QUAD) WrongElement(e.type,QUAD);
-	Element e_new = Element(TRI);
+	if (e.type != Shape::Quad) WrongElement(e.type,Shape::Quad);
+	Element e_new = Element(Shape::Triangle);
 	e_new.points[0] = e.points[i1];
 	e_new.points[1] = e.points[i2];
 	e_new.points[2] = e.points[i3];
@@ -236,7 +247,7 @@ void tri_from_quad(Element& e,int i1, int i2, int i3) {
 }
 
 bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
-	if (e.type != QUAD) WrongElement(e.type,QUAD);
+	if (e.type != Shape::Quad) WrongElement(e.type,Shape::Quad);
 	if (can_collapse(e)) {
 		if (e.points[0] == e.points[1]) {
 			tri_from_quad(e,0,2,3);
@@ -256,8 +267,8 @@ bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
 }
 
 void tetra_from_pyramid(Element& e,int i1, int i2, int i3, int i4) {
-	if (e.type != PYRAMID) WrongElement(e.type,PYRAMID);
-	Element e_new = Element(TETRA);
+	if (e.type != Shape::Pyramid) WrongElement(e.type,Shape::Pyramid);
+	Element e_new = Element(Shape::Tetra);
 	e_new.points[0] = e.points[i1];
 	e_new.points[1] = e.points[i2];
 	e_new.points[2] = e.points[i3];
@@ -267,8 +278,8 @@ void tetra_from_pyramid(Element& e,int i1, int i2, int i3, int i4) {
 }
 
 void pyramid_from_wedge(Element &e,int i1, int i2, int i3, int i4, int i5) {
-	if (e.type != WEDGE) WrongElement(e.type,WEDGE);
-	Element e_new = Element(PYRAMID);
+	if (e.type != Shape::Wedge) WrongElement(e.type,Shape::Wedge);
+	Element e_new = Element(Shape::Pyramid);
 	e_new.points[0] = e.points[i1];
 	e_new.points[1] = e.points[i2];
 	e_new.points[2] = e.points[i3];
@@ -279,8 +290,8 @@ void pyramid_from_wedge(Element &e,int i1, int i2, int i3, int i4, int i5) {
 }
 
 void pyramid_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5) {
-	if (e.type != HEXA) WrongElement(e.type,HEXA);
-	Element e_new = Element(PYRAMID);
+	if (e.type != Shape::Hexa) WrongElement(e.type,Shape::Hexa);
+	Element e_new = Element(Shape::Pyramid);
 	e_new.points[0] = e.points[i1];
 	e_new.points[1] = e.points[i2];
 	e_new.points[2] = e.points[i3];
@@ -291,8 +302,8 @@ void pyramid_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5) {
 }
 
 void wedge_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5, int i6) {
-	if (e.type != HEXA) WrongElement(e.type,HEXA);
-	Element e_new = Element(WEDGE);
+	if (e.type != Shape::Hexa) WrongElement(e.type,Shape::Hexa);
+	Element e_new = Element(Shape::Wedge);
 	e_new.points[0] = e.points[i1];
 	e_new.points[1] = e.points[i2];
 	e_new.points[2] = e.points[i3];
@@ -304,12 +315,12 @@ void wedge_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5, int i6) 
 }
 
 bool collapse_tetra(Element& e,std::vector<Element>& new_elements) {
-	if (e.type != TETRA) WrongElement(e.type,TETRA);
+	if (e.type != Shape::Tetra) WrongElement(e.type,Shape::Tetra);
 	return can_collapse(e);
 }
 
 bool collapse_pyramid(Element& e,std::vector<Element>& new_elements) {
-	if (e.type != PYRAMID) WrongElement(e.type,PYRAMID);
+	if (e.type != Shape::Pyramid) WrongElement(e.type,Shape::Pyramid);
 	if (can_collapse(e)) {
 		if (e.points[0] == e.points[1]) {
 			tetra_from_pyramid(e,1,2,3,4);
@@ -340,7 +351,7 @@ bool collapse_pyramid(Element& e,std::vector<Element>& new_elements) {
 }
 
 bool collapse_wedge(Element& e, std::vector<Element>& new_elements) {
-	if (e.type != WEDGE) WrongElement(e.type,WEDGE);
+	if (e.type != Shape::Wedge) WrongElement(e.type,Shape::Wedge);
 	if (can_collapse(e)) {
         if (e.points[0] == e.points[1]) {
 			pyramid_from_wedge(e,2,1,4,5,3);
@@ -377,7 +388,7 @@ bool collapse_wedge(Element& e, std::vector<Element>& new_elements) {
 }
 
 bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
-	if (e.type != HEXA) WrongElement(e.type,HEXA);
+	if (e.type != Shape::Hexa) WrongElement(e.type,Shape::Hexa);
 	if (can_collapse(e)) {
         if (e.points[0] == e.points[1]) {
 			if (e.points[2] == e.points[3]) {
@@ -524,11 +535,12 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 
 bool collapse(Element &e,std::vector<Element>& new_elements) {
 	switch (e.type) {
-		case QUAD:
+		case Shape::Quad:
 			return collapse_quad(e,new_elements);
-		case HEXA:
+		case Shape::Hexa:
 			return collapse_hexa(e,new_elements);
+		default:
+			NotImplemented("Collapse for ElType");
 	}
-	NotImplemented("Collapse for ElType");
 	return false;
 };

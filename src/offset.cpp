@@ -71,7 +71,7 @@ std::vector<OEdge> get_edges(Grid& grid) {
 	//printf("Create Edges\n");
 	for (int i = 0; i < grid.elements.size(); ++i) {
 		Element& e = grid.elements[i];
-		assert (e.type == WEDGE);
+		assert (e.type == Shape::Wedge);
 		edges.emplace_back(e.points[0],e.points[1],i);
 		edges.emplace_back(e.points[1],e.points[2],i);
 		edges.emplace_back(e.points[2],e.points[0],i);
@@ -123,7 +123,7 @@ std::vector<OFace> get_faces(Grid& grid) {
 	//Create Faces from Elements
 	for (int i = 0; i < grid.elements.size(); ++i) {
 		Element& e = grid.elements[i];
-		assert (e.type == WEDGE);
+		assert (e.type == Shape::Wedge);
 		OFace face1;
 		face1.elements.push_back(i);
 		face1.points.push_back(e.points[0]);
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < grid.elements.size(); ++i) {
 		Element& e1 = grid.elements[i];
 		Element& e2 = offset.elements[i];
-		Element e (WEDGE);
+		Element e (Shape::Wedge);
 		if (offsetsize < 0) {
 			for (int j = 0; j < 3; ++j) {
 				e.points[j] = e1.points[j];

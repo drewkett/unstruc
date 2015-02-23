@@ -46,7 +46,7 @@ bool toVTK(std::string outputfile, Grid &grid) {
 
 	f << "CELL_TYPES " << n_volume_elements << std::endl;
 	for (Element& e : grid.elements) {
-		f << e.type << std::endl;
+		f << Shape::Info[e.type].vtk_id << std::endl;
 	}
 	return true;
 }

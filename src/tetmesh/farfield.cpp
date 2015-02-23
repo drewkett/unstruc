@@ -38,22 +38,22 @@ Grid create_farfield_box(Grid const& surface) {
 	farfield.points.emplace_back(max_x, min_y, max_z);
 	farfield.points.emplace_back(max_x, max_y, max_z);
 	farfield.points.emplace_back(min_x, max_y, max_z);
-	Element e1 (QUAD);
+	Element e1 (Shape::Quad);
 	e1.points = {0,1,2,3};
 	farfield.elements.push_back(e1);
-	Element e2 (QUAD);
+	Element e2 (Shape::Quad);
 	e2.points = {4,5,6,7};
 	farfield.elements.push_back(e2);
-	Element e3 (QUAD);
+	Element e3 (Shape::Quad);
 	e3.points = {0,1,5,4};
 	farfield.elements.push_back(e3);
-	Element e4 (QUAD);
+	Element e4 (Shape::Quad);
 	e4.points = {2,3,7,6};
 	farfield.elements.push_back(e4);
-	Element e5 (QUAD);
+	Element e5 (Shape::Quad);
 	e5.points = {1,2,6,5};
 	farfield.elements.push_back(e5);
-	Element e6 (QUAD);
+	Element e6 (Shape::Quad);
 	e6.points = {3,0,4,7};
 	farfield.elements.push_back(e6);
 

@@ -230,7 +230,7 @@ void Grid::delete_empty_names() {
 bool Grid::test_point_inside(Point const& p) {
 	bool inside = false;
 	for (Element const& e : elements) {
-		if (e.type != TETRA)
+		if (e.type != Shape::Tetra)
 			NotImplemented("test_point_inside_volume only surpports Tetra's");
 		Point const& p0 = points[e.points[0]];
 		Point const& p1 = points[e.points[1]];

@@ -355,7 +355,7 @@ void createElementsFromFaceCenter(OFFace& face, bool faces_out, int center_id, s
 	assert (face.points.size() > 2);
 	if (face.points.size() == 3 && !face.is_tri_split) {
 		// If current face only has 3 points, create a tetrahedral with face plus cell center
-		Element e (TETRA);
+		Element e (Shape::Tetra);
 		e.name_i = 0;
 
 		if (faces_out) {
@@ -371,7 +371,7 @@ void createElementsFromFaceCenter(OFFace& face, bool faces_out, int center_id, s
 		new_elements.push_back(e);
 	} else if (face.points.size() == 4 && !face.is_tri_split) {
 		// If current face only has 4 points, create a pyramid with face plus cell center
-		Element e (PYRAMID);
+		Element e (Shape::Pyramid);
 
 		if (faces_out) {
 			e.points[3] = face.points[0];
@@ -464,7 +464,7 @@ bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main
 			createElementsFromFaceCenter(face1,false,cell_center_id,new_elements);
 			createElementsFromFaceCenter(face2,false,cell_center_id,new_elements);
 
-			//new_elements.emplace_back(PYRAMID);
+			//new_elements.emplace_back(Shape::Pyramid);
 			//Element& e = new_elements.back();
 			//e.points[0] = main_face_center_id;
 			//e.points[1] = opp_face_center_id;
@@ -549,7 +549,7 @@ bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main
 			//	start = 1;
 			//else
 			//	start = 2;
-			//new_elements.emplace_back(PYRAMID);
+			//new_elements.emplace_back(Shape::Pyramid);
 			//Element& e = new_elements.back();
 			//e.points[0] = opp_face_center_id;
 			//e.points[1] = main_face_center_id;
@@ -630,7 +630,7 @@ bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main
 				order[3] = 0;
 			}
 		}
-		new_elements.emplace_back(WEDGE);
+		new_elements.emplace_back(Shape::Wedge);
 		Element& e = new_elements.back();
 		e.points[0] = main_face_center_id;
 		e.points[1] = side_face->points[order[0]];
@@ -1121,7 +1121,7 @@ Grid readOpenFoam(std::string polymesh) {
 						n_wedge_split_failed++;
 						//Add faces to failed_split_elements
 						for (OFFace* face : cell_faces) {
-							Element e (POLYGON);
+							Element e (Shape::Polygon);
 							for (int p : face->points)
 								e.points.push_back(p);
 							failed_split_elements.push_back(e);
@@ -1148,7 +1148,7 @@ Grid readOpenFoam(std::string polymesh) {
 		}
 
 		if (cell_type == OFTetra) {
-			grid.elements.emplace_back(TETRA);
+			grid.elements.emplace_back(Shape::Tetra);
 			Element& e = grid.elements.back();
 			e.name_i = default_name;
 			bool faces_out = (n_owners_per_cell[i] > 0);
@@ -1232,7 +1232,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//	}
 		//	assert (extra_point != -1);
 
-		//	grid.elements.emplace_back(TETRA);
+		//	grid.elements.emplace_back(Shape::Tetra);
 		//	Element& e1 = grid.elements.back();
 		//	e1.name_i = name_i;
 		//	if (tri1_faces_out) {
@@ -1246,7 +1246,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//	}
 		//	e1.points[3] = extra_point;
 
-		//	grid.elements.emplace_back(TETRA);
+		//	grid.elements.emplace_back(Shape::Tetra);
 		//	Element& e2 = grid.elements.back();
 		//	e2.name_i = name_i;
 		//	if (tri2_faces_out) {
@@ -1260,7 +1260,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//	}
 		//	e2.points[3] = extra_point;
 		} else if (cell_type == OFPyramid) {
-			grid.elements.emplace_back(PYRAMID);
+			grid.elements.emplace_back(Shape::Pyramid);
 			Element& e = grid.elements.back();
 			e.name_i = default_name;
 			int quad_j = -1;
@@ -1270,7 +1270,7 @@ Grid readOpenFoam(std::string polymesh) {
 					break;
 				}
 			}
-			if (quad_j == -1) Fatal("PYRAMID: Shouldn't be possible");
+			if (quad_j == -1) Fatal("Shape::Pyramid: Shouldn't be possible");
 			bool faces_out = (quad_j < n_owners_per_cell[i]);
 
 			OFFace* quad_face = cell_faces[quad_j];
@@ -1314,11 +1314,11 @@ Grid readOpenFoam(std::string polymesh) {
 		//			else if (tri2_j == -1)
 		//				tri2_j = j;
 		//			else
-		//				Fatal("WEDGE: Shouldn't be possible");
+		//				Fatal("Shape::Wedge: Shouldn't be possible");
 		//		}
 		//	}
-		//	if (tri1_j == -1) Fatal("WEDGE: Shouldn't be possible (2)");
-		//	if (tri2_j == -1) Fatal("WEDGE: Shouldn't be possible (3)");
+		//	if (tri1_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (2)");
+		//	if (tri2_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (3)");
 		//	OFFace* tri1_face = cell_faces[tri1_j];
 		//	OFFace* tri2_face = cell_faces[tri2_j];
 
@@ -1332,7 +1332,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//		}
 		//		if (common_point != -1) break;
 		//	}
-		//	if (common_point == -1) Fatal("WEDGE: Shouldn't be possible (4)");
+		//	if (common_point == -1) Fatal("Shape::Wedge: Shouldn't be possible (4)");
 
 		//	int quad1_j = -1;
 		//	int quad2_j = -1;
@@ -1359,8 +1359,8 @@ Grid readOpenFoam(std::string polymesh) {
 		//		if (!match1) quad1_j = j;
 		//		if (!match2) quad2_j = j;
 		//	}
-		//	if (quad1_j == -1) Fatal("WEDGE: Shouldn't be possible (5)");
-		//	if (quad2_j == -1) Fatal("WEDGE: Shouldn't be possible (6)");
+		//	if (quad1_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (5)");
+		//	if (quad2_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (6)");
 
 		//	bool quad1_faces_out = (quad1_j < n_owners_per_cell[i]);
 		//	bool quad2_faces_out = (quad2_j < n_owners_per_cell[i]);
@@ -1368,7 +1368,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//	OFFace* quad1_face = cell_faces[quad1_j];
 		//	OFFace* quad2_face = cell_faces[quad2_j];
 
-		//	grid.elements.emplace_back(PYRAMID);
+		//	grid.elements.emplace_back(Shape::Pyramid);
 		//	Element& e1 = grid.elements.back();
 		//	e1.name_i = name_i;
 		//	if (quad1_faces_out) {
@@ -1384,7 +1384,7 @@ Grid readOpenFoam(std::string polymesh) {
 		//	}
 		//	e1.points[4] = common_point;
 
-		//	grid.elements.emplace_back(PYRAMID);
+		//	grid.elements.emplace_back(Shape::Pyramid);
 		//	Element& e2 = grid.elements.back();
 		//	e2.name_i = name_i;
 		//	if (quad2_faces_out) {
@@ -1461,7 +1461,7 @@ Grid readOpenFoam(std::string polymesh) {
 					tri2_points_aligned[missing_k] = tri2_p;
 			}
 
-			grid.elements.emplace_back(WEDGE);
+			grid.elements.emplace_back(Shape::Wedge);
 			Element& e = grid.elements.back();
 			e.name_i = default_name;
 			if (tri1_faces_out) {
@@ -1480,7 +1480,7 @@ Grid readOpenFoam(std::string polymesh) {
 				e.points[3] = tri2_points_aligned[2];
 			}
 		} else if (cell_type == OFHexa) {
-			grid.elements.emplace_back(HEXA);
+			grid.elements.emplace_back(Shape::Hexa);
 			Element& e = grid.elements.back();
 			e.name_i = default_name;
 			bool faces_out = (n_owners_per_cell[i] > 0);
@@ -1553,13 +1553,13 @@ Grid readOpenFoam(std::string polymesh) {
 		if (e.calc_volume(grid) < 0) {
 			negative_volumes++;
 			negative_elements.push_back(e);
-			if (e.type == HEXA)
+			if (e.type == Shape::Hexa)
 				negative_hexas++;
-			else if (e.type == WEDGE)
+			else if (e.type == Shape::Wedge)
 				negative_wedges++;
-			else if (e.type == TETRA)
+			else if (e.type == Shape::Tetra)
 				negative_tetras++;
-			else if (e.type == PYRAMID)
+			else if (e.type == Shape::Pyramid)
 				negative_pyramids++;
 		}
 	}
@@ -1582,13 +1582,13 @@ Grid readOpenFoam(std::string polymesh) {
 			OFFace& face = faces[i];
 			if (face.points.size() < 3) Fatal("1D Boundary Element Found");
 			if (face.points.size() == 3 && !face.is_tri_split) {
-				grid.elements.emplace_back(TRI);
+				grid.elements.emplace_back(Shape::Triangle);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 3; ++j)
 					e.points[j] = face.points[j];
 			} else if (face.points.size() == 4 && !face.is_tri_split) {
-				grid.elements.emplace_back(QUAD);
+				grid.elements.emplace_back(Shape::Quad);
 				Element &e = grid.elements.back();
 				e.name_i = name_i;
 				for (int j = 0; j < 4; ++j)
@@ -1597,13 +1597,13 @@ Grid readOpenFoam(std::string polymesh) {
 				assert (face.split_faces.size());
 				for (OFFace& new_face : face.split_faces) {
 					if (new_face.points.size() == 3) {
-						grid.elements.emplace_back(TRI);
+						grid.elements.emplace_back(Shape::Triangle);
 						Element &e = grid.elements.back();
 						e.name_i = name_i;
 						for (int j = 0; j < 3; ++j)
 							e.points[j] = new_face.points[j];
 					} else if (new_face.points.size() == 4) {
-						grid.elements.emplace_back(QUAD);
+						grid.elements.emplace_back(Shape::Quad);
 						Element &e = grid.elements.back();
 						e.name_i = name_i;
 						for (int j = 0; j < 4; ++j)

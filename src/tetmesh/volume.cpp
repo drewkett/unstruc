@@ -16,7 +16,7 @@ Grid grid_from_tetgenio(tetgenio const& tg) {
 	}
 	grid.elements.reserve(grid.elements.size()+tg.numberoftetrahedra);
 	for (int i = 0; i < tg.numberoftetrahedra; ++i) {
-		Element e (TETRA);
+		Element e (Shape::Tetra);
 		assert (tg.numberofcorners == 4);
 		e.points[0] = tg.tetrahedronlist[4*i];
 		e.points[1] = tg.tetrahedronlist[4*i+1];
@@ -57,7 +57,7 @@ Grid volgrid_from_surface(Grid const& surface) {
 		f.polygonlist = new tetgenio::polygon[1];
 		tetgenio::polygon& p = f.polygonlist[0];
 		tetgenio::init(&p);
-		assert (e.type == TRI);
+		assert (e.type == Shape::Triangle);
 		assert (e.points.size() == 3);
 
 		p.numberofvertices = e.points.size();
@@ -86,7 +86,7 @@ Point find_point_inside_surface(const Grid& surface) {
 	Grid vol = volgrid_from_surface(surface);
 
 	const Element& e = surface.elements[0];
-	assert (e.type == TRI);
+	assert (e.type == Shape::Triangle);
 	const Point& p0 = surface.points[e.points[0]];
 	const Point& p1 = surface.points[e.points[1]];
 	const Point& p2 = surface.points[e.points[2]];
