@@ -20,18 +20,17 @@ bool toSU2(std::string outputfile, Grid& grid) {
 	FILE * f;
 	f = fopen(outputfile.c_str(),"w");
 	if (!f) Fatal("Could not open file");
-	Name name;
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
 	int n_volume_elements = 0;
 	for (Element& e : grid.elements)
-		if (e.dim == grid.dim)
+		if (Shape::Info[e.type].dim == grid.dim)
 			n_volume_elements++;
 
 	fprintf(f,"NELEM= %d\n",n_volume_elements);
 	for (Element& e : grid.elements) {
-		if (e.dim != grid.dim) continue;
+		if (Shape::Info[e.type].dim != grid.dim) continue;
 		fprintf(f,"%d",e.type);
 		for (int p : e.points) {
 			assert (p < grid.points.size());
@@ -53,7 +52,7 @@ bool toSU2(std::string outputfile, Grid& grid) {
 	std::vector<int> name_count(grid.names.size(),0);
 	for (i = 0; i < grid.elements.size(); i++) {
 		Element &e = grid.elements[i];
-		if (e.dim != (grid.dim-1)) continue;
+		if (Shape::Info[e.type].dim != (grid.dim-1)) continue;
 		if (e.name_i < 0) continue;
 		name_count[e.name_i]++;
 	}
@@ -66,14 +65,14 @@ bool toSU2(std::string outputfile, Grid& grid) {
 	fprintf(f,"NMARK= %d\n",n_names);
 	for (i = 0; i < grid.names.size(); i++) {
 		if (name_count[i] == 0) continue;
-		name = grid.names[i];
+		Name& name = grid.names[i];
 		if (name.dim != grid.dim - 1) continue;
 		std::cerr << i << " : " << name.name << " (" << name_count[i] << ")" << std::endl;
 		fprintf(f,"MARKER_TAG= %s\n",name.name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid.elements.size(); j++) {
 			Element &e = grid.elements[j];
-			if (e.dim != grid.dim - 1) continue;
+			if (Shape::Info[e.type].dim != grid.dim - 1) continue;
 			if (e.name_i != i) continue;
 			fprintf(f,"%d",e.type);
 			for (int p : e.points) {

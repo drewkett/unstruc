@@ -32,10 +32,9 @@ struct Element
 {
 	Shape::Type type;
 	int name_i;
-	int dim;
 	std::vector<int> points;
 
-	Element() : type(Shape::Type::Undefined), name_i(0), dim(0) {};
+	Element() : type(Shape::Type::Undefined), name_i(0) {};
 	Element(Shape::Type T);
 
 	double calc_volume(Grid& grid);

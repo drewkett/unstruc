@@ -102,12 +102,12 @@ void Grid::delete_inner_faces() {
 		int si = s[_i].first;
 		int i = s[_i].second;
 		Element &ei = this->elements[i];
-		if (ei.dim == this->dim) continue;
+		if (Shape::Info[ei.type].dim == this->dim) continue;
 		for (int _j = _i+1; _j < n_elements; _j++) {
 			int sj = s[_j].first;
 			int j = s[_j].second;
 			Element &ej = this->elements[j];
-			if (ej.dim == this->dim) continue;
+			if (Shape::Info[ej.type].dim == this->dim) continue;
 			if (deleted_index[j]) continue;
 		    if (si != sj) break;
 			if (same(ei,ej)) {

@@ -30,46 +30,7 @@ void WrongElement(Shape::Type T1, Shape::Type T2) {
 
 Element::Element(Shape::Type T) : type(T) {
 	name_i = 0;
-	int len = 0;
-	switch (T) {
-		case Shape::Line:
-			len = 2;
-			dim = 1;
-			break;
-		case Shape::Triangle:
-			len = 3;
-			dim = 2;
-			break;
-		case Shape::Quad:
-			len = 4;
-			dim = 2;
-			break;
-		case Shape::Hexa:
-			len = 8;
-			dim = 3;
-			break;
-		case Shape::Tetra:
-			len = 4;
-			dim = 3;
-			break;
-		case Shape::Wedge:
-			len = 6;
-			dim = 3;
-			break;
-		case Shape::Pyramid:
-			len = 5;
-			dim = 3;
-			break;
-		case Shape::Polygon:
-			len = 0;
-			dim = 2;
-			break;
-		default:
-			std::ostringstream oss;
-			oss << "Element Type " << Shape::Info[T].name;
-			NotImplemented(oss.str());
-	}
-	points.resize(len);
+	points.resize(Shape::Info[T].n_points);
 }
 
 void dump(Element &e) {

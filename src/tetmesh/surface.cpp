@@ -35,7 +35,7 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 		f.polygonlist = new tetgenio::polygon[1];
 		tetgenio::polygon& p = f.polygonlist[0];
 		tetgenio::init(&p);
-		assert (e.dim == 2);
+		assert (Shape::Info[e.type].dim == 2);
 
 		p.numberofvertices = e.points.size();
 		p.vertexlist = new int[e.points.size()];
