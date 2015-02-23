@@ -26,7 +26,8 @@ struct Grid {
 	void delete_inner_faces();
 	void collapse_elements();
 	Grid grid_from_elements(std::vector<Element>&);
-	void add_grid(Grid&);
+	Grid& operator+=(const Grid&);
+	Grid operator+(const Grid& other) const { return Grid(*this) += other; };
 	void delete_empty_names();
 	bool test_point_inside(Point const& p);
 	bool check_integrity() const;

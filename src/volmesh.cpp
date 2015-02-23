@@ -31,8 +31,7 @@ int main(int argc, char* argv[]) {
 
 	Point hole = find_point_inside_surface(offset);
 
-	Grid& grid = offset;
-	grid.add_grid(farfield);
+	Grid grid = offset + farfield;
 	write_grid("input.vtk",grid);
 
 	//int i_edge = -1;

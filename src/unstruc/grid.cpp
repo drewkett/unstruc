@@ -187,8 +187,9 @@ Grid Grid::grid_from_elements(std::vector<Element>& elements) {
 	return g;
 }
 
-void Grid::add_grid(Grid& other) {
-	assert (dim == other.dim);
+Grid& Grid::operator+=(const Grid& other) {
+	if (dim != other.dim)
+		Fatal("Dimensions must match");
 	int point_offset = points.size();
 	int name_offset = names.size();
 	points.insert(points.end(),other.points.begin(),other.points.end());
@@ -201,6 +202,7 @@ void Grid::add_grid(Grid& other) {
 		e.name_i += name_offset;
 		elements.push_back(e);
 	}
+	return *this;
 }
 
 void Grid::delete_empty_names() {
