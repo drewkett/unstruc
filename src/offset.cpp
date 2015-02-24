@@ -396,7 +396,7 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	return volume;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
+std::vector <Vector> calculate_point_normals(const Grid& surface) {
 	std::vector< Vector > normals;
 	normals.resize(surface.elements.size());
 
@@ -436,12 +436,17 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 			Point& c = centers[j];
 
 			Vector v = p - c;
-			Vector _n = n/dot(v,v);
-			total_norm += _n;
+			total_norm += n/dot(v,v);
 		}
 		total_norm /= total_norm.length();
 		point_normals[i] = total_norm;
 	}
+	return point_normals;
+}
+
+Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
+
+	std::vector <Vector> point_normals = calculate_point_normals(surface);
 
 	Grid offset (3);
 	offset.elements = surface.elements;
