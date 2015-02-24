@@ -383,13 +383,16 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	}
 	if (n_negative == 0) {
 	} else if (n_negative == volume.elements.size()) {
+#ifndef NDEBUG
+		fprintf(stderr,"(unstruc-offset::volume_from_surfaces) Incorrectly oriented. Flipping all volumes.\n");
+#endif
 		for (Element& e : volume.elements) {
 			int temp = e.points[1];
 			e.points[1] = e.points[2];
 			e.points[2] = temp;
 			int temp2 = e.points[4];
 			e.points[4] = e.points[5];
-			e.points[5] = temp;
+			e.points[5] = temp2;
 		}
 	} else {
 		Fatal("Negative Volumes Created");
