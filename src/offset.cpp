@@ -298,10 +298,6 @@ std::vector <int> find_intersections(Grid& grid) {
 			double denom = dot(edge_vector,face.normal);
 			if (denom == 0) continue;
 			double scale = dot(ep1 - face.center,face.normal)/denom;
-			double scale2 = dot(ep1 - grid.points[face.points[0]],face.normal)/denom;
-			if (face.points.size() == 3) {
-				assert (fabs((scale - scale2)/scale) < 1e-5);
-			}
 			if (-1 <= scale && scale <= 0) {
 				Point proj = ep1 - edge_vector*scale;
 				bool intersected = true;
