@@ -53,13 +53,18 @@ void Grid::merge_points(double tol) {
 		}
 	}
 
+	std::vector <bool> seen_points (n_points,false);
+	for (Element& e : elements)
+		for (int& p : e.points)
+			seen_points[p] = true;
+
 	std::cerr << "Assembling Final Index" << std::endl;
 	std::vector<int> new_index (n_points);
 	for (int i = 0; i < n_points; ++i)
 		new_index[i] = -1;
 	int new_i = 0;
 	for (int i = 0; i < n_points; ++i) {
-		if (merged_index[i] == i) {
+		if (merged_index[i] == i && seen_points[i]) {
 			points[new_i] = points[i];
 			new_index[i] = new_i;
 			new_i++;
