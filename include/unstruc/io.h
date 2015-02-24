@@ -16,8 +16,8 @@ enum struct FileType {
 	Count
 };
 
-FileType filetype_from_filename(std::string filename);
-Grid read_grid(std::string filename);
-void write_grid(std::string filename, Grid& grid);
+FileType filetype_from_filename(const std::string& filename);
+Grid read_grid(const std::string& filename);
+void write_grid(const std::string& filename, Grid& grid);
 
 #endif

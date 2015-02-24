@@ -6,6 +6,6 @@
 struct MultiBlock;
 struct Grid;
 
-Grid readPlot3D(std::string filename);
+Grid readPlot3D(const std::string& filename);
 
 #endif

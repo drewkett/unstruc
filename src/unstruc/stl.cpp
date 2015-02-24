@@ -22,7 +22,7 @@ Point read_vertex_ascii(std::istream& ss) {
 	return p;
 }
 
-Grid read_stl_ascii(std::string filename) {
+Grid read_stl_ascii(const std::string& filename) {
 	fprintf(stderr,"Reading ASCII STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.emplace_back(2,filename);
@@ -97,7 +97,7 @@ Point read_vertex_binary(std::ifstream& f) {
 	return Point (x,y,z);
 }
 
-Grid read_stl_binary(std::string filename) {
+Grid read_stl_binary(const std::string& filename) {
 	fprintf(stderr,"Reading Binary STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.emplace_back(2,filename);
@@ -130,7 +130,7 @@ Grid read_stl_binary(std::string filename) {
 	return grid;
 }
 
-Grid readSTL(std::string filename) {
+Grid readSTL(const std::string& filename) {
 	std::ifstream f;
 	f.open(filename);
 	std::string token;

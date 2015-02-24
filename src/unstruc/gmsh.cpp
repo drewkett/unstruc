@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-void toGMSH(std::string filename, Grid &grid) {
+void toGMSH(const std::string& filename, Grid &grid) {
 	FILE* f = fopen(filename.c_str(),"w");
 	if (!f) Fatal("Could not open file");
 

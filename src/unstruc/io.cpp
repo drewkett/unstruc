@@ -10,7 +10,7 @@
 #include "grid.h"
 #include "error.h"
 
-FileType filetype_from_filename(std::string filename) {
+FileType filetype_from_filename(const std::string& filename) {
 	int n = filename.size();
 	if (filename.compare(n-4,4,".su2") == 0)
 		return FileType::SU2;
@@ -27,7 +27,7 @@ FileType filetype_from_filename(std::string filename) {
 	return FileType::Unknown;
 }
 
-Grid read_grid(std::string filename) {
+Grid read_grid(const std::string& filename) {
 	FileType type = filetype_from_filename(filename);
 
 	Grid grid;
@@ -44,7 +44,7 @@ Grid read_grid(std::string filename) {
 	return grid;
 }
 
-void write_grid(std::string filename,Grid& grid) {
+void write_grid(const std::string& filename,Grid& grid) {
 	if (!grid.check_integrity())
 		Fatal("Grid integrity check failed");
 

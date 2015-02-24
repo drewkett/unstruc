@@ -736,7 +736,7 @@ std::vector<T> readBinary(std::ifstream& f, FoamHeader& header) {
 	return vec;
 }
 
-OFInfo readInfoFromOwners(std::string polymesh) {
+OFInfo readInfoFromOwners(const std::string& polymesh) {
 	std::string filepath = polymesh + "/owner";
 
 	std::ifstream f;
@@ -956,7 +956,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 	return OFUnknown;
 }
 
-Grid readOpenFoam(std::string polymesh) {
+Grid readOpenFoam(const std::string& polymesh) {
 	struct stat s;
 	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
 		Fatal(polymesh + " isn't a directory");

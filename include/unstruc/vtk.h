@@ -5,6 +5,6 @@
 
 struct Grid;
 
-bool toVTK(std::string outputfile, Grid &grid);
+bool toVTK(const std::string& outputfile, Grid &grid);
 
 #endif

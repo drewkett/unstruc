@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(std::string outputfile, Grid &grid) {
+bool toVTK(const std::string& outputfile, Grid &grid) {
 	std::cerr << "Writing '" << outputfile << "'" << std::endl;
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
