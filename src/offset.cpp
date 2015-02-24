@@ -404,12 +404,14 @@ std::vector <Vector> calculate_point_normals(const Grid& surface) {
 	std::vector< Point > centers;
 	centers.resize(surface.elements.size());
 
-	std::vector< std::vector <int> > point_elements;
-	point_elements.resize(surface.points.size());
+	std::vector< std::vector <int> > point_elements (surface.points.size());
+	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
 
 	for (int i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
 
+		if (e.type != Shape::Triangle)
+			NotImplemented("(unstruc-offset::calculate_point_normals) Surface must only contain triangles");
 		const Point& p0 = surface.points[e.points[0]];
 		const Point& p1 = surface.points[e.points[1]];
 		const Point& p2 = surface.points[e.points[2]];
@@ -422,25 +424,40 @@ std::vector <Vector> calculate_point_normals(const Grid& surface) {
 		centers[i].y = (p0.y + p1.y + p2.y)/3;
 		centers[i].z = (p0.z + p1.z + p2.z)/3;
 
-		for (int p : e.points)
-			point_elements[p].push_back(i);
+		for (int j = 0; j < e.points.size(); ++j) {
+			int _p = e.points[j];
+			point_elements[_p].push_back(i);
+
+			int jm = (j - 1 + e.points.size()) % e.points.size();
+			int jp = (j + 1) % e.points.size();
+			const Point &pm = surface.points[e.points[jm]];
+			const Point &p = surface.points[e.points[j]];
+			const Point &pp = surface.points[e.points[jp]];
+			Vector vm = pm - p;
+			Vector vp = pp - p;
+			double angle = fabs(angle_between(vm,vp));
+			point_elements_angle[_p].push_back(angle);
+		}
 	}
 
 	std::vector <Vector> point_normals (surface.points.size());
 	for (int i = 0; i < surface.points.size(); ++i) {
 		const Point& p = surface.points[i];
-		std::vector<int>& elements = point_elements[i];
+		const std::vector<int>& elements = point_elements[i];
+		const std::vector<double>& elements_angle = point_elements_angle[i];
 
 		Vector total_norm;
-		for (int j : elements) {
-			Vector& n = normals[j];
-			Point& c = centers[j];
+		double total_angle = 0;
+		for (int j = 0; j < elements.size(); ++j) {
+			int _e = elements[j];
+			double angle = elements_angle[j];
 
-			Vector v = p - c;
-			total_norm += n/dot(v,v);
+			Vector& n = normals[_e];
+			total_norm += angle*n/n.length();
+			total_angle += angle;
 		}
-		total_norm /= total_norm.length();
-		point_normals[i] = total_norm;
+		total_norm /= total_angle;
+		point_normals[i] = total_norm/total_norm.length();
 	}
 	return point_normals;
 }
