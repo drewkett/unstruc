@@ -1,6 +1,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <climits>
 
 #include "unstruc.h"
 #include "tetmesh.h"
@@ -483,6 +484,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		offset_volume.elements.push_back(e);
 	}
 
+	int last_n_intersected = INT_MAX;
+	bool needs_radical_improvement = false;
 	for (int i = 1; i < 100; ++i) {
 		bool finished = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
@@ -500,6 +503,14 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 
 		if (intersected_points.size() > 0) {
 			finished = false;
+
+			if (!needs_radical_improvement) {
+				if (((double) last_n_intersected - intersected_points.size())/last_n_intersected < 0.01) {
+					needs_radical_improvement = true;
+					fprintf(stderr,"Switching to radical measures\n");
+				}
+				last_n_intersected = intersected_points.size();
+			}
 			//char filename[50];
 			//snprintf(filename,50,"intersected_volumes%d.vtk",i);
 			//write_reduced_file(volume, intersected_elements, std::string(filename));
@@ -524,11 +535,11 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					if (i < 12) {
-						Vector v = offset_volume.points[_p0] - offset_volume.points[_p];
-						offset_volume.points[_p] += 0.2*v;
-					} else {
+					if (needs_radical_improvement) {
 						offset_volume.points[_p] = offset_volume.points[_p0];
+					} else {
+						Vector v = offset_volume.points[_p0] - offset_volume.points[_p];
+						offset_volume.points[_p] += 0.1*v;
 					}
 					poisoned_points[_p] = false;
 				}
