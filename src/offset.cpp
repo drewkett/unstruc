@@ -410,7 +410,7 @@ struct PointConnection {
 	std::vector <PointWeight> pointweights;
 };
 
-std::vector <PointConnection> calculate_point_connections(const Grid& surface) {
+std::vector <PointConnection> calculate_point_connections(const Grid& surface, double offset_size) {
 	std::vector< Vector > normals;
 	normals.resize(surface.elements.size());
 
@@ -481,20 +481,20 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface) {
 			total_angle += angle;
 		}
 		total_norm /= total_angle;
-		pc.normal = total_norm/total_norm.length();
+		pc.normal = total_norm*(offset_size/total_norm.length());
 
 		std::sort(pc.pointweights.begin(),pc.pointweights.end());
-		if (pc.pointweights.size() % 2 != 0) Fatal("Shouldn't be possible");
+		if ((pc.pointweights.size() % 2) != 0) Fatal("Shouldn't be possible");
 		double total_weight = 0;
-		int new_size = 0;
-		for (int j = 0; j < pc.pointweights.size()/2; ++j) {
+		int new_size = pc.pointweights.size()/2;
+		for (int j = 0; j < new_size; ++j) {
 			PointWeight& pw0 = pc.pointweights[2*j];
 			PointWeight& pw1 = pc.pointweights[2*j+1];
 			if (pw0.p != pw1.p) Fatal("Shouldn't be possible");
+			double w = pw0.w + pw1.w;
 			pc.pointweights[j].p = pw0.p;
-			pc.pointweights[j].w = pw0.w + pw1.w;
-			total_weight += pw0.w + pw1.w;
-			new_size++;
+			pc.pointweights[j].w = w;
+			total_weight += w;
 		}
 		pc.pointweights.resize(new_size);
 		for (PointWeight& pw : pc.pointweights)
@@ -503,22 +503,59 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface) {
 	return point_connections;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
+std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
+	std::vector <PointConnection> smoothed_connections (point_connections);
 
-	std::vector <PointConnection> point_connections = calculate_point_connections(surface);
+	for (int i = 0; i < point_connections.size(); ++i) {
+		const Point& surface_p = surface.points[i];
+		const PointConnection& orig_pc = point_connections[i];
+		const Vector& orig_normal = orig_pc.normal;
+		PointConnection& smoothed_pc = smoothed_connections[i];
 
+		Point smoothed_point;
+		for (const PointWeight& pw : orig_pc.pointweights) {
+			const Point& p = surface.points[pw.p];
+			const Vector& n = point_connections[pw.p].normal;
+			double w = pw.w;
+			Point offset_p = p+n;
+			smoothed_point.x += w*offset_p.x;
+			smoothed_point.y += w*offset_p.y;
+			smoothed_point.z += w*offset_p.z;
+		}
+		Vector smoothed_normal = 0.25*(smoothed_point - surface_p) + 0.75*orig_normal;
+		smoothed_normal *= orig_normal.length()/smoothed_normal.length();
+
+		smoothed_pc.normal = smoothed_normal;
+	}
+	return smoothed_connections;
+}
+
+Grid offset_surface_with_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
 	Grid offset (3);
 	offset.elements = surface.elements;
 	offset.names = surface.names;
+	offset.points = surface.points;
 	for (int i = 0; i < surface.points.size(); ++i) {
-		const Point& p = surface.points[i];
-		Vector& n = point_connections[i].normal;
-
-		Point offset_p = p + n*offset_size;
-		offset.points.push_back(offset_p);
+		Point& p = offset.points[i];
+		const Vector& n = point_connections[i].normal;
+		p += n;
 	}
+	return offset;
+}
 
+Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
+
+	std::vector <PointConnection> point_connections = calculate_point_connections(surface,offset_size);
+
+	Grid presmooth = offset_surface_with_point_connections(surface,point_connections);
+	write_grid(outputname+".presmooth.vtk",presmooth);
+
+	for (int i = 0; i < 15; ++i)
+		point_connections = smooth_point_connections(surface,point_connections);
+
+	Grid offset = offset_surface_with_point_connections(surface,point_connections);
 	write_grid(outputname+".offset0.vtk",offset);
+
 	Grid offset_volume (3);
 	int n_points = surface.points.size();
 	offset_volume.points = surface.points;
