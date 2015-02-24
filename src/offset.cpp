@@ -478,7 +478,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		offset_volume.elements.push_back(e);
 	}
 
-	for (int i = 1; i < 20; ++i) {
+	for (int i = 1; i < 100; ++i) {
 		bool finished = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
@@ -519,7 +519,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					if (i < 7) {
+					if (i < 12) {
 						Vector v = offset_volume.points[_p0] - offset_volume.points[_p];
 						offset_volume.points[_p] += 0.2*v;
 					} else {
