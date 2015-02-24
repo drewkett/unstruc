@@ -400,7 +400,7 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	return volume;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size) {
+Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
 	std::vector< Vector > normals;
 	normals.resize(surface.elements.size());
 
@@ -458,7 +458,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size) {
 		offset.points.push_back(offset_p);
 	}
 
-	write_grid("offset.vtk",offset);
+	write_grid(outputname+".offset0.vtk",offset);
 	Grid offset_volume (3);
 	int n_points = surface.points.size();
 	offset_volume.points = surface.points;
@@ -481,7 +481,6 @@ Grid create_offset_surface (const Grid& surface, double offset_size) {
 		}
 		offset_volume.elements.push_back(e);
 	}
-	write_grid("offset_volume0.vtk",offset_volume);
 
 	for (int i = 1; i < 20; ++i) {
 		bool finished = true;
@@ -549,8 +548,6 @@ Grid create_offset_surface (const Grid& surface, double offset_size) {
 		printf("Still %lu Intersected Elements\n",intersected_elements.size());
 	}
 
-	write_grid("offset_volume.vtk",offset_volume);
-
 	for (int i = 0; i < n_points; ++i) {
 		offset.points[i] = offset_volume.points[i+n_points];
 	}
@@ -601,8 +598,10 @@ int main(int argc, char* argv[]) {
 	Point hole;
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size);
+		Grid offset_surface = create_offset_surface(surface,offset_size,outputfile);
+		write_grid(outputfile+".offset.vtk",offset_surface);
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
+		write_grid(outputfile+".offset_volume.vtk",offset_volume);
 
 		bool found_hole = false;
 		for (Element& e : offset_volume.elements) {
@@ -616,6 +615,7 @@ int main(int argc, char* argv[]) {
 			Fatal("Something went wrong");
 
 		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
+		write_grid(outputfile+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume;
 	} else {
 		Point hole = find_point_inside_surface(surface);
