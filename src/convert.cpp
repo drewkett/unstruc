@@ -114,7 +114,7 @@ int main (int argc, char* argv[])
 	if (mergepoints) {
 		grid.merge_points(TOL);
 		grid.delete_inner_faces();
-		grid.collapse_elements();
+		grid.collapse_elements(false);
 	}
 	if (c_translationfile) {
 		std::string translationfile (c_translationfile);

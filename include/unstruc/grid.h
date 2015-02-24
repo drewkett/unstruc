@@ -24,7 +24,7 @@ struct Grid {
 	Grid (int _dim);
 	void merge_points(double tol);
 	void delete_inner_faces();
-	void collapse_elements();
+	void collapse_elements(bool split);
 	Grid grid_from_elements(std::vector<Element>&);
 	Grid& operator+=(const Grid&);
 	Grid operator+(const Grid& other) const { return Grid(*this) += other; };

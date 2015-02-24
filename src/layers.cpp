@@ -550,7 +550,7 @@ Grid volume_from_surfaces(Surface& surface1, Surface& surface2) {
 int main() {
 	Grid grid = read_grid("ac.stl");
 	grid.merge_points(0);
-	grid.collapse_elements();;
+	grid.collapse_elements(false);
 
 	printf("%zu triangles\n",grid.points.size());
 	printf("%zu points\n",grid.elements.size());

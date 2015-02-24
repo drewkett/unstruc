@@ -592,7 +592,7 @@ int main(int argc, char* argv[]) {
 
 	Grid surface = read_grid(inputfile);
 	surface.merge_points(0);
-	surface.collapse_elements();;
+	surface.collapse_elements(false);;
 	printf("%zu triangles\n",surface.elements.size());
 	printf("%zu points\n",surface.points.size());
 

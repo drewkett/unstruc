@@ -131,7 +131,7 @@ void Grid::delete_inner_faces() {
 	fprintf(stderr,"%d Faces Deleted\n",n_deleted);
 }
 
-void Grid::collapse_elements() {
+void Grid::collapse_elements(bool split) {
 	int n_elements = elements.size();
 
 	std::vector<Element> new_elements;
@@ -140,30 +140,43 @@ void Grid::collapse_elements() {
 	std::vector<bool> deleted_elements (n_elements,false);
 	for (int i = 0; i < n_elements; ++i) {
 		Element& e = elements[i];
-		if (can_collapse(e)) {
-			bool deleted = collapse(e,new_elements);
-			if (deleted) {
-				n_deleted++;
-				deleted_elements[i] = true;
+		if (split) {
+			if (can_collapse(e)) {
+				bool deleted = collapse(e,new_elements);
+				if (deleted) {
+					n_deleted++;
+					deleted_elements[i] = true;
+				}
+				n_collapsed++;
 			}
-			n_collapsed++;
+		} else {
+			if (can_collapse_wo_split(e)) {
+				bool deleted = collapse_wo_split(e);
+				if (deleted) {
+					n_deleted++;
+					deleted_elements[i] = true;
+				}
+				n_collapsed++;
+			} else if (can_collapse(e))
+				Fatal("Can't collapse without splitting");
 		}
 	}
-	int new_i = 0;
-	for (int i = 0; i < n_elements; ++i) {
-		if (!deleted_elements[i]) {
-			elements[new_i] = elements[i];
-			new_i++;
-		}
-	}
-	elements.resize(new_i);
-
-	int n_added = new_elements.size();
-	elements.insert(elements.end(),new_elements.begin(),new_elements.end());
-
 	std::cerr << n_collapsed << " Elements Collapsed" << std::endl;
-	std::cerr << n_added << " Elements Created On Collapse" << std::endl;
 	std::cerr << n_deleted << " Elements Deleted On Collapse" << std::endl;
+	if (split) {
+		int new_i = 0;
+		for (int i = 0; i < n_elements; ++i) {
+			if (!deleted_elements[i]) {
+				elements[new_i] = elements[i];
+				new_i++;
+			}
+		}
+		elements.resize(new_i);
+
+		int n_added = new_elements.size();
+		elements.insert(elements.end(),new_elements.begin(),new_elements.end());
+		std::cerr << n_added << " Elements Created On Collapse" << std::endl;
+	}
 };
 
 Grid Grid::grid_from_elements(std::vector<Element>& elements) {
