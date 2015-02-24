@@ -505,7 +505,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 			finished = false;
 
 			if (!needs_radical_improvement) {
-				if (((double) last_n_intersected - intersected_points.size())/last_n_intersected < 0.01) {
+				if (intersected_points.size() >= last_n_intersected) {
 					needs_radical_improvement = true;
 					fprintf(stderr,"Switching to radical measures\n");
 				}
