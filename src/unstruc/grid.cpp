@@ -163,16 +163,16 @@ void Grid::collapse_elements(bool split) {
 	}
 	std::cerr << n_collapsed << " Elements Collapsed" << std::endl;
 	std::cerr << n_deleted << " Elements Deleted On Collapse" << std::endl;
-	if (split) {
-		int new_i = 0;
-		for (int i = 0; i < n_elements; ++i) {
-			if (!deleted_elements[i]) {
-				elements[new_i] = elements[i];
-				new_i++;
-			}
+	int new_i = 0;
+	for (int i = 0; i < n_elements; ++i) {
+		if (!deleted_elements[i]) {
+			elements[new_i] = elements[i];
+			new_i++;
 		}
-		elements.resize(new_i);
+	}
+	elements.resize(new_i);
 
+	if (split) {
 		int n_added = new_elements.size();
 		elements.insert(elements.end(),new_elements.begin(),new_elements.end());
 		std::cerr << n_added << " Elements Created On Collapse" << std::endl;
