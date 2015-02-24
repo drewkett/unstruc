@@ -269,7 +269,7 @@ std::vector <int> find_intersections(Grid& grid) {
 	std::sort(faces.begin(),faces.end(),OFace::compare_by_min_x);
 
 	int j_current = 0;
-	std::vector <bool> intersected_elements (grid.elements.size(),false);
+	std::vector <bool> intersected_points (grid.points.size(),false);
 	for (int i = 0; i < edges.size(); ++i) {
 		OEdge& edge = edges[i];
 		Point& ep1 = grid.points[edge.p1];
@@ -319,17 +319,17 @@ std::vector <int> find_intersections(Grid& grid) {
 					}
 				}
 				if (intersected) {
-					for (int _e : edge.elements)
-						intersected_elements[_e] = true;
-					for (int _f : face.elements)
-						intersected_elements[_f] = true;
+					intersected_points[edge.p1] = true;
+					intersected_points[edge.p2] = true;
+					for (int _p : face.points)
+						intersected_points[_p] = true;
 				}
 			}
 		}
 	}
 	std::vector <int> intersected_list;
-	for (int i = 0; i < intersected_elements.size(); ++i) {
-		if (intersected_elements[i])
+	for (int i = 0; i < intersected_points.size(); ++i) {
+		if (intersected_points[i])
 			intersected_list.push_back(i);
 	}
 	return intersected_list;
@@ -494,10 +494,10 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 			//write_reduced_file(volume, negative_volumes, std::string(filename));
 		}
 
-		std::vector <int> intersected_elements = find_intersections(offset_volume);
-		printf("%lu Intersected Elements\n",intersected_elements.size());
+		std::vector <int> intersected_points = find_intersections(offset_volume);
+		printf("%lu Intersected Points\n",intersected_points.size());
 
-		if (intersected_elements.size() > 0) {
+		if (intersected_points.size() > 0) {
 			finished = false;
 			//char filename[50];
 			//snprintf(filename,50,"intersected_volumes%d.vtk",i);
@@ -514,11 +514,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 				poisoned_points[p] = true;
 		}
 
-		for (int _e : intersected_elements) {
-			Element& e = offset_volume.elements[_e];
-			for (int p : e.points)
-				poisoned_points[p] = true;
-		}
+		for (int _p : intersected_points)
+			poisoned_points[_p] = true;
 
 		for (Element& e : offset_volume.elements) {
 			assert (e.points.size() == 6);
@@ -543,9 +540,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		printf("Still %lu Negative Volumes\n",negative_volumes.size());
 	}
 
-	std::vector <int> intersected_elements = find_intersections(offset_volume);
-	if (intersected_elements.size() > 0) {
-		printf("Still %lu Intersected Elements\n",intersected_elements.size());
+	std::vector <int> intersected_points = find_intersections(offset_volume);
+	if (intersected_points.size() > 0) {
+		printf("Still %lu Intersected Points\n",intersected_points.size());
 	}
 
 	for (int i = 0; i < n_points; ++i) {
