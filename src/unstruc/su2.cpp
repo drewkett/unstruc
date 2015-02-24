@@ -31,7 +31,7 @@ bool toSU2(std::string outputfile, Grid& grid) {
 	fprintf(f,"NELEM= %d\n",n_volume_elements);
 	for (Element& e : grid.elements) {
 		if (Shape::Info[e.type].dim != grid.dim) continue;
-		fprintf(f,"%d",e.type);
+		fprintf(f,"%d",Shape::Info[e.type].vtk_id);
 		for (int p : e.points) {
 			assert (p < grid.points.size());
 			fprintf(f," %d",p);
@@ -74,7 +74,7 @@ bool toSU2(std::string outputfile, Grid& grid) {
 			Element &e = grid.elements[j];
 			if (Shape::Info[e.type].dim != grid.dim - 1) continue;
 			if (e.name_i != i) continue;
-			fprintf(f,"%d",e.type);
+			fprintf(f,"%d",Shape::Info[e.type].vtk_id);
 			for (int p : e.points) {
 				assert (p < grid.points.size());
 				fprintf(f," %d",p);
