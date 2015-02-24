@@ -457,8 +457,10 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 			double angle = fabs(angle_between(vm,vp));
 			point_elements_angle[_p].push_back(angle);
 
+			//TODO: Make sure weight by angles is what I want to do for normals smoothing
 			PointConnection& pc = point_connections[_p];
 
+			//TODO: Look into avoid connecting points across sharp edges (feature edges)
 			pc.pointweights.emplace_back(_pm,angle);
 			pc.pointweights.emplace_back(_pp,angle);
 		}
@@ -481,6 +483,8 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 			total_angle += angle;
 		}
 		total_norm /= total_angle;
+		//TODO: Look into adjusting normal size to be larger at nooks and edges
+		//TODO: Look into adjusting normal size to provide some smoothing for bumpy surfaces
 		pc.normal = total_norm*(offset_size/total_norm.length());
 
 		std::sort(pc.pointweights.begin(),pc.pointweights.end());
@@ -582,6 +586,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 	int last_n_intersected = INT_MAX;
 	bool needs_radical_improvement = false;
 	for (int i = 1; i < 100; ++i) {
+		//TODO Look into calculating and/or smoothing normals per iteration
 		bool finished = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
@@ -717,6 +722,8 @@ int main(int argc, char* argv[]) {
 		}
 		if (!found_hole)
 			Fatal("Something went wrong");
+
+		//TODO: add layer splitting
 
 		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
 		write_grid(outputfile+".farfield_volume.vtk",farfield_volume);
