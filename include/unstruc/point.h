@@ -12,10 +12,14 @@ struct Vector
 
 	inline Vector operator*(double value) const {return Vector(*this) *= value;};
 	inline Vector operator/(double value) const {return Vector(*this) /= value;};
-	inline Vector& operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z; return *this;};
-	inline Vector& operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z; return *this;};
 	inline Vector& operator*=(double value) {x *= value; y *= value; z *= value; return *this;};
 	inline Vector& operator/=(double value) {x /= value; y /= value; z /= value; return *this;};
+
+	inline Vector operator+(const Vector& other) const {return Vector(*this) += other;};
+	inline Vector operator-(const Vector& other) const {return Vector(*this) -= other;};
+	inline Vector& operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z; return *this;};
+	inline Vector& operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z; return *this;};
+
 	inline double dot(const Vector& other) const { return x*other.x + y*other.y + z*other.z; };
 	inline double length() const {return sqrt(x*x + y*y + z*z);};
 };
