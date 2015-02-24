@@ -624,5 +624,6 @@ int main(int argc, char* argv[]) {
 	volume += surface;
 	volume += farfield_surface;
 	volume.merge_points(0);
+	volume.collapse_elements(false);
 	write_grid(outputfile,volume);
 }
