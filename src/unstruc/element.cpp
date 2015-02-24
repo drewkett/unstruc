@@ -317,32 +317,14 @@ bool collapse_pyramid(Element& e) {
 bool collapse_wedge(Element& e, std::vector<Element>& new_elements) {
 	if (e.type != Shape::Wedge) WrongElement(e.type,Shape::Wedge);
 	if (can_collapse(e)) {
-        if (e.points[0] == e.points[1]) {
-			pyramid_from_wedge(e,2,1,4,5,3);
-			return collapse_pyramid(e);
-		} else if (e.points[1] == e.points[2]) {
-			pyramid_from_wedge(e,0,2,5,3,4);
-			return collapse_pyramid(e);
-		} else if (e.points[2] == e.points[0]) {
-			pyramid_from_wedge(e,1,0,3,4,5);
-			return collapse_pyramid(e);
-		} else if (e.points[3] == e.points[4]) {
-			pyramid_from_wedge(e,2,1,4,5,0);
-			return collapse_pyramid(e);
-		} else if (e.points[4] == e.points[5]) {
-			pyramid_from_wedge(e,0,2,5,3,1);
-			return collapse_pyramid(e);
-		} else if (e.points[5] == e.points[3]) {
-			pyramid_from_wedge(e,1,0,3,4,2);
-			return collapse_pyramid(e);
-		} else if (e.points[0] == e.points[3]) {
-			pyramid_from_wedge(e,2,1,4,5,0);
+		if (e.points[0] == e.points[3]) {
+			pyramid_from_wedge(e,1,2,5,4,0);
 			return collapse_pyramid(e);
 		} else if (e.points[1] == e.points[4]) {
-			pyramid_from_wedge(e,0,2,5,3,1);
+			pyramid_from_wedge(e,2,0,3,5,1);
 			return collapse_pyramid(e);
 		} else if (e.points[2] == e.points[5]) {
-			pyramid_from_wedge(e,1,0,3,4,2);
+			pyramid_from_wedge(e,0,1,4,3,2);
 			return collapse_pyramid(e);
 		} else {
 			NotImplemented("Don't know how to collapse this wedge");
@@ -514,13 +496,13 @@ bool collapse_wedge_wo_split(Element& e) {
 	if (e.type != Shape::Wedge) WrongElement(e.type,Shape::Wedge);
 	if (can_collapse_wo_split(e)) {
 		if (e.points[0] == e.points[3]) {
-			pyramid_from_wedge(e,2,1,4,5,0);
+			pyramid_from_wedge(e,1,2,5,4,0);
 			return collapse_pyramid(e);
 		} else if (e.points[1] == e.points[4]) {
-			pyramid_from_wedge(e,0,2,5,3,1);
+			pyramid_from_wedge(e,2,0,3,5,1);
 			return collapse_pyramid(e);
 		} else if (e.points[2] == e.points[5]) {
-			pyramid_from_wedge(e,1,0,3,4,2);
+			pyramid_from_wedge(e,0,1,4,3,2);
 			return collapse_pyramid(e);
 		} else {
 			NotImplemented("Don't know how to collapse this wedge");
