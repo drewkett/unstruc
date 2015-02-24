@@ -397,7 +397,20 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	return volume;
 }
 
-std::vector <Vector> calculate_point_normals(const Grid& surface) {
+struct PointWeight {
+	int p;
+	double w;
+	PointWeight() : p(-1), w(-1) {};
+	PointWeight(int p, double w) : p(p), w(w) {};
+	bool operator<(const PointWeight& other) { return p < other.p; };
+};
+
+struct PointConnection {
+	Vector normal;
+	std::vector <PointWeight> pointweights;
+};
+
+std::vector <PointConnection> calculate_point_connections(const Grid& surface) {
 	std::vector< Vector > normals;
 	normals.resize(surface.elements.size());
 
@@ -407,11 +420,13 @@ std::vector <Vector> calculate_point_normals(const Grid& surface) {
 	std::vector< std::vector <int> > point_elements (surface.points.size());
 	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
 
+	std::vector <PointConnection> point_connections (surface.points.size());
+
 	for (int i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
 
 		if (e.type != Shape::Triangle)
-			NotImplemented("(unstruc-offset::calculate_point_normals) Surface must only contain triangles");
+			NotImplemented("(unstruc-offset::calculate_point_connections) Surface must only contain triangles");
 		const Point& p0 = surface.points[e.points[0]];
 		const Point& p1 = surface.points[e.points[1]];
 		const Point& p2 = surface.points[e.points[2]];
@@ -430,18 +445,27 @@ std::vector <Vector> calculate_point_normals(const Grid& surface) {
 
 			int jm = (j - 1 + e.points.size()) % e.points.size();
 			int jp = (j + 1) % e.points.size();
-			const Point &pm = surface.points[e.points[jm]];
-			const Point &p = surface.points[e.points[j]];
-			const Point &pp = surface.points[e.points[jp]];
+
+			int _pm = e.points[jm];
+			int _pp = e.points[jp];
+
+			const Point &pm = surface.points[_pm];
+			const Point &p = surface.points[_p];
+			const Point &pp = surface.points[_pp];
 			Vector vm = pm - p;
 			Vector vp = pp - p;
 			double angle = fabs(angle_between(vm,vp));
 			point_elements_angle[_p].push_back(angle);
+
+			PointConnection& pc = point_connections[_p];
+
+			pc.pointweights.emplace_back(_pm,angle);
+			pc.pointweights.emplace_back(_pp,angle);
 		}
 	}
 
-	std::vector <Vector> point_normals (surface.points.size());
 	for (int i = 0; i < surface.points.size(); ++i) {
+		PointConnection& pc = point_connections[i];
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
 		const std::vector<double>& elements_angle = point_elements_angle[i];
@@ -457,21 +481,38 @@ std::vector <Vector> calculate_point_normals(const Grid& surface) {
 			total_angle += angle;
 		}
 		total_norm /= total_angle;
-		point_normals[i] = total_norm/total_norm.length();
+		pc.normal = total_norm/total_norm.length();
+
+		std::sort(pc.pointweights.begin(),pc.pointweights.end());
+		if (pc.pointweights.size() % 2 != 0) Fatal("Shouldn't be possible");
+		double total_weight = 0;
+		int new_size = 0;
+		for (int j = 0; j < pc.pointweights.size()/2; ++j) {
+			PointWeight& pw0 = pc.pointweights[2*j];
+			PointWeight& pw1 = pc.pointweights[2*j+1];
+			if (pw0.p != pw1.p) Fatal("Shouldn't be possible");
+			pc.pointweights[j].p = pw0.p;
+			pc.pointweights[j].w = pw0.w + pw1.w;
+			total_weight += pw0.w + pw1.w;
+			new_size++;
+		}
+		pc.pointweights.resize(new_size);
+		for (PointWeight& pw : pc.pointweights)
+			pw.w /= total_weight;
 	}
-	return point_normals;
+	return point_connections;
 }
 
 Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
 
-	std::vector <Vector> point_normals = calculate_point_normals(surface);
+	std::vector <PointConnection> point_connections = calculate_point_connections(surface);
 
 	Grid offset (3);
 	offset.elements = surface.elements;
 	offset.names = surface.names;
 	for (int i = 0; i < surface.points.size(); ++i) {
 		const Point& p = surface.points[i];
-		Vector& n = point_normals[i];
+		Vector& n = point_connections[i].normal;
 
 		Point offset_p = p + n*offset_size;
 		offset.points.push_back(offset_p);
