@@ -3,9 +3,16 @@
 #include <list>
 #include <algorithm>
 #include <climits>
+#include <cfloat>
 
 #include "unstruc.h"
 #include "tetmesh.h"
+
+const static double max_normal_stretch = 2;
+const static double max_normal_skew_angle = 30;
+const static double tetgen_min_ratio = 1.03;
+
+const static double max_normal_skew_factor = tan(max_normal_skew_angle/180.0*M_PI);
 
 struct OEdge {
 	int p1, p2;
@@ -422,6 +429,8 @@ struct PointWeight {
 
 struct PointConnection {
 	Vector normal;
+	Vector orig_normal;
+	double increase_factor;
 	std::vector <PointWeight> pointweights;
 };
 
@@ -494,33 +503,42 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 		PointConnection& pc = point_connections[i];
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
-		const std::vector<double>& elements_angle = point_elements_angle[i];
 
-		Vector total_norm;
-		double total_angle = 0;
+		std::vector <double> angle_factors = normalize(point_elements_angle[i]);
+
+		Vector point_norm;
 		for (int j = 0; j < elements.size(); ++j) {
 			int _e = elements[j];
-			double angle = elements_angle[j];
+			double fac = angle_factors[j];
 
-			Vector& n = normals[_e];
-			total_norm += angle*n/n.length();
-			total_angle += angle;
+			const Vector& n = normals[_e];
+			point_norm += fac*n;
 		}
-		total_norm /= total_angle;
-		//TODO: Look into adjusting normal size to be larger at nooks and edges
-		//TODO: Look into adjusting normal size to provide some smoothing for bumpy surfaces
-		pc.normal = total_norm*(offset_size/total_norm.length());
+		double norm_length = point_norm.length();
+
+		assert(norm_length < 1 + sqrt(DBL_EPSILON));
+		pc.increase_factor = 1/norm_length;
+		if (pc.increase_factor > max_normal_stretch) pc.increase_factor = max_normal_stretch;
+
+		pc.normal = point_norm.normalized()*(offset_size*pc.increase_factor);
+		pc.orig_normal = pc.normal;
+
+		assert ((pc.pointweights.size() % 2) == 0);
 
 		std::sort(pc.pointweights.begin(),pc.pointweights.end());
-		if ((pc.pointweights.size() % 2) != 0) Fatal("Shouldn't be possible");
 		double total_weight = 0;
 		int new_size = pc.pointweights.size()/2;
 		for (int j = 0; j < new_size; ++j) {
-			PointWeight& pw0 = pc.pointweights[2*j];
-			PointWeight& pw1 = pc.pointweights[2*j+1];
-			if (pw0.p != pw1.p) Fatal("Shouldn't be possible");
-			double w = pw0.w + pw1.w;
-			pc.pointweights[j].p = pw0.p;
+			const PointWeight& pw1 = pc.pointweights[2*j];
+			const PointWeight& pw2 = pc.pointweights[2*j+1];
+
+			assert (pw1.p == pw2.p);
+
+			const Point& p1 = surface.points[pw1.p];
+			Vector d = p1 - p;
+			double w = (pw1.w + pw2.w)/sqrt(d.length());
+
+			pc.pointweights[j].p = pw1.p;
 			pc.pointweights[j].w = w;
 			total_weight += w;
 		}
@@ -531,29 +549,51 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 	return point_connections;
 }
 
-std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
+std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections, double offset_size) {
 	std::vector <PointConnection> smoothed_connections (point_connections);
 
 	for (int i = 0; i < point_connections.size(); ++i) {
 		const Point& surface_p = surface.points[i];
 		const PointConnection& orig_pc = point_connections[i];
-		const Vector& orig_normal = orig_pc.normal;
 		PointConnection& smoothed_pc = smoothed_connections[i];
 
+		const Vector& curr_normal = orig_pc.normal;
+		const Vector& orig_normal = orig_pc.orig_normal;
+
+		Point orig_p = surface_p + orig_normal;
+
+		double orig_weight = (1 - 1/orig_pc.increase_factor)/(1-1/max_normal_stretch);
+
 		Point smoothed_point;
+		smoothed_point.x = orig_p.x*orig_weight;
+		smoothed_point.y = orig_p.y*orig_weight;
+		smoothed_point.z = orig_p.z*orig_weight;
 		for (const PointWeight& pw : orig_pc.pointweights) {
 			const Point& p = surface.points[pw.p];
 			const Vector& n = point_connections[pw.p].normal;
-			double w = pw.w;
+			double w = pw.w * (1-orig_weight);
 			Point offset_p = p+n;
 			smoothed_point.x += w*offset_p.x;
 			smoothed_point.y += w*offset_p.y;
 			smoothed_point.z += w*offset_p.z;
 		}
-		Vector smoothed_normal = 0.25*(smoothed_point - surface_p) + 0.75*orig_normal;
-		smoothed_normal *= orig_normal.length()/smoothed_normal.length();
+		Vector smoothed_normal = smoothed_point - surface_p;
+		double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
+		Vector smoothed_perp = fac*orig_normal;
+		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
+		//TODO: Make sure these are the right factors
+		const double min_adj = 1/orig_pc.increase_factor;
+		const double max_adj = 1.5*(1+max_normal_stretch-orig_pc.increase_factor);
+		if (fac < min_adj) fac = min_adj;
+		else if (fac > max_adj) fac = max_adj;
 
-		smoothed_pc.normal = smoothed_normal;
+		smoothed_perp = fac*orig_normal;
+
+		double lat_length = smoothed_lateral.length();
+		double perp_length = smoothed_perp.length();
+		if (lat_length > max_normal_skew_factor*perp_length)
+			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
+		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 	}
 	return smoothed_connections;
 }
@@ -578,8 +618,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 	Grid presmooth = offset_surface_with_point_connections(surface,point_connections);
 	write_grid(output_filename+".presmooth.vtk",presmooth);
 
-	for (int i = 0; i < 15; ++i)
-		point_connections = smooth_point_connections(surface,point_connections);
+	for (int i = 0; i < 100; ++i)
+		point_connections = smooth_point_connections(surface,point_connections,offset_size);
 
 	Grid offset = offset_surface_with_point_connections(surface,point_connections);
 	write_grid(output_filename+".offset0.vtk",offset);
@@ -819,11 +859,11 @@ int main(int argc, char* argv[]) {
 
 		//TODO: add layer splitting
 
-		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
+		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,tetgen_min_ratio);
 		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume;
 	} else {
-		volume = volgrid_from_surface(surface+farfield_surface,hole,1.03);
+		volume = volgrid_from_surface(surface+farfield_surface,hole,tetgen_min_ratio);
 	}
 	volume += surface;
 	volume += farfield_surface;
