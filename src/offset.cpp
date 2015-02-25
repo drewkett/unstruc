@@ -70,7 +70,9 @@ struct OFace {
 
 std::vector<OEdge> get_edges(Grid& grid) {
 	std::vector<OEdge> edges;
-	//printf("Create Edges\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Create Edges\n");
+#endif
 	for (int i = 0; i < grid.elements.size(); ++i) {
 		Element& e = grid.elements[i];
 		assert (e.type == Shape::Wedge);
@@ -86,10 +88,14 @@ std::vector<OEdge> get_edges(Grid& grid) {
 		edges.emplace_back(e.points[1],e.points[4],i);
 		edges.emplace_back(e.points[2],e.points[5],i);
 	}
-	//printf("Sorting Edges\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Sorting Faces\n");
+#endif
 	std::sort(edges.begin(),edges.end());
 	int i_edge = 0;
-	//printf("Checking Edges for Duplicates\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Checking Edges for Duplicates\n");
+#endif
 	for (int i = 0; i < edges.size(); ++i) {
 		OEdge& edge = edges[i];
 		std::vector <int> elements;
@@ -103,7 +109,9 @@ std::vector<OEdge> get_edges(Grid& grid) {
 	}
 	edges.resize(i_edge);
 
-	//printf("Setting Edge Properties\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Setting Edge Properties\n");
+#endif
 	for (OEdge& edge : edges) {
 		assert (edge.p1 != -1);
 		assert (edge.p2 != -1);
@@ -120,7 +128,9 @@ std::vector<OEdge> get_edges(Grid& grid) {
 };
 
 std::vector<OFace> get_faces(Grid& grid) {
-	//printf("Creating Faces\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Creating Faces\n");
+#endif
 	std::vector<OFace> faces;
 	//Create Faces from Elements
 	for (int i = 0; i < grid.elements.size(); ++i) {
@@ -164,8 +174,10 @@ std::vector<OFace> get_faces(Grid& grid) {
 		face3c.points.push_back(e.points[5]);
 		faces.push_back(face3c);
 	}
+#ifndef NDEBUG
+	fprintf(stderr,"Sorting Faces by Points\n");
+#endif
 	//Create face_sort to sort faces after sorting face points, but maintain index to original vector
-	//printf("Sorting Faces by Points\n");
 	std::vector< std::pair<OFace,int> > face_sort (faces.size());
 	for (int i = 0; i < faces.size(); ++i) {
 		OFace face = faces[i];
@@ -176,7 +188,9 @@ std::vector<OFace> get_faces(Grid& grid) {
 	std::sort(face_sort.begin(),face_sort.end());
 	std::vector <int> face_indices;
 	int i_face = 0;
-	//printf("Elimating Duplicate Faces\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Elimating Duplicate Faces\n");
+#endif
 	for (int i = 0; i < faces.size(); ++i) {
 		std::pair <OFace,int>& face_pair = face_sort[i];
 		OFace& face = faces[face_pair.second];
@@ -199,7 +213,9 @@ std::vector<OFace> get_faces(Grid& grid) {
 	}
 	faces.resize(i_face);
 
-	//printf("Setting Face Properties\n");
+#ifndef NDEBUG
+	fprintf(stderr,"Setting Face Properties\n");
+#endif
 	for (OFace& face : faces) {
 		Point& p0 = grid.points[face.points[0]];
 		Point& p1 = grid.points[face.points[1]];
