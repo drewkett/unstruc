@@ -547,18 +547,18 @@ Grid offset_surface_with_point_connections(const Grid& surface, const std::vecto
 	return offset;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& outputname) {
+Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& output_filename) {
 
 	std::vector <PointConnection> point_connections = calculate_point_connections(surface,offset_size);
 
 	Grid presmooth = offset_surface_with_point_connections(surface,point_connections);
-	write_grid(outputname+".presmooth.vtk",presmooth);
+	write_grid(output_filename+".presmooth.vtk",presmooth);
 
 	for (int i = 0; i < 15; ++i)
 		point_connections = smooth_point_connections(surface,point_connections);
 
 	Grid offset = offset_surface_with_point_connections(surface,point_connections);
-	write_grid(outputname+".offset0.vtk",offset);
+	write_grid(output_filename+".offset0.vtk",offset);
 
 	Grid offset_volume (3);
 	int n_points = surface.points.size();
@@ -665,7 +665,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 
 int main(int argc, char* argv[]) {
 	int argnum = 0;
-	std::string inputfile, outputfile;
+	std::string input_filename, output_filename;
 	double offset_size = 0;
 	int nlayers = 1;
 	for (int i = 1; i < argc; ++i) {
@@ -685,9 +685,9 @@ int main(int argc, char* argv[]) {
 		} else {
 			argnum++;
 			if (argnum == 1) {
-				inputfile = std::string(argv[i]);
+				input_filename = std::string(argv[i]);
 			} else if (argnum == 2) {
-				outputfile = std::string(argv[i]);
+				output_filename = std::string(argv[i]);
 			} else {
 				parse_failed("Extra argument passed");
 			}
@@ -696,7 +696,7 @@ int main(int argc, char* argv[]) {
 	if (argnum != 2)
 		parse_failed("Must pass 2 arguments");
 
-	Grid surface = read_grid(inputfile);
+	Grid surface = read_grid(input_filename);
 	surface.merge_points(0);
 	surface.collapse_elements(false);;
 	printf("%zu triangles\n",surface.elements.size());
@@ -707,10 +707,10 @@ int main(int argc, char* argv[]) {
 	Point hole;
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size,outputfile);
-		write_grid(outputfile+".offset.vtk",offset_surface);
+		Grid offset_surface = create_offset_surface(surface,offset_size,output_filename);
+		write_grid(output_filename+".offset.vtk",offset_surface);
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
-		write_grid(outputfile+".offset_volume.vtk",offset_volume);
+		write_grid(output_filename+".offset_volume.vtk",offset_volume);
 
 		bool found_hole = false;
 		for (Element& e : offset_volume.elements) {
@@ -726,7 +726,7 @@ int main(int argc, char* argv[]) {
 		//TODO: add layer splitting
 
 		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
-		write_grid(outputfile+".farfield_volume.vtk",farfield_volume);
+		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume;
 	} else {
 		Point hole = find_point_inside_surface(surface);
@@ -736,5 +736,5 @@ int main(int argc, char* argv[]) {
 	volume += farfield_surface;
 	volume.merge_points(0);
 	volume.collapse_elements(false);
-	write_grid(outputfile,volume);
+	write_grid(output_filename,volume);
 }
