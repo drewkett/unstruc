@@ -390,8 +390,8 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 		if (e1.type == Shape::Triangle) {
 			Element e (Shape::Wedge);
 			for (int j = 0; j < 3; ++j) {
-				e.points[j] = e1.points[j];
-				e.points[j+3] = e2.points[j] + npoints1;
+				e.points[2-j] = e1.points[j];
+				e.points[5-j] = e2.points[j] + npoints1;
 			}
 			if (e.calc_volume(volume) < 0) n_negative++;
 			volume.elements.push_back(e);
@@ -400,22 +400,8 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 			NotImplemented("Must pass triangle surfaces");
 		}
 	}
-	if (n_negative == 0) {
-	} else if (n_negative == volume.elements.size()) {
-#ifndef NDEBUG
-		fprintf(stderr,"(unstruc-offset::volume_from_surfaces) Incorrectly oriented. Flipping all volumes.\n");
-#endif
-		for (Element& e : volume.elements) {
-			int temp = e.points[1];
-			e.points[1] = e.points[2];
-			e.points[2] = temp;
-			int temp2 = e.points[4];
-			e.points[4] = e.points[5];
-			e.points[5] = temp2;
-		}
-	} else {
-		Fatal("Negative Volumes Created");
-	}
+	if (n_negative > 0)
+		fprintf(stderr,"Negative Volumes Created");
 	return volume;
 }
 
@@ -624,21 +610,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 	Grid offset = offset_surface_with_point_connections(surface,point_connections);
 	write_grid(output_filename+".offset0.vtk",offset);
 
-	Grid offset_volume (3);
+	Grid offset_volume = volume_from_surfaces(surface,offset);
 	int n_points = surface.points.size();
-	offset_volume.points = surface.points;
-	offset_volume.points.insert(offset_volume.points.end(),offset.points.begin(),offset.points.end());
-
-	for (int i = 0; i < surface.elements.size(); ++i) {
-		const Element& e1 = surface.elements[i];
-		const Element& e2 = offset.elements[i];
-		Element e (Shape::Wedge);
-		for (int j = 0; j < 3; ++j) {
-			e.points[2-j] = e1.points[j];
-			e.points[5-j] = e2.points[j] + n_points;
-		}
-		offset_volume.elements.push_back(e);
-	}
 
 	int last_n_intersected = INT_MAX;
 	bool needs_radical_improvement = false;
