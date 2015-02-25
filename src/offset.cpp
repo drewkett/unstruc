@@ -37,6 +37,9 @@ struct OEdge {
 	bool operator==(const OEdge& other) const {
 		return (p1 == other.p1) && (p2 == other.p2);
 	}
+	bool operator!=(const OEdge& other) const {
+		return !(*this == other);
+	}
 	bool operator<(const OEdge& other) const {
 		if (p1 == other.p1)
 			return p2 < other.p2;
