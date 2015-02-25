@@ -821,8 +821,6 @@ int main(int argc, char* argv[]) {
 	verify_complete_surface(surface);
 	Point hole = orient_surface(surface);
 
-	Grid farfield_surface = create_farfield_box(surface);
-
 	Grid volume;
 	if (offset_size != 0) {
 		Grid offset_surface = create_offset_surface(surface,offset_size,output_filename);
@@ -832,14 +830,15 @@ int main(int argc, char* argv[]) {
 
 		//TODO: add layer splitting
 
+		Grid farfield_surface = create_farfield_box(offset_surface);
 		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,tetgen_min_ratio);
 		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
-		volume = farfield_volume + offset_volume;
+		volume = farfield_volume + offset_volume + farfield_surface + surface;
 	} else {
+		Grid farfield_surface = create_farfield_box(surface);
 		volume = volgrid_from_surface(surface+farfield_surface,hole,tetgen_min_ratio);
+		volume += farfield_surface + surface;
 	}
-	volume += surface;
-	volume += farfield_surface;
 	volume.merge_points(0);
 	volume.collapse_elements(false);
 	write_grid(output_filename,volume);
