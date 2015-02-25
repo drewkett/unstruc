@@ -5,11 +5,11 @@ struct Grid;
 struct Point;
 struct tetgenio;
 
-extern Point NullPoint;
+extern const Point NullPoint;
 
 Grid grid_from_tetgenio(const tetgenio& tg);
-Grid volgrid_from_surface(const Grid& surface,Point& hole,double min_ratio);
-Grid volgrid_from_surface(const Grid& surface,Point& hole = NullPoint,double min_ratio = 0);
+Grid volgrid_from_surface(const Grid& surface,const Point& hole,double min_ratio);
+Grid volgrid_from_surface(const Grid& surface,const Point& hole = NullPoint,double min_ratio = 0);
 Point find_point_inside_surface(const Grid& surface);
 
 #endif

@@ -3,8 +3,6 @@
 #include <iostream>
 #include <cmath>
 
-Point NullPoint;
-
 void dump(Point p) {
 	printf("Point %8.6g %8.6g %8.6g\n",p.x,p.y,p.z);
 };

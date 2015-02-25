@@ -27,7 +27,7 @@ Grid grid_from_tetgenio(tetgenio const& tg) {
 	return grid;
 }
 
-Grid volgrid_from_surface(Grid const& surface, Point& hole, double min_ratio) {
+Grid volgrid_from_surface(Grid const& surface, const Point& hole, double min_ratio) {
 	tetgenio in;
 	in.mesh_dim = 3;
 	in.firstnumber = 0;
@@ -111,5 +111,5 @@ Point find_point_inside_surface(const Grid& surface) {
 	else 
 		Fatal("Not sure what to do");
 
-	return Point();
+	return NullPoint;
 }

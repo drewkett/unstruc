@@ -56,4 +56,6 @@ double angle_between(const Vector&, const Vector&);
 double dot(const Vector&, const Vector&);
 Vector cross(const Vector&, const Vector&);
 
+const Point NullPoint;
+
 #endif
