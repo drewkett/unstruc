@@ -582,16 +582,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		const Element& e1 = surface.elements[i];
 		const Element& e2 = offset.elements[i];
 		Element e (Shape::Wedge);
-		if (offset_size < 0) {
-			for (int j = 0; j < 3; ++j) {
-				e.points[j] = e1.points[j];
-				e.points[j+3] = e2.points[j] + n_points;
-			}
-		} else {
-			for (int j = 0; j < 3; ++j) {
-				e.points[2-j] = e1.points[j];
-				e.points[5-j] = e2.points[j] + n_points;
-			}
+		for (int j = 0; j < 3; ++j) {
+			e.points[2-j] = e1.points[j];
+			e.points[5-j] = e2.points[j] + n_points;
 		}
 		offset_volume.elements.push_back(e);
 	}
@@ -806,7 +799,6 @@ int main(int argc, char* argv[]) {
 
 	Grid farfield_surface = create_farfield_box(surface);
 
-	Point hole;
 	Grid volume;
 	if (offset_size != 0) {
 		Grid offset_surface = create_offset_surface(surface,offset_size,output_filename);
@@ -814,24 +806,12 @@ int main(int argc, char* argv[]) {
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
 
-		bool found_hole = false;
-		for (Element& e : offset_volume.elements) {
-			if (!(offset_volume.points[e.points[0]] == offset_volume.points[e.points[3]])) {
-				hole = offset_volume.points[e.points[0]];
-				found_hole = true;
-				break;
-			}
-		}
-		if (!found_hole)
-			Fatal("Something went wrong");
-
 		//TODO: add layer splitting
 
 		Grid farfield_volume = volgrid_from_surface(offset_surface+farfield_surface,hole,1.03);
 		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume;
 	} else {
-		Point hole = find_point_inside_surface(surface);
 		volume = volgrid_from_surface(surface+farfield_surface,hole,1.03);
 	}
 	volume += surface;
