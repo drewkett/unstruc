@@ -399,7 +399,7 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 		}
 	}
 	if (n_negative > 0)
-		fprintf(stderr,"Negative Volumes Created");
+		fprintf(stderr,"%d Negative Volumes Created\n",n_negative);
 	return volume;
 }
 
