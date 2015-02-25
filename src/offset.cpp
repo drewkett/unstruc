@@ -676,6 +676,91 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 	return offset;
 }
 
+struct OEdgeElement {
+	OEdge edge;
+	int element1,element2;
+	OEdgeElement() {};
+	OEdgeElement(int p1, int p2, int element1, int element2) : edge(p1,p2), element1(element1), element2(element2) {};
+	bool operator<(const OEdgeElement& other) { return edge < other.edge; };
+};
+
+void verify_complete_surface(const Grid& surface) {
+	std::vector <OEdge> edges;
+	std::vector < std::vector<OEdgeElement> > edges_per_point (surface.points.size());
+	for (int i = 0; i < surface.elements.size(); ++i) {
+		const Element& e = surface.elements[i];
+		if (Shape::Info[e.type].dim != 2)
+			Fatal("Not a surface. Has non-surface elements");
+		for (int j = 0; j < e.points.size(); ++j) {
+			int j2 = (j + 1)%e.points.size();
+			int p = e.points[j];
+			int p2 = e.points[j2];
+			edges.emplace_back(p,p2);
+			edges_per_point[p].emplace_back(p,p2,i,-1);
+			edges_per_point[p2].emplace_back(p,p2,i,-1);
+		}
+	}
+	std::sort(edges.begin(),edges.end());
+	for (int i = 0; i < edges.size(); ++i) {
+		if (i == edges.size()-1)
+			Fatal("Boundary Edge found (1)");
+		int i2 = i + 1;
+		if (edges[i] != edges[i2])
+			Fatal("Boundary Edge found (2)");
+		if (i + 2 < edges.size()) {
+			int i3 = i + 2;
+			if (edges[i2] == edges[i3])
+				Fatal("Non-Manifold Edge Found");
+		}
+		++i;
+	}
+	for (std::vector <OEdgeElement> edges : edges_per_point) {
+		if (edges.size()%2 != 0)
+			Fatal("Boundary Edge found (3)");
+		std::sort(edges.begin(),edges.end());
+		std::list <OEdgeElement> edge_list;
+		for (int i = 0; i < edges.size()/2; ++i) {
+			const OEdgeElement& ee1 = edges[2*i];
+			const OEdgeElement& ee2 = edges[2*i+1];
+			if (ee1.edge != ee2.edge)
+				Fatal("Boundary Edge found (4)");
+			edge_list.emplace_back(ee1.edge.p1,ee2.edge.p2,ee1.element1,ee2.element1);
+		}
+		std::list <int> surface_list;
+		int initial_size = edge_list.size();
+		for (int i = 0; i < initial_size; ++i) {
+			if (edge_list.size() == 0) break;
+			auto it = edge_list.begin();
+			while (it != edge_list.end()) {
+				OEdgeElement& ee = *it;
+				if (surface_list.size() == 0) {
+					surface_list.push_back(ee.element1);
+					surface_list.push_back(ee.element2);
+					it = edge_list.erase(it);
+				} else if (ee.element1 == surface_list.front()) {
+					surface_list.push_front(ee.element2);
+					it = edge_list.erase(it);
+				} else if (ee.element2 == surface_list.front()) {
+					surface_list.push_front(ee.element1);
+					it = edge_list.erase(it);
+				} else if (ee.element1 == surface_list.back()) {
+					surface_list.push_back(ee.element2);
+					it = edge_list.erase(it);
+				} else if (ee.element2 == surface_list.back()) {
+					surface_list.push_back(ee.element1);
+					it = edge_list.erase(it);
+				} else {
+					it++;
+				}
+			}
+		}
+		if (surface_list.front() != surface_list.back())
+			Fatal("Boundary Edge Found (5)");
+		if (edge_list.size() > 0)
+			Fatal("Non-manifold Point Found");
+	}
+}
+
 int main(int argc, char* argv[]) {
 	int argnum = 0;
 	std::string input_filename, output_filename;
@@ -714,6 +799,9 @@ int main(int argc, char* argv[]) {
 	surface.collapse_elements(false);;
 	printf("%zu triangles\n",surface.elements.size());
 	printf("%zu points\n",surface.points.size());
+
+	fprintf(stderr,"Verifying surface\n");
+	verify_complete_surface(surface);
 
 	Grid farfield_surface = create_farfield_box(surface);
 
