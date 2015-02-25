@@ -360,6 +360,24 @@ void write_reduced_file(Grid& grid, std::vector <int> elements, std::string file
 	write_grid(filename,reduced_grid);
 }
 
+void write_reduced_file_from_points(Grid& grid, std::vector <int> points, std::string filename) {
+	Grid reduced_grid (3);
+	reduced_grid.points = grid.points;
+	std::sort(points.begin(),points.end());
+	for (const Element& e : grid.elements) {
+		bool add = false;
+		for (int _p : e.points) {
+			if (std::binary_search(points.begin(),points.end(),_p)) {
+				add = true;
+				break;
+			}
+		}
+		if (add)
+			reduced_grid.elements.push_back(e);
+	}
+	write_grid(filename,reduced_grid);
+}
+
 void print_usage () {
 	fprintf(stderr,
 "unstruc-offset [-s offset_size] [-n number_of_layers] surface_file output_file\n");
@@ -608,7 +626,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		point_connections = smooth_point_connections(surface,point_connections,offset_size,1,1.5,30);
 
 	Grid offset = offset_surface_with_point_connections(surface,point_connections);
-	write_grid(output_filename+".offset0.vtk",offset);
+	write_grid(output_filename+".0.offset.vtk",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
@@ -624,10 +642,12 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
 		if (negative_volumes.size() > 0) finished = false;
+		if (i == 1) write_reduced_file(offset_volume,negative_volumes,output_filename+".0.negative_volumes.vtk");
 
 		std::vector <int> intersected_points = find_intersections(offset_volume);
 		printf("%lu Intersected Points\n",intersected_points.size());
 		if (intersected_points.size() > 0) finished = false;
+		if (i == 1) write_reduced_file_from_points(offset_volume,intersected_points,output_filename+".0.intersected_volumes.vtk");
 
 		if (finished) break;
 
