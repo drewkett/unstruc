@@ -1,5 +1,6 @@
 
 #include <cassert>
+#include <list>
 #include <algorithm>
 #include <climits>
 
