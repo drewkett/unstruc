@@ -651,7 +651,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const std::
 
 		if (finished) break;
 
-		if (i < i_fastest) {
+		if (per_iteration_smoothing && i < i_fastest) {
 			if (intersected_points.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
 				i = i_fastest;
 				fprintf(stderr,"Switching to fastest improvement\n");
