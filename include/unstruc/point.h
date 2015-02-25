@@ -22,6 +22,7 @@ struct Vector
 
 	inline double dot(const Vector& other) const { return x*other.x + y*other.y + z*other.z; };
 	inline double length() const {return sqrt(x*x + y*y + z*z);};
+	inline Vector normalized() const {return Vector(*this)/length();};
 };
 template<typename T>
 Vector operator*(T const& value, Vector vec) {

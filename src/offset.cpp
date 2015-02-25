@@ -423,6 +423,16 @@ struct PointConnection {
 	std::vector <PointWeight> pointweights;
 };
 
+std::vector<double> normalize(std::vector <double> vec) {
+	double total = 0;
+	for (double value : vec)
+		total += value;
+	for (double& value : vec)
+		value /= total;
+	return vec;
+}
+
+
 std::vector <PointConnection> calculate_point_connections(const Grid& surface, double offset_size) {
 	std::vector< Vector > normals;
 	normals.resize(surface.elements.size());
@@ -446,7 +456,7 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
-		normals[i] = cross(v1,v2)/6;
+		normals[i] = cross(v1,v2).normalized();
 
 		centers[i].x = (p0.x + p1.x + p2.x)/3;
 		centers[i].y = (p0.y + p1.y + p2.y)/3;
