@@ -226,9 +226,6 @@ std::vector<OFace> get_faces(Grid& grid) {
 		face.max.x = std::max(std::max(p0.x,p1.x),p2.x);
 		face.max.y = std::max(std::max(p0.y,p1.y),p2.y);
 		face.max.z = std::max(std::max(p0.z,p1.z),p2.z);
-		//double s0 = p0.x + p0.y + p0.z;
-		//double s1 = p1.x + p1.y + p1.z;
-		//double s2 = p2.x + p2.y + p2.z;
 		if (face.points.size() == 3) {
 			face.normal = cross(p1-p0, p2-p1);
 			face.center.x = (p0.x + p1.x + p2.x)/3;
