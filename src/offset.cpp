@@ -802,6 +802,7 @@ int main(int argc, char* argv[]) {
 
 	fprintf(stderr,"Verifying surface\n");
 	verify_complete_surface(surface);
+	Point hole = orient_surface(surface);
 
 	Grid farfield_surface = create_farfield_box(surface);
 
