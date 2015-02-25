@@ -322,8 +322,6 @@ std::vector <int> find_intersections(Grid& grid) {
 					Vector v1 = p1 - p0;
 					Vector v2 = proj - p1;
 					Vector n = cross(v1,v2);
-					//double d = dot(n,face.normal)/n.length()/face.normal.length();
-					//assert (face.points.size() == 4 || fabs(d) > 0.9);
 					if (dot(n,face.normal) <= 0){
 						intersected = false;
 						break;
@@ -481,7 +479,6 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 			double angle = fabs(angle_between(vm,vp));
 			point_elements_angle[_p].push_back(angle);
 
-			//TODO: Make sure weight by angles is what I want to do for normals smoothing
 			PointConnection& pc = point_connections[_p];
 
 			//TODO: Look into avoid connecting points across sharp edges (feature edges)
