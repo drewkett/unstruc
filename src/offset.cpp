@@ -975,9 +975,27 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size,true,output_filename);
-		write_grid(output_filename+".offset.vtk",offset_surface);
-		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
+		write_grid(output_filename+".0.offset.vtk",surface);
+
+		Grid offset_volume (3);
+		Grid offset_surface (3);
+		Grid last_offset_surface (surface);
+		double current_offset_size = offset_size;
+		for (int i = 0; i < nlayers; ++i) {
+			char c_filename[50];
+			snprintf(c_filename,50,"%s.%d",output_filename.c_str(),i+1);
+			std::string filename (c_filename);
+
+			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,true,filename);
+
+			write_grid(filename+".offset.vtk",offset_surface);
+			const Grid& input_surface = offset_surface;
+
+			offset_volume += volume_from_surfaces(last_offset_surface,offset_surface);
+
+			current_offset_size *= 1.5;
+			last_offset_surface = offset_surface;
+		}
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
 
 		//TODO: add layer splitting
