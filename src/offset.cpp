@@ -12,7 +12,6 @@ const static double max_geometric_stretch = 2;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 60;
 const static double tetgen_min_ratio = 1.03;
-static std::string output_filename;
 
 struct OEdge {
 	int p1, p2;
@@ -660,18 +659,18 @@ Grid offset_surface_with_point_connections(const Grid& surface, const std::vecto
 	return offset;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const bool per_iteration_smoothing) {
+Grid create_offset_surface (const Grid& surface, double offset_size, const bool per_iteration_smoothing, std::string filename) {
 
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
 
 	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(output_filename+".presmooth.vtk",presmooth);
+	write_grid(filename+".presmooth.vtk",presmooth);
 
 	for (int i = 0; i < 100; ++i)
 		smooth_point_connections(surface,smoothing_data);
 
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(output_filename+".0.offset.vtk",offset);
+	write_grid(filename+".0.offset.vtk",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
@@ -691,19 +690,21 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
 
-		if (negative_volumes.size() > 0)
+		if (negative_volumes.size() > 0) {
 			successful = false;
-		if (i == 1)
-			write_reduced_file(offset_volume,negative_volumes,output_filename+".0.negative_volumes.vtk");
+			if (i == 1)
+				write_reduced_file(offset_volume,negative_volumes,filename+".0.negative_volumes.vtk");
+		}
 
 		fprintf(stderr,"Checking for Intersections....");
 		std::vector <int> intersected_points = find_intersections(offset_volume);
 		fprintf(stderr," %lu Intersected Points\n",intersected_points.size());
 
-		if (intersected_points.size() > 0)
+		if (intersected_points.size() > 0) {
 			successful = false;
-		if (i == 1)
-			write_reduced_file_from_points(offset_volume,intersected_points,output_filename+".0.intersected_volumes.vtk");
+			if (i == 1)
+				write_reduced_file_from_points(offset_volume,intersected_points,filename+".0.intersected_volumes.vtk");
+		}
 
 		if (successful) break;
 
@@ -721,7 +722,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 			last_n_negative = negative_volumes.size();
 		}
 
-		printf("Iteration %d\n",i+1);
+		printf("Iteration %d\n",i);
 		std::vector <bool> poisoned_points (offset_volume.points.size(),false);
 
 		for (int _e : negative_volumes) {
@@ -870,7 +871,7 @@ void verify_complete_surface(const Grid& surface) {
 
 int main(int argc, char* argv[]) {
 	int argnum = 0;
-	std::string input_filename;
+	std::string input_filename, output_filename;
 	double offset_size = 0;
 	int nlayers = 1;
 	for (int i = 1; i < argc; ++i) {
@@ -913,7 +914,7 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size,true);
+		Grid offset_surface = create_offset_surface(surface,offset_size,true,output_filename);
 		write_grid(output_filename+".offset.vtk",offset_surface);
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
