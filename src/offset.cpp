@@ -438,6 +438,12 @@ struct PointConnection {
 	double geometric_stretch_factor;
 	double max_skew_angle;
 	std::vector <PointWeight> pointweights;
+	std::vector <int> elements;
+};
+
+struct SmoothingData {
+	std::vector <PointConnection> connections;
+	std::vector <Vector> element_normals;
 };
 
 std::vector<double> normalize(std::vector <double> vec) {
@@ -450,14 +456,13 @@ std::vector<double> normalize(std::vector <double> vec) {
 }
 
 
-std::vector <PointConnection> calculate_point_connections(const Grid& surface, double offset_size) {
-	std::vector< Vector > normals (surface.elements.size());
-	std::vector< Point > centers (surface.elements.size());
-
+SmoothingData calculate_point_connections(const Grid& surface, double offset_size) {
 	std::vector< std::vector <int> > point_elements (surface.points.size());
 	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
 
-	std::vector <PointConnection> point_connections (surface.points.size());
+	SmoothingData sdata;
+	sdata.connections = std::vector <PointConnection> (surface.points.size());
+	sdata.element_normals = std::vector <Vector> (surface.elements.size());
 
 	for (int i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
@@ -470,11 +475,7 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
-		normals[i] = cross(v1,v2).normalized();
-
-		centers[i].x = (p0.x + p1.x + p2.x)/3;
-		centers[i].y = (p0.y + p1.y + p2.y)/3;
-		centers[i].z = (p0.z + p1.z + p2.z)/3;
+		sdata.element_normals[i] = cross(v1,v2).normalized();
 
 		for (int j = 0; j < e.points.size(); ++j) {
 			int _p = e.points[j];
@@ -494,16 +495,18 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 			double angle = fabs(angle_between(vm,vp));
 			point_elements_angle[_p].push_back(angle);
 
-			PointConnection& pc = point_connections[_p];
+			PointConnection& pc = sdata.connections[_p];
 
 			//TODO: Look into avoid connecting points across sharp edges (feature edges)
 			pc.pointweights.emplace_back(_pm,angle);
 			pc.pointweights.emplace_back(_pp,angle);
+
+			pc.elements.push_back(i);
 		}
 	}
 
 	for (int i = 0; i < surface.points.size(); ++i) {
-		PointConnection& pc = point_connections[i];
+		PointConnection& pc = sdata.connections[i];
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
 
@@ -514,7 +517,7 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 			int _e = elements[j];
 			double fac = angle_factors[j];
 
-			const Vector& n = normals[_e];
+			const Vector& n = sdata.element_normals[_e];
 			point_norm += fac*n;
 		}
 		double norm_length = point_norm.length();
@@ -551,15 +554,15 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 		for (PointWeight& pw : pc.pointweights)
 			pw.w /= total_weight;
 	}
-	return point_connections;
+	return sdata;
 }
 
-std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
-	std::vector <PointConnection> smoothed_connections (point_connections);
+void smooth_point_connections(const Grid& surface, SmoothingData& data) {
+	std::vector <PointConnection> smoothed_connections (data.connections);
 
-	for (int i = 0; i < point_connections.size(); ++i) {
+	for (int i = 0; i < surface.points.size(); ++i) {
 		const Point& surface_p = surface.points[i];
-		const PointConnection& pc = point_connections[i];
+		const PointConnection& pc = data.connections[i];
 		PointConnection& smoothed_pc = smoothed_connections[i];
 
 		const Vector& curr_normal = pc.normal;
@@ -577,7 +580,7 @@ std::vector <PointConnection> smooth_point_connections(const Grid& surface, cons
 		smoothed_point.z = orig_p.z*orig_weight;
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
-			const Vector& n = point_connections[pw.p].normal;
+			const Vector& n = data.connections[pw.p].normal;
 			double w = pw.w * (1-orig_weight);
 			Point offset_p = p+n;
 			smoothed_point.x += w*offset_p.x;
@@ -602,7 +605,7 @@ std::vector <PointConnection> smooth_point_connections(const Grid& surface, cons
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 	}
-	return smoothed_connections;
+	data.connections = smoothed_connections;
 }
 
 Grid offset_surface_with_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
@@ -620,15 +623,15 @@ Grid offset_surface_with_point_connections(const Grid& surface, const std::vecto
 
 Grid create_offset_surface (const Grid& surface, double offset_size, const bool per_iteration_smoothing) {
 
-	std::vector <PointConnection> point_connections = calculate_point_connections(surface,offset_size);
+	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
 
-	Grid presmooth = offset_surface_with_point_connections(surface,point_connections);
+	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(output_filename+".presmooth.vtk",presmooth);
 
 	for (int i = 0; i < 100; ++i)
-		point_connections = smooth_point_connections(surface,point_connections);
+		smooth_point_connections(surface,smoothing_data);
 
-	Grid offset = offset_surface_with_point_connections(surface,point_connections);
+	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(output_filename+".0.offset.vtk",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
@@ -689,7 +692,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 				int _p0 = e.points[j-3];
 				int _p = e.points[j];
 				if (poisoned_points[_p]) {
-					PointConnection& pc = point_connections[_p-n_surface_points];
+					PointConnection& pc = smoothing_data.connections[_p-n_surface_points];
 					if (needs_radical_improvement) {
 						pc.current_adjustment = 0;
 						pc.normal *= 0;
@@ -706,10 +709,10 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 		}
 		if (per_iteration_smoothing) {
 			for (int j = 0; j < 100; ++j)
-				point_connections = smooth_point_connections(surface,point_connections);
+				smooth_point_connections(surface,smoothing_data);
 		}
 
-		Grid offset = offset_surface_with_point_connections(surface,point_connections);
+		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 		for (int j = 0; j < n_surface_points; ++j)
 			offset_volume.points[j+n_surface_points] = offset.points[j];
 	}
