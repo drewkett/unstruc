@@ -585,16 +585,21 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			const Vector& n = sdata.element_normals[_e];
 			double d = dot(point_norm,n);
 			if (d <= 0) {
-				Fatal ("Can't find normal");
+				fprintf(stderr,"Can't create normal\n");
+				dump(p);
+				//Fatal ("Can't find normal");
 				bad_vector = true;
 				point_norm *= 0;
 				break;
 			}
 		}
-		if (bad_vector)
-			point_norm *= 0;
-		else
-			point_norm = norm_length*point_norm.normalized();
+		if (bad_vector) {
+			pc.normal = NullVector;
+			pc.orig_normal = NullVector;
+			continue;
+		}
+
+		point_norm = norm_length*point_norm.normalized();
 
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
 		pc.geometric_stretch_factor = 1/norm_length;
