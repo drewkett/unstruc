@@ -642,23 +642,30 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 	bool needs_radical_improvement = false;
 	int failed_steps = 0;
 	int i_max_skew = 20;
+	bool successful;
 	for (int i = 1; i < 100; ++i) {
 		double skew_fraction = ((double) i)/i_max_skew;
 		if (skew_fraction > 1) skew_fraction = 1;
 
 		//TODO Look into calculating and/or smoothing normals per iteration
-		bool finished = true;
+		successful = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
-		if (negative_volumes.size() > 0) finished = false;
-		if (i == 1) write_reduced_file(offset_volume,negative_volumes,output_filename+".0.negative_volumes.vtk");
+
+		if (negative_volumes.size() > 0)
+			successful = false;
+		if (i == 1)
+			write_reduced_file(offset_volume,negative_volumes,output_filename+".0.negative_volumes.vtk");
 
 		std::vector <int> intersected_points = find_intersections(offset_volume);
 		printf("%lu Intersected Points\n",intersected_points.size());
-		if (intersected_points.size() > 0) finished = false;
-		if (i == 1) write_reduced_file_from_points(offset_volume,intersected_points,output_filename+".0.intersected_volumes.vtk");
 
-		if (finished) break;
+		if (intersected_points.size() > 0)
+			successful = false;
+		if (i == 1)
+			write_reduced_file_from_points(offset_volume,intersected_points,output_filename+".0.intersected_volumes.vtk");
+
+		if (successful) break;
 
 		if (!needs_radical_improvement) {
 			if (intersected_points.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
@@ -668,8 +675,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 					needs_radical_improvement = true;
 					fprintf(stderr,"Switching to radical measures\n");
 				}
-			}
-			failed_steps = 0;
+			} else
+				failed_steps = 0;
 			last_n_intersected = intersected_points.size();
 			last_n_negative = negative_volumes.size();
 		}
@@ -717,14 +724,16 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 			offset_volume.points[j+n_surface_points] = offset.points[j];
 	}
 
-	std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
-	if (negative_volumes.size() > 0) {
-		printf("Still %lu Negative Volumes\n",negative_volumes.size());
-	}
+	if (!successful) {
+		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
+		if (negative_volumes.size() > 0) {
+			printf("Still %lu Negative Volumes\n",negative_volumes.size());
+		}
 
-	std::vector <int> intersected_points = find_intersections(offset_volume);
-	if (intersected_points.size() > 0) {
-		printf("Still %lu Intersected Points\n",intersected_points.size());
+		std::vector <int> intersected_points = find_intersections(offset_volume);
+		if (intersected_points.size() > 0) {
+			printf("Still %lu Intersected Points\n",intersected_points.size());
+		}
 	}
 
 	for (int i = 0; i < n_surface_points; ++i) {
