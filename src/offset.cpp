@@ -522,6 +522,35 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 		double norm_length = point_norm.length();
 
+		// Correct normals that will cause self intersections
+		for (int j = 0; j < 10; ++j) {
+			bool all_positive = true;
+			for (int _e : elements) {
+				const Vector& n = sdata.element_normals[_e];
+				double d = dot(point_norm,n);
+				if (d <= 0) {
+					all_positive = false;
+					point_norm -= 2*d*n;
+				}
+			}
+			if (all_positive) break;
+		}
+		bool bad_vector = false;
+		for (int _e : elements) {
+			const Vector& n = sdata.element_normals[_e];
+			double d = dot(point_norm,n);
+			if (d <= 0) {
+				Fatal ("Can't find normal");
+				bad_vector = true;
+				point_norm *= 0;
+				break;
+			}
+		}
+		if (bad_vector)
+			point_norm *= 0;
+		else
+			point_norm = norm_length*point_norm.normalized();
+
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
 		pc.geometric_stretch_factor = 1/norm_length;
 		if (pc.geometric_stretch_factor > max_geometric_stretch) pc.geometric_stretch_factor = max_geometric_stretch;
@@ -604,6 +633,16 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		if (lat_length > max_normal_skew_factor*perp_length)
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
+
+		// Check for creation of self intersection elements
+		for (int _e : pc.elements) {
+			const Vector& n = data.element_normals[_e];
+			if (dot(smoothed_pc.normal,n) <= 0) {
+				// Use old normal if self intersections created
+				smoothed_pc.normal = pc.normal;
+				break;
+			}
+		}
 	}
 	data.connections = smoothed_connections;
 }
