@@ -696,8 +696,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 		if (i == 1)
 			write_reduced_file(offset_volume,negative_volumes,output_filename+".0.negative_volumes.vtk");
 
+		fprintf(stderr,"Checking for Intersections....");
 		std::vector <int> intersected_points = find_intersections(offset_volume);
-		printf("%lu Intersected Points\n",intersected_points.size());
+		fprintf(stderr," %lu Intersected Points\n",intersected_points.size());
 
 		if (intersected_points.size() > 0)
 			successful = false;
@@ -769,9 +770,10 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 			printf("Still %lu Negative Volumes\n",negative_volumes.size());
 		}
 
+		fprintf(stderr,"Checking for Intersections....");
 		std::vector <int> intersected_points = find_intersections(offset_volume);
 		if (intersected_points.size() > 0) {
-			printf("Still %lu Intersected Points\n",intersected_points.size());
+			fprintf(stderr," %lu Intersected Points\n",intersected_points.size());
 		}
 	}
 
