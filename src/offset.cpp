@@ -721,7 +721,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 		smooth_point_connections(surface,smoothing_data);
 
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(filename+".0.offset.vtk",offset);
+	write_grid(filename+".smoothed.vtk",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
