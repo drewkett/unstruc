@@ -29,6 +29,8 @@ Vector operator*(T const& value, Vector vec) {
 	return vec *= value;
 }
 
+const Vector NullVector;
+
 struct Point
 {
 	double x,y,z;
