@@ -11,6 +11,7 @@
 const static double max_normal_stretch = 2;
 const static double max_normal_skew_angle = 30;
 const static double tetgen_min_ratio = 1.03;
+static std::string output_filename;
 
 struct OEdge {
 	int p1, p2;
@@ -612,7 +613,7 @@ Grid offset_surface_with_point_connections(const Grid& surface, const std::vecto
 	return offset;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const std::string& output_filename, const bool per_iteration_smoothing) {
+Grid create_offset_surface (const Grid& surface, double offset_size, const bool per_iteration_smoothing) {
 
 	std::vector <PointConnection> point_connections = calculate_point_connections(surface,offset_size);
 
@@ -814,7 +815,7 @@ void verify_complete_surface(const Grid& surface) {
 
 int main(int argc, char* argv[]) {
 	int argnum = 0;
-	std::string input_filename, output_filename;
+	std::string input_filename;
 	double offset_size = 0;
 	int nlayers = 1;
 	for (int i = 1; i < argc; ++i) {
@@ -857,7 +858,7 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size,output_filename,false);
+		Grid offset_surface = create_offset_surface(surface,offset_size,false);
 		write_grid(output_filename+".offset.vtk",offset_surface);
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
