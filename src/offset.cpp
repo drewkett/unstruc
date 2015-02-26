@@ -8,8 +8,9 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
-const static double max_normal_stretch = 2;
-const static double max_normal_skew_angle = 30;
+const static double max_geometric_stretch = 2;
+const static double max_skew_angle = 30;
+const static double max_relaxed_skew_angle = 60;
 const static double tetgen_min_ratio = 1.03;
 static std::string output_filename;
 
@@ -433,7 +434,9 @@ struct PointWeight {
 struct PointConnection {
 	Vector normal;
 	Vector orig_normal;
-	double increase_factor;
+	double current_adjustment;
+	double geometric_stretch_factor;
+	double max_skew_angle;
 	std::vector <PointWeight> pointweights;
 };
 
@@ -517,11 +520,13 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 		double norm_length = point_norm.length();
 
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
-		pc.increase_factor = 1/norm_length;
-		if (pc.increase_factor > max_normal_stretch) pc.increase_factor = max_normal_stretch;
+		pc.geometric_stretch_factor = 1/norm_length;
+		if (pc.geometric_stretch_factor > max_geometric_stretch) pc.geometric_stretch_factor = max_geometric_stretch;
 
-		pc.normal = point_norm.normalized()*(offset_size*pc.increase_factor);
+		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
 		pc.orig_normal = pc.normal;
+		pc.max_skew_angle = max_skew_angle;
+		pc.current_adjustment = 1;
 
 		assert ((pc.pointweights.size() % 2) == 0);
 
@@ -549,28 +554,28 @@ std::vector <PointConnection> calculate_point_connections(const Grid& surface, d
 	return point_connections;
 }
 
-std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections, double offset_size, double min_adj_factor, double max_adj_factor, double max_skew_angle) {
+std::vector <PointConnection> smooth_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
 	std::vector <PointConnection> smoothed_connections (point_connections);
-	const double max_normal_skew_factor = tan(max_skew_angle/180.0*M_PI);
 
 	for (int i = 0; i < point_connections.size(); ++i) {
 		const Point& surface_p = surface.points[i];
-		const PointConnection& orig_pc = point_connections[i];
+		const PointConnection& pc = point_connections[i];
 		PointConnection& smoothed_pc = smoothed_connections[i];
 
-		const Vector& curr_normal = orig_pc.normal;
-		const Vector& orig_normal = orig_pc.orig_normal;
+		const Vector& curr_normal = pc.normal;
+		const Vector& orig_normal = pc.orig_normal*pc.current_adjustment;
+		const double max_normal_skew_factor = tan(pc.max_skew_angle/180.0*M_PI);
 
 		if (orig_normal.length() == 0) continue;
 		Point orig_p = surface_p + orig_normal;
 
-		double orig_weight = (1 - 1/orig_pc.increase_factor)/(1-1/max_normal_stretch);
+		double orig_weight = (1 - 1/pc.geometric_stretch_factor)/(1-1/max_geometric_stretch);
 
 		Point smoothed_point;
 		smoothed_point.x = orig_p.x*orig_weight;
 		smoothed_point.y = orig_p.y*orig_weight;
 		smoothed_point.z = orig_p.z*orig_weight;
-		for (const PointWeight& pw : orig_pc.pointweights) {
+		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
 			const Vector& n = point_connections[pw.p].normal;
 			double w = pw.w * (1-orig_weight);
@@ -584,8 +589,8 @@ std::vector <PointConnection> smooth_point_connections(const Grid& surface, cons
 		Vector smoothed_perp = fac*orig_normal;
 		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
 		//TODO: Make sure these are the right factors
-		const double min_adj = min_adj_factor/orig_pc.increase_factor;
-		const double max_adj = max_adj_factor*(1+max_normal_stretch-orig_pc.increase_factor);
+		const double min_adj = 1/pc.geometric_stretch_factor;
+		const double max_adj = max_geometric_stretch/pc.geometric_stretch_factor/pc.current_adjustment;
 		if (fac < min_adj) fac = min_adj;
 		else if (fac > max_adj) fac = max_adj;
 
@@ -621,7 +626,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 	write_grid(output_filename+".presmooth.vtk",presmooth);
 
 	for (int i = 0; i < 100; ++i)
-		point_connections = smooth_point_connections(surface,point_connections,offset_size,1,1.5,30);
+		point_connections = smooth_point_connections(surface,point_connections);
 
 	Grid offset = offset_surface_with_point_connections(surface,point_connections);
 	write_grid(output_filename+".0.offset.vtk",offset);
@@ -632,8 +637,11 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 	int last_n_intersected = INT_MAX;
 	int last_n_negative = INT_MAX;
 	bool needs_radical_improvement = false;
-	int i_fastest = 50;
+	int failed_steps = 0;
+	int i_max_skew = 20;
 	for (int i = 1; i < 100; ++i) {
+		double skew_fraction = ((double) i)/i_max_skew;
+		if (skew_fraction > 1) skew_fraction = 1;
 
 		//TODO Look into calculating and/or smoothing normals per iteration
 		bool finished = true;
@@ -649,17 +657,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 
 		if (finished) break;
 
-		if (per_iteration_smoothing && i < i_fastest) {
+		if (!needs_radical_improvement) {
 			if (intersected_points.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
-				i = i_fastest;
-				fprintf(stderr,"Switching to fastest improvement\n");
-			}
-			last_n_intersected = intersected_points.size();
-			last_n_negative = negative_volumes.size();
-		} else if (!needs_radical_improvement) {
-			if (intersected_points.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
-				needs_radical_improvement = true;
-				fprintf(stderr,"Switching to radical measures\n");
+				failed_steps++;
+				if (failed_steps > 2) {
+					needs_radical_improvement = true;
+					fprintf(stderr,"Switching to radical measures\n");
+				}
 			}
 			last_n_intersected = intersected_points.size();
 			last_n_negative = negative_volumes.size();
@@ -685,12 +689,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 				if (poisoned_points[_p]) {
 					PointConnection& pc = point_connections[_p-n_surface_points];
 					if (needs_radical_improvement) {
+						pc.current_adjustment = 0;
 						pc.normal *= 0;
-						pc.orig_normal *= 0;
 					} else {
-						if (per_iteration_smoothing)
-							pc.orig_normal *= 0.95;
-						else
+						if (per_iteration_smoothing) {
+							pc.current_adjustment *= 0.8;
+							pc.max_skew_angle = max_skew_angle + (max_relaxed_skew_angle-max_skew_angle)*skew_fraction;
+						} else
 							pc.normal *= 0.9;
 					}
 					poisoned_points[_p] = false;
@@ -698,13 +703,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 			}
 		}
 		if (per_iteration_smoothing) {
-			double fraction = ((double) i)/i_fastest;
-			if (fraction > 1) fraction = 1;
-			double min_adj = 1 - 0.5*fraction;
-			double max_adj = 1.5 + 0.5*fraction;
-			double skew_angle = 30 + 30*fraction;
 			for (int j = 0; j < 100; ++j)
-				point_connections = smooth_point_connections(surface,point_connections,offset_size,min_adj,max_adj,skew_angle);
+				point_connections = smooth_point_connections(surface,point_connections);
 		}
 
 		Grid offset = offset_surface_with_point_connections(surface,point_connections);
@@ -858,7 +858,7 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		Grid offset_surface = create_offset_surface(surface,offset_size,false);
+		Grid offset_surface = create_offset_surface(surface,offset_size,true);
 		write_grid(output_filename+".offset.vtk",offset_surface);
 		Grid offset_volume = volume_from_surfaces(surface,offset_surface);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
