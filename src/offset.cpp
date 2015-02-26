@@ -465,8 +465,6 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 			NotImplemented("Must pass triangle surfaces");
 		}
 	}
-	if (n_negative > 0)
-		fprintf(stderr,"%d Negative Volumes Created\n",n_negative);
 	return volume;
 }
 
