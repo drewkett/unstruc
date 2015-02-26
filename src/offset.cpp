@@ -660,11 +660,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 		if (!needs_radical_improvement) {
 			if (intersected_points.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
 				failed_steps++;
+				fprintf(stderr,"Failed iteration\n");
 				if (failed_steps > 2) {
 					needs_radical_improvement = true;
 					fprintf(stderr,"Switching to radical measures\n");
 				}
 			}
+			failed_steps = 0;
 			last_n_intersected = intersected_points.size();
 			last_n_negative = negative_volumes.size();
 		}
