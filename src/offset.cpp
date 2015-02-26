@@ -447,11 +447,8 @@ std::vector<double> normalize(std::vector <double> vec) {
 
 
 std::vector <PointConnection> calculate_point_connections(const Grid& surface, double offset_size) {
-	std::vector< Vector > normals;
-	normals.resize(surface.elements.size());
-
-	std::vector< Point > centers;
-	centers.resize(surface.elements.size());
+	std::vector< Vector > normals (surface.elements.size());
+	std::vector< Point > centers (surface.elements.size());
 
 	std::vector< std::vector <int> > point_elements (surface.points.size());
 	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
