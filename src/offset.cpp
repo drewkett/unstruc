@@ -8,8 +8,9 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
-const static double max_geometric_stretch = 3;
-const static double max_skew_angle = 30;
+const static double min_geometric_stretch = 0.1;
+const static double max_geometric_stretch = 2;
+const static double max_skew_angle = 45;
 const static double max_relaxed_skew_angle = 60;
 const static double tetgen_min_ratio = 1.03;
 
@@ -480,6 +481,7 @@ struct PointConnection {
 	Vector normal;
 	Vector orig_normal;
 	double current_adjustment;
+	double geometric_severity;;
 	double geometric_stretch_factor;
 	double max_skew_angle;
 	bool convex;
@@ -619,8 +621,15 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		point_norm = norm_length*point_norm.normalized();
 
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
-		pc.geometric_stretch_factor = 1/norm_length;
-		if (pc.geometric_stretch_factor > max_geometric_stretch) pc.geometric_stretch_factor = max_geometric_stretch;
+		if (norm_length== 0) Fatal("3");
+		pc.geometric_severity = norm_length;
+		if (pc.convex) {
+			pc.geometric_stretch_factor = pc.geometric_severity;
+			if (pc.geometric_stretch_factor > max_geometric_stretch) pc.geometric_stretch_factor = max_geometric_stretch;
+		} else { 
+			pc.geometric_stretch_factor = 1/pc.geometric_severity;
+			if (pc.geometric_stretch_factor < min_geometric_stretch) pc.geometric_stretch_factor = min_geometric_stretch;
+		}
 
 		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
 		pc.orig_normal = pc.normal;
@@ -661,13 +670,14 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 
 		const Vector& curr_normal = pc.normal;
 		const Vector& orig_normal = pc.orig_normal*pc.current_adjustment;
-		const double max_normal_skew_factor = tan(pc.max_skew_angle/180.0*M_PI);
+		const double max_normal_skew_factor = tan(pc.max_skew_angle*pc.geometric_severity/180.0*M_PI);
 
 		if (orig_normal.length() == 0) continue;
 		Point orig_p = surface_p + orig_normal;
 
-		double orig_weight = pc.current_adjustment*pc.current_adjustment*(1 - 1/pc.geometric_stretch_factor)/(1-1/max_geometric_stretch);
+		double orig_weight = pc.current_adjustment*(1 - pc.geometric_severity);
 
+		double min_adj = 1, max_adj = 1;
 		Point smoothed_point;
 		smoothed_point.x = orig_p.x*orig_weight;
 		smoothed_point.y = orig_p.y*orig_weight;
@@ -680,14 +690,16 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			smoothed_point.x += w*offset_p.x;
 			smoothed_point.y += w*offset_p.y;
 			smoothed_point.z += w*offset_p.z;
+			
+			const PointConnection& other = data.connections[pw.p];
+			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
+			if (l < min_adj) min_adj = l;
+			if (l > max_adj) max_adj = l;
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
 		Vector smoothed_perp = fac*orig_normal;
 		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
-		//TODO: Make sure these are the right factors
-		const double min_adj = 1/pc.geometric_stretch_factor;
-		const double max_adj = max_geometric_stretch/pc.geometric_stretch_factor/pc.current_adjustment;
 		if (fac < min_adj) fac = min_adj;
 		else if (fac > max_adj) fac = max_adj;
 
