@@ -122,6 +122,7 @@ Grid read_stl_binary(const std::string& filename) {
 		e.points[0] = 3*i;
 		e.points[1] = 3*i+1;
 		e.points[2] = 3*i+2;
+		e.name_i = 1;
 		grid.elements.push_back(e);
 	}
 	f.get();
