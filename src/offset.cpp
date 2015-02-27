@@ -1037,6 +1037,7 @@ int main(int argc, char* argv[]) {
 			current_offset_size *= growth_rate;
 			last_offset_surface = offset_surface;
 		}
+		offset_volume.merge_points(0);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
 
 		//TODO: add layer splitting
