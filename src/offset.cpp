@@ -8,7 +8,7 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
-const static double max_geometric_stretch = 2;
+const static double max_geometric_stretch = 3;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 60;
 const static double tetgen_min_ratio = 1.03;
@@ -552,6 +552,10 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 	for (int i = 0; i < surface.points.size(); ++i) {
 		PointConnection& pc = sdata.connections[i];
+
+		pc.max_skew_angle = max_skew_angle;
+		pc.current_adjustment = 1;
+
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
 
@@ -568,7 +572,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		double norm_length = point_norm.length();
 
 		// Correct normals that will cause self intersections
-		for (int j = 0; j < 10; ++j) {
+		for (int j = 0; j < 100; ++j) {
 			bool all_positive = true;
 			for (int _e : elements) {
 				const Vector& n = sdata.element_normals[_e];
@@ -607,8 +611,6 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
 		pc.orig_normal = pc.normal;
-		pc.max_skew_angle = max_skew_angle;
-		pc.current_adjustment = 1;
 
 		assert ((pc.pointweights.size() % 2) == 0);
 
@@ -651,7 +653,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		if (orig_normal.length() == 0) continue;
 		Point orig_p = surface_p + orig_normal;
 
-		double orig_weight = (1 - 1/pc.geometric_stretch_factor)/(1-1/max_geometric_stretch);
+		double orig_weight = pc.current_adjustment*pc.current_adjustment*(1 - 1/pc.geometric_stretch_factor)/(1-1/max_geometric_stretch);
 
 		Point smoothed_point;
 		smoothed_point.x = orig_p.x*orig_weight;
@@ -811,7 +813,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 					} else {
 						if (per_iteration_smoothing) {
 							pc.current_adjustment *= 0.8;
-							pc.max_skew_angle = max_skew_angle + (max_relaxed_skew_angle-max_skew_angle)*skew_fraction;
+							if (pc.current_adjustment < 0.1)
+								pc.current_adjustment = 0.1;
+							pc.max_skew_angle = max_relaxed_skew_angle;
 						} else
 							pc.normal *= 0.9;
 					}
@@ -820,7 +824,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 			}
 		}
 		if (per_iteration_smoothing) {
-			for (int j = 0; j < 100; ++j)
+			for (int j = 0; j < 20; ++j)
 				smooth_point_connections(surface,smoothing_data);
 		}
 
@@ -977,6 +981,8 @@ int main(int argc, char* argv[]) {
 	fprintf(stderr,"Verifying surface\n");
 	verify_complete_surface(surface);
 	Point hole = orient_surface(surface);
+
+	write_grid(output_filename+".surface.su2",surface);
 
 	Grid volume;
 	if (offset_size != 0) {
