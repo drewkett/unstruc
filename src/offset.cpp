@@ -968,6 +968,7 @@ int main(int argc, char* argv[]) {
 	int argnum = 0;
 	std::string input_filename, output_filename;
 	double offset_size = 0;
+	double growth_rate = 1.5;
 	int nlayers = 1;
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i][0] == '-') {
@@ -980,6 +981,10 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) parse_failed("Must pass integer to -n");
 				nlayers = atoi(argv[i]);
+			} else if (arg == "-g") {
+				++i;
+				if (i == argc) parse_failed("Must pass float to -n");
+				growth_rate = atof(argv[i]);
 			} else {
 				parse_failed("Unknown option passed '"+arg+"'");
 			}
@@ -1029,7 +1034,7 @@ int main(int argc, char* argv[]) {
 
 			offset_volume += volume_from_surfaces(last_offset_surface,offset_surface);
 
-			current_offset_size *= 1.5;
+			current_offset_size *= growth_rate;
 			last_offset_surface = offset_surface;
 		}
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
