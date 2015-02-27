@@ -482,6 +482,7 @@ struct PointConnection {
 	double current_adjustment;
 	double geometric_stretch_factor;
 	double max_skew_angle;
+	bool convex;
 	std::vector <PointWeight> pointweights;
 	std::vector <int> elements;
 };
@@ -504,6 +505,7 @@ std::vector<double> normalize(std::vector <double> vec) {
 SmoothingData calculate_point_connections(const Grid& surface, double offset_size) {
 	std::vector< std::vector <int> > point_elements (surface.points.size());
 	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
+	std::vector< std::vector <Vector> > point_bisect_vectors (surface.points.size());
 
 	SmoothingData sdata;
 	sdata.connections = std::vector <PointConnection> (surface.points.size());
@@ -540,6 +542,9 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			double angle = fabs(angle_between(vm,vp));
 			point_elements_angle[_p].push_back(angle);
 
+			Vector bisect = (vm + vp).normalized();
+			point_bisect_vectors[_p].push_back(bisect);
+
 			PointConnection& pc = sdata.connections[_p];
 
 			//TODO: Look into avoid connecting points across sharp edges (feature edges)
@@ -559,17 +564,25 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
 
-		std::vector <double> angle_factors = normalize(point_elements_angle[i]);
+		const std::vector <double>& angle_factors = normalize(point_elements_angle[i]);
+		const std::vector <Vector>& bisect_vectors = point_bisect_vectors[i];
 
 		Vector point_norm;
+		Vector point_bisect;
 		for (int j = 0; j < elements.size(); ++j) {
 			int _e = elements[j];
 			double fac = angle_factors[j];
 
 			const Vector& n = sdata.element_normals[_e];
 			point_norm += fac*n;
+
+			const Vector& bisect = bisect_vectors[j];
+			point_bisect += fac*bisect;
 		}
 		double norm_length = point_norm.length();
+
+		double convex_test = dot(point_norm.normalized(),point_bisect.normalized());
+		pc.convex = convex_test < 0;
 
 		// Correct normals that will cause self intersections
 		for (int j = 0; j < 100; ++j) {
