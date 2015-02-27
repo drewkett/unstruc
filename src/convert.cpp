@@ -92,7 +92,7 @@ int main (int argc, char* argv[])
 			if (j == 0)
 				c_outputfile = argv[i];
 			else 
-				inputfiles.emplace_back(argv[i]);
+				inputfiles.push_back( std::string(argv[i]) );
 			j++;
 		}
 		i++;

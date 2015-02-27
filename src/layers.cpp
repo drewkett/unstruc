@@ -56,7 +56,7 @@ std::vector< std::vector<int> > assemble_elements_by_point (Grid& grid) {
 Surface surface_from_grid (Grid& grid) {
 	Surface surface;
 	for (Point& p : grid.points)
-		surface.points.emplace_back(p);
+		surface.points.push_back( Point(p) );
 	int i_edge = 0;
 	for (int i = 0; i < grid.elements.size(); ++i) {
 		Element& e = grid.elements[i];
@@ -198,26 +198,26 @@ std::vector<Feature> identify_features(Surface& surface, double feature_angle) {
 			if (e.p1 == f.points.front()) {
 				found_matching_feature = true;
 				f.points.push_front(e.p2);
-				f.edges.emplace_front(ie,true);
+				f.edges.push_front( FeatureEdge(ie,true) );
 			} else if (e.p2 == f.points.front()) {
 				found_matching_feature = true;
 				f.points.push_front(e.p1);
-				f.edges.emplace_front(ie,false);
+				f.edges.push_front( FeatureEdge(ie,false) );
 			} else if (e.p1 == f.points.back()) {
 				found_matching_feature = true;
 				f.points.push_back(e.p2);
-				f.edges.emplace_back(ie,false);
+				f.edges.push_back( FeatureEdge(ie,false) );
 			} else if (e.p2 == f.points.front()) {
 				found_matching_feature = true;
 				f.points.push_back(e.p1);
-				f.edges.emplace_back(ie,true);
+				f.edges.push_back( FeatureEdge(ie,true) );
 			}
 			if (found_matching_feature)
 				break;
 		}
 		if (!found_matching_feature) {
 			Feature f;
-			f.edges.emplace_back(ie,false);
+			f.edges.push_back( FeatureEdge(ie,false) );
 			f.points.push_back(e.p1);
 			f.points.push_back(e.p2);
 			features.push_back(f);

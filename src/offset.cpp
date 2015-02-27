@@ -96,17 +96,17 @@ std::vector<OEdge> get_edges(Grid& grid, const std::vector<int>& element_index) 
 	for (int _e : element_index) {
 		Element& e = grid.elements[_e];
 		assert (e.type == Shape::Wedge);
-		edges.emplace_back(e.points[0],e.points[1],_e);
-		edges.emplace_back(e.points[1],e.points[2],_e);
-		edges.emplace_back(e.points[2],e.points[0],_e);
+		edges.push_back( OEdge(e.points[0],e.points[1],_e) );
+		edges.push_back( OEdge(e.points[1],e.points[2],_e) );
+		edges.push_back( OEdge(e.points[2],e.points[0],_e) );
 
-		edges.emplace_back(e.points[3],e.points[4],_e);
-		edges.emplace_back(e.points[4],e.points[5],_e);
-		edges.emplace_back(e.points[5],e.points[3],_e);
+		edges.push_back( OEdge(e.points[3],e.points[4],_e) );
+		edges.push_back( OEdge(e.points[4],e.points[5],_e) );
+		edges.push_back( OEdge(e.points[5],e.points[3],_e) );
 
-		edges.emplace_back(e.points[0],e.points[3],_e);
-		edges.emplace_back(e.points[1],e.points[4],_e);
-		edges.emplace_back(e.points[2],e.points[5],_e);
+		edges.push_back( OEdge(e.points[0],e.points[3],_e) );
+		edges.push_back( OEdge(e.points[1],e.points[4],_e) );
+		edges.push_back( OEdge(e.points[2],e.points[5],_e) );
 	}
 #ifndef NDEBUG
 	fprintf(stderr,"Sorting Faces\n");
@@ -543,8 +543,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			PointConnection& pc = sdata.connections[_p];
 
 			//TODO: Look into avoid connecting points across sharp edges (feature edges)
-			pc.pointweights.emplace_back(_pm,angle);
-			pc.pointweights.emplace_back(_pp,angle);
+			pc.pointweights.push_back( PointWeight(_pm,angle) );
+			pc.pointweights.push_back( PointWeight(_pp,angle) );
 
 			pc.elements.push_back(i);
 		}
@@ -873,9 +873,9 @@ void verify_complete_surface(const Grid& surface) {
 			int j2 = (j + 1)%e.points.size();
 			int p = e.points[j];
 			int p2 = e.points[j2];
-			edges.emplace_back(p,p2);
-			edges_per_point[p].emplace_back(p,p2,i,-1);
-			edges_per_point[p2].emplace_back(p,p2,i,-1);
+			edges.push_back( OEdge(p,p2) );
+			edges_per_point[p].push_back( OEdgeElement(p,p2,i,-1) );
+			edges_per_point[p2].push_back( OEdgeElement(p,p2,i,-1) );
 		}
 	}
 	std::sort(edges.begin(),edges.end());
@@ -902,7 +902,7 @@ void verify_complete_surface(const Grid& surface) {
 			const OEdgeElement& ee2 = edges[2*i+1];
 			if (ee1.edge != ee2.edge)
 				Fatal("Boundary Edge found (4)");
-			edge_list.emplace_back(ee1.edge.p1,ee2.edge.p2,ee1.element1,ee2.element1);
+			edge_list.push_back( OEdgeElement(ee1.edge.p1,ee2.edge.p2,ee1.element1,ee2.element1) );
 		}
 		std::list <int> surface_list;
 		int initial_size = edge_list.size();

@@ -12,7 +12,7 @@
 #include <algorithm>
 
 Grid::Grid(int _dim) : dim(_dim) {
-	names.emplace_back(dim, "default");
+	names.push_back( Name(dim, "default") );
 }
 
 void Grid::merge_points(double tol) {
