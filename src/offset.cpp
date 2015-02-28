@@ -498,8 +498,10 @@ std::vector<double> normalize(std::vector <double> vec) {
 	double total = 0;
 	for (double value : vec)
 		total += value;
-	for (double& value : vec)
-		value /= total;
+	if (total > 0) {
+		for (double& value : vec)
+			value /= total;
+	}
 	return vec;
 }
 
@@ -524,6 +526,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
+		if (cross(v1,v2).length() == 0)
+			Fatal("Bad Element. Has no normal");
 		sdata.element_normals[i] = cross(v1,v2).normalized();
 
 		for (int j = 0; j < e.points.size(); ++j) {
@@ -549,7 +553,6 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 			PointConnection& pc = sdata.connections[_p];
 
-			//TODO: Look into avoid connecting points across sharp edges (feature edges)
 			pc.pointweights.push_back( PointWeight(_pm,angle) );
 			pc.pointweights.push_back( PointWeight(_pp,angle) );
 
@@ -582,6 +585,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			point_bisect += fac*bisect;
 		}
 		double norm_length = point_norm.length();
+		if (point_norm.length() == 0)
+			Fatal("Point Normal length == 0");
 
 		double convex_test = dot(point_norm.normalized(),point_bisect.normalized());
 		pc.convex = convex_test < 0;
@@ -618,10 +623,11 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			continue;
 		}
 
+		if (point_norm.length() == 0)
+			Fatal("Adjusted Point Normal length == 0");
 		point_norm = norm_length*point_norm.normalized();
 
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
-		if (norm_length== 0) Fatal("3");
 		pc.geometric_severity = norm_length;
 		if (pc.convex) {
 			pc.geometric_stretch_factor = pc.geometric_severity;
@@ -647,6 +653,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 			const Point& p1 = surface.points[pw1.p];
 			Vector d = p1 - p;
+			if (d.length()== 0)
+				Fatal("Coincedent points found");
 			double w = (pw1.w + pw2.w)/sqrt(d.length());
 
 			pc.pointweights[j].p = pw1.p;
@@ -654,6 +662,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			total_weight += w;
 		}
 		pc.pointweights.resize(new_size);
+		if (total_weight== 0)
+			Fatal("Weights sum to zero");
 		for (PointWeight& pw : pc.pointweights)
 			pw.w /= total_weight;
 	}
@@ -697,6 +707,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			if (l > max_adj) max_adj = l;
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
+		assert (orig_normal.length() > 0);
 		double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
 		Vector smoothed_perp = fac*orig_normal;
 		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
@@ -707,7 +718,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 
 		double lat_length = smoothed_lateral.length();
 		double perp_length = smoothed_perp.length();
-		if (lat_length > max_normal_skew_factor*perp_length)
+		if (lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 
