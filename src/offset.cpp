@@ -782,8 +782,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 
 		if (negative_volumes.size() > 0) {
 			successful = false;
-			if (i == 1)
-				write_reduced_file(offset_volume,negative_volumes,filename+".negative_elements.0.vtk");
+			//if (i == 1)
+			//	write_reduced_file(offset_volume,negative_volumes,filename+".negative_elements.0.vtk");
 		}
 
 		IntersectionStruct intersections;
@@ -804,8 +804,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 
 		if (intersections.elements.size() > 0) {
 			successful = false;
-			if (i == 1)
-				write_reduced_file(offset_volume,intersections.elements,filename+".intersected_elements.0.vtk");
+			//if (i == 1)
+			//	write_reduced_file(offset_volume,intersections.elements,filename+".intersected_elements.0.vtk");
 		}
 
 		if (successful) break;
