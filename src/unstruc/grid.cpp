@@ -312,7 +312,7 @@ bool Grid::check_integrity() const {
 			}
 	}
 	for (const Name& name : names) {
-		if (name.dim < 2 || name.dim > 3) {
+		if (name.dim < dim-1 || name.dim > dim) {
 			fprintf(stderr,"Name dimension not correctly set\n");
 			return false;
 		}

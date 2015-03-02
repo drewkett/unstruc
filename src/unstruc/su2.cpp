@@ -88,7 +88,7 @@ bool toSU2(const std::string& outputfile, Grid& grid) {
 }
 
 Grid readSU2(const std::string& inputfile) {
-	Grid grid(3);
+	Grid grid;
 	int ipoint, iname, i, j, k;
 	int nelem;
 	Name name;
@@ -129,7 +129,7 @@ Grid readSU2(const std::string& inputfile) {
 				n_elems = std::atoi(token.c_str());
 			}
 			std::cerr << n_elems << " Elements" << std::endl;
-			grid.elements.resize(n_elems);
+			grid.elements.reserve(n_elems);
 			for (int i = 0; i < n_elems; ++i) {
 				getline(f,line);
 				std::stringstream ss(line);
@@ -144,7 +144,7 @@ Grid readSU2(const std::string& inputfile) {
 					ipoint = std::atoi(token.c_str());
 					elem.points[j] = ipoint;
 				}
-				grid.elements[i] = elem;
+				grid.elements.push_back(elem);
 			}
 		} else if (token.substr(0,6) == "NPOIN=") {
 			read_poin = true;
@@ -263,9 +263,7 @@ Grid readSU2(const std::string& inputfile) {
 		}
 		if (e.calc_volume(grid) < 0) {
 			if (e.type == Shape::Tetra) {
-				int temp = e.points[1];
-				e.points[1] = e.points[2];
-				e.points[2] = temp;
+				std::swap(e.points[1],e.points[2]);
 				assert (e.calc_volume(grid) > 0);
 			}
 			n_negative++;
