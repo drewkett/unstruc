@@ -42,14 +42,14 @@ Element::Element(Shape::Type T) : type(T) {
 	points.resize(Shape::Info[T].n_points);
 }
 
-void dump(Element &e) {
+void dump(const Element &e) {
 	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
 	for (int p : e.points) {
 		printf("Point %d\n",p);
 	}
 };
 
-void dump(Element &e,Grid &grid) {
+void dump(const Element &e, const Grid &grid) {
 	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
 	for (int p : e.points) {
 		printf("Point %d : ",p);
@@ -181,20 +181,18 @@ double Element::calc_volume(Grid& grid) {
 	return 0;
 }
 
-bool same(Element &e1, Element &e2) {
+bool same(Element e1, Element e2) {
 	if (e1.type != e2.type) return false;
-	std::vector<int> e1_points (e1.points);
-	std::vector<int> e2_points (e2.points);
-	std::sort(e1_points.begin(),e1_points.end());
-	std::sort(e2_points.begin(),e2_points.end());
-	for (int i = 0; i < e1_points.size(); i++) {
-		if (e1_points[i] != e2_points[i])
+	std::sort(e1.points.begin(),e1.points.end());
+	std::sort(e2.points.begin(),e2.points.end());
+	for (int i = 0; i < e1.points.size(); i++) {
+		if (e1.points[i] != e2.points[i])
 			return false;
 	}
 	return true;
 };
 
-bool can_collapse(Element& e) {
+bool can_collapse(const Element& e) {
 	for (int i = 0; i < e.points.size()-1; i++)
 		for (int j = i+1; j < e.points.size(); j++)
 			if (e.points[i] == e.points[j]) return true;
@@ -520,7 +518,7 @@ bool collapse_wedge_wo_split(Element& e) {
 	return false;
 }
 
-bool can_collapse_wo_split(Element& e) {
+bool can_collapse_wo_split(const Element& e) {
 	switch (e.type) {
 		case Shape::Wedge:
 			return (e.points[0] == e.points[3] || e.points[1] == e.points[4] || e.points[2] == e.points[5]);
