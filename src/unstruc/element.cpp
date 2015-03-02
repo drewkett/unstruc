@@ -21,6 +21,15 @@ const Shape Shape::Info[Shape::NShapes] {
 	{ "Wedge"    , 3, 6, 13 },
 	{ "Pyramid"  , 3, 5, 14 }
 };
+
+Shape::Type type_from_vtk_id(int vtk_id) {
+	for (int i = 0; i < Shape::NShapes; ++i) {
+		if (Shape::Info[i].vtk_id == vtk_id)
+			return static_cast<Shape::Type>(i);
+	}
+	return Shape::Undefined;
+}
+
 void WrongElement(Shape::Type T1, Shape::Type T2) {
 	std::ostringstream oss;
 	oss << "Wrong Element Type" << std::endl;

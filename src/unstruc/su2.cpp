@@ -134,7 +134,9 @@ Grid readSU2(const std::string& inputfile) {
 				getline(f,line);
 				std::stringstream ss(line);
 				ss >> token;
-				Element elem = Element((Shape::Type) atoi(token.c_str()));
+				Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
+				if (type == Shape::Undefined) Fatal("Unrecognized shape type");
+				Element elem = Element(type);
 				//Assign to default name block
 				elem.name_i = 0;
 				for (j = 0; j < elem.points.size(); ++j) {
@@ -233,7 +235,9 @@ Grid readSU2(const std::string& inputfile) {
 					ss.clear();
 					ss.str(line);
 					ss >> token;
-					Element elem = Element((Shape::Type) atoi(token.c_str()));
+					Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
+					if (type == Shape::Undefined) Fatal("Unrecognized shape type");
+					Element elem = Element(type);
 					for (k=0; k<elem.points.size(); k++) {
 						ss >> token;
 						ipoint = std::atoi(token.c_str());

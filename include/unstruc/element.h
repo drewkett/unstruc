@@ -26,6 +26,8 @@ struct Shape {
 	};
 };
 
+Shape::Type type_from_vtk_id(int vtk_id);
+
 struct Grid;
 
 struct Element
