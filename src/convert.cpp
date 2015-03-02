@@ -61,6 +61,7 @@ void print_usage () {
 "This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)\n"
 "Option Arguments\n"
 "-m                   Attempt to merge points that are close together\n"
+"-s scale_factor      Scale model by a factor\n"
 "-t translation_file  Specify translation file for changing surface/block names\n"
 "-h, --help           Print usage\n";
 }
@@ -72,6 +73,7 @@ int main (int argc, char* argv[])
 	std::string arg;
 	std::vector <std::string> inputfiles;
 	bool mergepoints = false;
+	double scale_factor = 1;
 	while (i < argc) {
 		if (argv[i][0] == '-') {
 			std::string arg (argv[i]);
@@ -81,6 +83,10 @@ int main (int argc, char* argv[])
 				c_translationfile = argv[i];
 			} else if (arg == "-m") {
 				mergepoints = true;
+			} else if (arg == "-s") {
+				i++;
+				if (i == argc) Fatal("Must pass float option to -s");
+				scale_factor = atof(argv[i]);
 			} else if (arg == "-h" || arg == "--help") {
 				print_usage();
 				exit(0);
@@ -110,6 +116,13 @@ int main (int argc, char* argv[])
 	for (int i = 0; i < inputfiles.size(); ++i) {
 		grid = read_grid(inputfiles[i]);
 	}
+	if (scale_factor != 1)
+		fprintf(stderr,"Scaling mesh by %gx\n",scale_factor);
+		for (Point& p : grid.points) {
+			p.x = p.x*scale_factor;
+			p.y = p.y*scale_factor;
+			p.z = p.z*scale_factor;
+		}
 	//set_i_points(grid);
 	if (mergepoints) {
 		grid.merge_points(TOL);
