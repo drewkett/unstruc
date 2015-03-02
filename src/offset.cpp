@@ -428,17 +428,6 @@ void write_reduced_file_from_points(Grid& grid, std::vector <int> points, std::s
 	write_grid(filename,reduced_grid);
 }
 
-void print_usage () {
-	fprintf(stderr,
-"unstruc-offset [-s offset_size] [-n number_of_layers] surface_file output_file\n");
-}
-
-void parse_failed (std::string msg) {
-	print_usage();
-	fprintf(stderr,"\n%s\n",msg.c_str());
-	exit(1);
-}
-
 Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	if (surface1.elements.size() != surface2.elements.size())
 		Fatal("surfaces don't match");
@@ -481,7 +470,7 @@ struct PointConnection {
 	Vector normal;
 	Vector orig_normal;
 	double current_adjustment;
-	double geometric_severity;;
+	double geometric_severity;
 	double geometric_stretch_factor;
 	double max_skew_angle;
 	bool convex;
@@ -975,6 +964,17 @@ void verify_complete_surface(const Grid& surface) {
 	}
 }
 
+void print_usage () {
+	fprintf(stderr,
+"unstruc-offset [-h] [-s offset_size] [-n number_of_layers] surface_file output_file\n");
+}
+
+void parse_failed (std::string msg) {
+	print_usage();
+	fprintf(stderr,"\n%s\n",msg.c_str());
+	exit(1);
+}
+
 int main(int argc, char* argv[]) {
 	int argnum = 0;
 	std::string input_filename, output_filename;
@@ -996,6 +996,9 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
+			} else if (arg == "-h") {
+				print_usage();
+				std::exit(0);
 			} else {
 				parse_failed("Unknown option passed '"+arg+"'");
 			}
