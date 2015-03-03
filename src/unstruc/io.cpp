@@ -44,7 +44,7 @@ Grid read_grid(const std::string& filename) {
 	return grid;
 }
 
-void write_grid(const std::string& filename,Grid& grid) {
+void write_grid(const std::string& filename,const Grid& grid) {
 	if (!grid.check_integrity())
 		Fatal("Grid integrity check failed");
 

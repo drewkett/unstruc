@@ -14,7 +14,7 @@
 #include <vector>
 #include <map>
 
-bool toSU2(const std::string& outputfile, Grid& grid) {
+bool toSU2(const std::string& outputfile, const Grid& grid) {
 	int i, j;
 
 	FILE * f;
@@ -24,12 +24,12 @@ bool toSU2(const std::string& outputfile, Grid& grid) {
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
 	int n_volume_elements = 0;
-	for (Element& e : grid.elements)
+	for (const Element& e : grid.elements)
 		if (Shape::Info[e.type].dim == grid.dim)
 			n_volume_elements++;
 
 	fprintf(f,"NELEM= %d\n",n_volume_elements);
-	for (Element& e : grid.elements) {
+	for (const Element& e : grid.elements) {
 		if (Shape::Info[e.type].dim != grid.dim) continue;
 		fprintf(f,"%d",Shape::Info[e.type].vtk_id);
 		for (int p : e.points) {
@@ -42,7 +42,7 @@ bool toSU2(const std::string& outputfile, Grid& grid) {
 	std::cerr << "Writing Points" << std::endl;
 	fprintf(f,"NPOIN= %zu\n",grid.points.size());
 	for (i = 0; i < grid.points.size(); i++) {
-		Point& p = grid.points[i];
+		const Point& p = grid.points[i];
 		if (grid.dim == 2)
 			fprintf(f,"%.17g %.17g %d\n",p.x,p.y,i);
 		else
@@ -51,7 +51,7 @@ bool toSU2(const std::string& outputfile, Grid& grid) {
 	fprintf(f,"\n");
 	std::vector<int> name_count(grid.names.size(),0);
 	for (i = 0; i < grid.elements.size(); i++) {
-		Element &e = grid.elements[i];
+		const Element &e = grid.elements[i];
 		if (Shape::Info[e.type].dim != (grid.dim-1)) continue;
 		if (e.name_i < 0) continue;
 		name_count[e.name_i]++;
@@ -65,13 +65,13 @@ bool toSU2(const std::string& outputfile, Grid& grid) {
 	fprintf(f,"NMARK= %d\n",n_names);
 	for (i = 0; i < grid.names.size(); i++) {
 		if (name_count[i] == 0) continue;
-		Name& name = grid.names[i];
+		const Name& name = grid.names[i];
 		if (name.dim != grid.dim - 1) continue;
 		std::cerr << i << " : " << name.name << " (" << name_count[i] << ")" << std::endl;
 		fprintf(f,"MARKER_TAG= %s\n",name.name.c_str());
 		fprintf(f,"MARKER_ELEMS= %d\n",name_count[i]);
 		for (j = 0; j < grid.elements.size(); j++) {
-			Element &e = grid.elements[j];
+			const Element &e = grid.elements[j];
 			if (Shape::Info[e.type].dim != grid.dim - 1) continue;
 			if (e.name_i != i) continue;
 			fprintf(f,"%d",Shape::Info[e.type].vtk_id);

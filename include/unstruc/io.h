@@ -18,6 +18,6 @@ enum struct FileType {
 
 FileType filetype_from_filename(const std::string& filename);
 Grid read_grid(const std::string& filename);
-void write_grid(const std::string& filename, Grid& grid);
+void write_grid(const std::string& filename,const Grid& grid);
 
 #endif

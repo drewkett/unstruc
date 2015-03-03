@@ -5,7 +5,7 @@
 
 struct Grid;
 
-bool toSU2(const std::string& outputfile, Grid &grid);
+bool toSU2(const std::string& outputfile, const Grid &grid);
 Grid readSU2(const std::string& inputfile);
 
 #endif

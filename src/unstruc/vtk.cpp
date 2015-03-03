@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(const std::string& outputfile, Grid &grid) {
+bool toVTK(const std::string& outputfile, const Grid &grid) {
 	std::cerr << "Writing '" << outputfile << "'" << std::endl;
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
@@ -21,7 +21,7 @@ bool toVTK(const std::string& outputfile, Grid &grid) {
 	f << "DATASET UNSTRUCTURED_GRID" << std::endl;
 	//std::cerr << "Writing Points" << std::endl;
 	f << "POINTS " << grid.points.size() << " double" << std::endl;
-	for (Point& p : grid.points) {
+	for (const Point& p : grid.points) {
 		f << p.x << " " << p.y;
 		if (grid.dim == 3)
 			f << " " << p.z << std::endl;
@@ -31,12 +31,12 @@ bool toVTK(const std::string& outputfile, Grid &grid) {
 	//std::cerr << "Writing Cells" << std::endl;
 	int n_volume_elements = 0;
 	int n_elvals = 0;
-	for (Element& e : grid.elements) {
+	for (const Element& e : grid.elements) {
 		n_volume_elements++;
 		n_elvals += e.points.size()+1;
 	}
 	f << "CELLS " << n_volume_elements << " " << n_elvals << std::endl;
-	for (Element& e : grid.elements) {
+	for (const Element& e : grid.elements) {
 		f << e.points.size();
 		for (int p : e.points) {
 			f << " " << p;
@@ -45,7 +45,7 @@ bool toVTK(const std::string& outputfile, Grid &grid) {
 	}
 
 	f << "CELL_TYPES " << n_volume_elements << std::endl;
-	for (Element& e : grid.elements) {
+	for (const Element& e : grid.elements) {
 		f << Shape::Info[e.type].vtk_id << std::endl;
 	}
 	return true;

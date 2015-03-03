@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-void toGMSH(const std::string& filename, Grid &grid) {
+void toGMSH(const std::string& filename, const Grid &grid) {
 	FILE* f = fopen(filename.c_str(),"w");
 	if (!f) Fatal("Could not open file");
 
@@ -16,13 +16,13 @@ void toGMSH(const std::string& filename, Grid &grid) {
 	fprintf(f,"$EndMeshFormat\n");
 	fprintf(f,"$Nodes %lu\n",grid.points.size());
 	for (int i = 0; i < grid.points.size(); i++) {
-		Point& p = grid.points[i];
+		const Point& p = grid.points[i];
 		fprintf(f,"%d %.17g %.17g %.17g\n",i+1,p.x,p.y,p.z);
 	}
 	fprintf(f,"$EndNodes\n");
 	fprintf(f,"$Elements %lu\n",grid.elements.size());
 	for (int i = 0; i < grid.elements.size(); i++) {
-		Element &e = grid.elements[i];
+		const Element &e = grid.elements[i];
 		int eltype = 0;
 		switch (e.type) {
 			case Shape::Quad:
@@ -42,7 +42,7 @@ void toGMSH(const std::string& filename, Grid &grid) {
 	fprintf(f,"$EndElements\n");
 	fprintf(f,"$PhysicalNames %lu",grid.names.size());
 	for (int i = 0; i < grid.names.size(); i++) {
-		Name& name = grid.names[i];
+		const Name& name = grid.names[i];
 		fprintf(f,"%d %d \"%s\"\n",name.dim,i+1,name.name.c_str());
 	}
 	fprintf(f,"$EndPhysicalNames\n");

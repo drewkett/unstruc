@@ -5,6 +5,6 @@
 
 struct Grid;
 
-void toGMSH(const std::string& filename, Grid &grid);
+void toGMSH(const std::string& filename, const Grid &grid);
 
 #endif
