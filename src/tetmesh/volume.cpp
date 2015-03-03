@@ -137,9 +137,7 @@ Point orient_surface(Grid& surface) {
 		for (Element& e : surface.elements) {
 			if (e.type != Shape::Triangle)
 				Fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
-			int temp = e.points[1];
-			e.points[1] = e.points[2];
-			e.points[2] = temp;
+			std::swap(e.points[1],e.points[2]);
 		}
 		return test2;
 	} else 
