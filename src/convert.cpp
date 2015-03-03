@@ -57,7 +57,7 @@ void applyTranslation(Grid &grid, TranslationTable &transt) {
 
 void print_usage () {
 	std::cerr << 
-"unstruc-convert [-m] [-t translation_file] output_file input_file [input_file ...]\n\n"
+"unstruc-convert [options] output_file input_file [input_file ...]\n\n"
 "This tool converts between file formats typically used in CFD analysis. Currently supported input file types are Plot3D (.xyz or .p3d) and SU2 (.su2). Currently supported output file types are SU2 (.su2) and VTK (.vtk)\n"
 "Option Arguments\n"
 "-m                   Attempt to merge points that are close together\n"

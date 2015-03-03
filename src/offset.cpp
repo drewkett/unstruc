@@ -966,7 +966,11 @@ void verify_complete_surface(const Grid& surface) {
 
 void print_usage () {
 	fprintf(stderr,
-"unstruc-offset [-h] [-s offset_size] [-n number_of_layers] surface_file output_file\n");
+"unstruc-offset [options] surface_file output_file\n"
+"-g growth_rate		  Set target growth rate between layers (Default = 1.5)\n"
+"-n number_of_layers  Set target number of layers to add (Default = 1)\n"
+"-s offset_size       Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"-h                   Print Usage\n");
 }
 
 void parse_failed (std::string msg) {
