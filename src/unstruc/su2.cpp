@@ -99,8 +99,8 @@ Grid readSU2(const std::string& inputfile) {
 	bool use_point_map = false;
 	f.open(inputfile.c_str(),std::ios::in);
 	std::cerr << "Opening SU2 File '" << inputfile << "'" << std::endl;
-	bool read_dime = false, read_poin = false, read_elem = false;
 	if (!f.is_open()) Fatal("Could not open file");
+	bool read_dime = false, read_poin = false, read_elem = false;
 	while (getline(f,line)) {
 		std::stringstream ss(line);
 		ss >> token;
