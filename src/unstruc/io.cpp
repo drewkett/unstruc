@@ -37,7 +37,7 @@ Grid read_grid(const std::string& filename) {
 		case FileType::SU2:
 			return readSU2(filename);
 		case FileType::STL:
-			return readSTL(filename);
+			return STL::read(filename);
 		default:
 			Fatal("Unsupported filetype for reading");
 	}
@@ -59,6 +59,9 @@ void write_grid(const std::string& filename,Grid& grid) {
 			break;
 		case FileType::GMSH:
 			toGMSH(filename,grid);
+			break;
+		case FileType::STL:
+			STL::write_ascii(filename,grid);
 			break;
 		default:
 			Fatal("Unsupported filetype for writing");

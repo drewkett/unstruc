@@ -11,6 +11,8 @@
 #include <array>
 #include <cstdio>
 
+namespace STL {
+
 Point read_vertex_ascii(std::istream& ss) {
 	Point p;
 	std::string token;
@@ -22,12 +24,13 @@ Point read_vertex_ascii(std::istream& ss) {
 	return p;
 }
 
-Grid read_stl_ascii(const std::string& filename) {
+Grid read_ascii(const std::string& filename) {
 	fprintf(stderr,"Reading ASCII STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.push_back( Name(2,filename) );
 	std::ifstream f;
 	f.open(filename);
+	if (!f.is_open()) Fatal("Could not open file");
 	bool in_solid = false;
 	std::string token;
 	std::string solid_name;
@@ -97,12 +100,13 @@ Point read_vertex_binary(std::ifstream& f) {
 	return Point (x,y,z);
 }
 
-Grid read_stl_binary(const std::string& filename) {
+Grid read_binary(const std::string& filename) {
 	fprintf(stderr,"Reading Binary STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.push_back( Name(2,filename) );
 	std::ifstream f;
 	f.open(filename);
+	if (!f.is_open()) Fatal("Could not open file");
 	char header[80];
 
 	f.read(header, sizeof(header));
@@ -131,13 +135,86 @@ Grid read_stl_binary(const std::string& filename) {
 	return grid;
 }
 
-Grid readSTL(const std::string& filename) {
+Grid read(const std::string& filename) {
 	std::ifstream f;
 	f.open(filename);
+	if (!f.is_open()) Fatal("Could not open file");
 	std::string token;
 	f >> token;
 	if (token == "solid")
-		return read_stl_ascii(filename);
+		return read_ascii(filename);
 	else
-		return read_stl_binary(filename);
+		return read_binary(filename);
+}
+
+void write_ascii(const std::string& filename, const Grid& grid) {
+	FILE * f;
+	f = fopen(filename.c_str(),"w");
+	fprintf(stderr,"Outputting %s\n",filename.c_str());
+	if (!f) Fatal("Could not open file");
+	for (const Element& e : grid.elements) {
+		if (e.type != Shape::Triangle)
+			Fatal("STL files only support triangles");
+		if (e.points.size() != 3)
+			Fatal("One of the triangles does not have 3 points");
+	}
+	fprintf(f,"solid\n");
+	for (const Element& e : grid.elements) {
+		fprintf(f,"  facet normal 0.0 0.0 0.0\n");
+		fprintf(f,"    outer loop\n");
+		for (int _p : e.points) {
+			const Point& p = grid.points[_p];
+			fprintf(f,"      vertex %.17g %.17g %.17g\n",p.x,p.y,p.z);
+		}
+		fprintf(f,"    endloop\n");
+		fprintf(f,"  endfacet\n");
+	}
+	fprintf(f,"endsolid\n");
+}
+
+void write_binary_vertex(FILE * f, const Point& p) {
+	float x = p.x;
+	fwrite(&x,sizeof(x),1,f);
+	float y = p.y;
+	fwrite(&y,sizeof(y),1,f);
+	float z = p.z;
+	fwrite(&z,sizeof(z),1,f);
+}
+
+void write_binary_vertex(FILE * f, const Vector& v) {
+	float x = v.x;
+	fwrite(&x,sizeof(x),1,f);
+	float y = v.y;
+	fwrite(&y,sizeof(y),1,f);
+	float z = v.z;
+	fwrite(&z,sizeof(z),1,f);
+}
+
+void write_binary(const std::string& filename, const Grid& grid) {
+	FILE * f;
+	f = fopen(filename.c_str(),"w");
+	fprintf(stderr,"Outputting %s\n",filename.c_str());
+	if (!f) Fatal("Could not open file");
+	for (const Element& e : grid.elements) {
+		if (e.type != Shape::Triangle)
+			Fatal("STL files only support triangles");
+		if (e.points.size() != 3)
+			Fatal("One of the triangles does not have 3 points");
+	}
+	char header[80];
+	fwrite(header,sizeof(header),1,f);
+	uint32_t n = grid.elements.size();
+	fwrite(&n,sizeof(n),1,f);
+	for (const Element& e : grid.elements) {
+		Vector normal (0, 0, 1);
+		write_binary_vertex(f,normal);
+		for (int _p : e.points) {
+			const Point& p = grid.points[_p];
+			write_binary_vertex(f,p);
+		}
+		uint16_t attr = 0;
+		fwrite(&attr,sizeof(attr),1,f);
+	}
+}
+
 }
