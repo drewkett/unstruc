@@ -89,13 +89,13 @@ struct IntersectionStruct {
 	std::vector <int> elements;
 };
 
-std::vector<OEdge> get_edges(Grid& grid, const std::vector<int>& element_index) {
+std::vector<OEdge> get_edges(const Grid& grid, const std::vector<int>& element_index) {
 	std::vector<OEdge> edges;
 #ifndef NDEBUG
 	fprintf(stderr,"Create Edges\n");
 #endif
 	for (int _e : element_index) {
-		Element& e = grid.elements[_e];
+		const Element& e = grid.elements[_e];
 		assert (e.type == Shape::Wedge);
 		edges.push_back( OEdge(e.points[0],e.points[1],_e) );
 		edges.push_back( OEdge(e.points[1],e.points[2],_e) );
@@ -136,8 +136,8 @@ std::vector<OEdge> get_edges(Grid& grid, const std::vector<int>& element_index) 
 	for (OEdge& edge : edges) {
 		assert (edge.p1 != -1);
 		assert (edge.p2 != -1);
-		Point& p1 = grid.points[edge.p1];
-		Point& p2 = grid.points[edge.p2];
+		const Point& p1 = grid.points[edge.p1];
+		const Point& p2 = grid.points[edge.p2];
 		edge.min.x = std::min(p1.x,p2.x);
 		edge.min.y = std::min(p1.y,p2.y);
 		edge.min.z = std::min(p1.z,p2.z);
@@ -148,14 +148,14 @@ std::vector<OEdge> get_edges(Grid& grid, const std::vector<int>& element_index) 
 	return edges;
 };
 
-std::vector<OFace> get_faces(Grid& grid, const std::vector<int>& element_index) {
+std::vector<OFace> get_faces(const Grid& grid, const std::vector<int>& element_index) {
 #ifndef NDEBUG
 	fprintf(stderr,"Creating Faces\n");
 #endif
 	std::vector<OFace> faces;
 	//Create Faces from Elements
 	for (int i : element_index) {
-		Element& e = grid.elements[i];
+		const Element& e = grid.elements[i];
 		assert (e.type == Shape::Wedge);
 		OFace face1;
 		face1.elements.push_back(i);
@@ -238,9 +238,9 @@ std::vector<OFace> get_faces(Grid& grid, const std::vector<int>& element_index) 
 	fprintf(stderr,"Setting Face Properties\n");
 #endif
 	for (OFace& face : faces) {
-		Point& p0 = grid.points[face.points[0]];
-		Point& p1 = grid.points[face.points[1]];
-		Point& p2 = grid.points[face.points[2]];
+		const Point& p0 = grid.points[face.points[0]];
+		const Point& p1 = grid.points[face.points[1]];
+		const Point& p2 = grid.points[face.points[2]];
 		face.min.x = std::min(std::min(p0.x,p1.x),p2.x);
 		face.min.y = std::min(std::min(p0.y,p1.y),p2.y);
 		face.min.z = std::min(std::min(p0.z,p1.z),p2.z);
@@ -253,14 +253,14 @@ std::vector<OFace> get_faces(Grid& grid, const std::vector<int>& element_index) 
 			face.center.y = (p0.y + p1.y + p2.y)/3;
 			face.center.z = (p0.z + p1.z + p2.z)/3;
 		} else {
-			Point& p3 = grid.points[face.points[3]];
+			const Point& p3 = grid.points[face.points[3]];
 			face.normal = cross(p2-p0, p3-p1);
 
 			double total_length = 0;
 			for (int i = 0; i < 4; ++i) {
-				Point& p0 = grid.points[face.points[i]];
-				Point& p1 = grid.points[face.points[(i+1)%4]];
-				Point& p2 = grid.points[face.points[(i+2)%4]];
+				const Point& p0 = grid.points[face.points[i]];
+				const Point& p1 = grid.points[face.points[(i+1)%4]];
+				const Point& p2 = grid.points[face.points[(i+2)%4]];
 
 				Vector v1 = p1 - p0;
 				Vector v2 = p2 - p1;
@@ -298,7 +298,7 @@ std::vector <int> find_negative_volumes(Grid& grid) {
 	return negative_volumes;
 }
 
-IntersectionStruct find_intersections_with_faces_edges(Grid& grid, const FacesEdges& fe) {
+IntersectionStruct find_intersections_with_faces_edges(const Grid& grid, const FacesEdges& fe) {
 	int j_current = 0;
 	IntersectionStruct intersections;
 	std::vector <bool> intersected_points (grid.points.size(),false);
@@ -309,8 +309,8 @@ IntersectionStruct find_intersections_with_faces_edges(Grid& grid, const FacesEd
 		if (i % n_status == 0)
 			fprintf(stderr,".");
 		const OEdge& edge = fe.edges[i];
-		Point& ep1 = grid.points[edge.p1];
-		Point& ep2 = grid.points[edge.p2];
+		const Point& ep1 = grid.points[edge.p1];
+		const Point& ep2 = grid.points[edge.p2];
 		Vector edge_vector = ep2 - ep1;
 		for (int j = j_current; j < fe.faces.size(); ++j) {
 			const OFace& face = fe.faces[j];
@@ -339,8 +339,8 @@ IntersectionStruct find_intersections_with_faces_edges(Grid& grid, const FacesEd
 				Point proj = ep1 - edge_vector*scale;
 				bool intersected = true;
 				for (int k = 0; k < face.points.size(); ++k) {
-					Point& p0 = grid.points[face.points[k]];
-					Point& p1 = grid.points[face.points[(k+1)%face.points.size()]];
+					const Point& p0 = grid.points[face.points[k]];
+					const Point& p1 = grid.points[face.points[(k+1)%face.points.size()]];
 					Vector v1 = p1 - p0;
 					Vector v2 = proj - p1;
 					Vector n = cross(v1,v2);
@@ -374,7 +374,7 @@ IntersectionStruct find_intersections_with_faces_edges(Grid& grid, const FacesEd
 	return intersections;
 }
 
-IntersectionStruct find_intersections_subselection(Grid& grid,const std::vector<int>& element_index) {
+IntersectionStruct find_intersections_subselection(const Grid& grid,const std::vector<int>& element_index) {
 	FacesEdges fe;
 
 	fe.edges = get_edges(grid,element_index);
@@ -402,7 +402,7 @@ IntersectionStruct find_intersections(Grid& grid) {
 	return find_intersections_with_faces_edges(grid,fe);
 }
 
-void write_reduced_file(Grid& grid, std::vector <int> elements, std::string filename) {
+void write_reduced_file(const Grid& grid, std::vector <int> elements, const std::string& filename) {
 	Grid reduced_grid (3);
 	reduced_grid.points = grid.points;
 	for (int _e : elements)
@@ -410,7 +410,7 @@ void write_reduced_file(Grid& grid, std::vector <int> elements, std::string file
 	write_grid(filename,reduced_grid);
 }
 
-void write_reduced_file_from_points(Grid& grid, std::vector <int> points, std::string filename) {
+void write_reduced_file_from_points(const Grid& grid, std::vector <int> points, const std::string& filename) {
 	Grid reduced_grid (3);
 	reduced_grid.points = grid.points;
 	std::sort(points.begin(),points.end());

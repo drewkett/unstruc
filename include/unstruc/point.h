@@ -37,9 +37,9 @@ struct Point
 
 	Point () : x(0), y(0), z(0) {};
 	Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
-	inline bool operator==(Point other) {return x == other.x && y == other.y && z == other.z;}
+	inline bool operator==(const Point& other) const {return x == other.x && y == other.y && z == other.z;}
 
-	inline Point operator/(double value) { return Point (x/value,y/value,z/value); }
+	inline Point operator/(double value) const { return Point (x/value,y/value,z/value); }
 
 	//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
 	inline Vector operator-(const Point& other) const { return Vector (x-other.x,y-other.y,z-other.z);}
