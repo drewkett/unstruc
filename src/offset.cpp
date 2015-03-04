@@ -734,7 +734,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 	data.connections = smoothed_connections;
 }
 
-Grid offset_surface_with_point_connections(const Grid& surface, const std::vector <PointConnection>& point_connections) {
+Grid offset_surface_with_point_connections(const Grid& surface, std::vector <PointConnection>& point_connections) {
 	Grid offset (3);
 	offset.elements = surface.elements;
 	offset.names = surface.names;
