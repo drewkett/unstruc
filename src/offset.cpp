@@ -36,280 +36,6 @@ namespace taubin {
 	const static double n = 20;
 };
 
-struct OEdge {
-	int p1, p2;
-	std::vector <int> elements;
-	Point min, max;
-
-	OEdge() : p1(-1), p2(-1) {};
-	OEdge(int _p1,int _p2) {
-		if (_p1 < _p2) {
-			p1 = _p1;
-			p2 = _p2;
-		} else {
-			p1 = _p2;
-			p2 = _p1;
-		}
-	};
-
-	OEdge(int _p1,int _p2,int e) {
-		if (_p1 < _p2) {
-			p1 = _p1;
-			p2 = _p2;
-		} else {
-			p1 = _p2;
-			p2 = _p1;
-		}
-		elements.push_back(e);
-	};
-
-	bool operator==(const OEdge& other) const {
-		return (p1 == other.p1) && (p2 == other.p2);
-	}
-	bool operator!=(const OEdge& other) const {
-		return !(*this == other);
-	}
-	bool operator<(const OEdge& other) const {
-		if (p1 == other.p1)
-			return p2 < other.p2;
-		else
-			return p1 < other.p1;
-	}
-
-	static bool compare_by_min_x(const OEdge& e1, const OEdge& e2) {
-		return e1.min.x < e2.min.x;
-	}
-};
-
-struct OFace {
-	std::vector<int> points;
-	std::vector <int> elements;
-
-	Point center;
-	Vector normal;
-	Point min, max;
-
-	bool operator==(const OFace& other) const {
-		return points == other.points;
-	}
-	bool operator<(const OFace& other) const {
-		return points < other.points;
-	}
-
-	static bool compare_by_min_x(const OFace& f1, const OFace& f2) {
-		return f1.min.x < f2.min.x;
-	}
-};
-
-struct FacesEdges {
-	std::vector <OFace> faces;
-	std::vector <OEdge> edges;
-};
-
-struct IntersectionStruct {
-	std::vector <int> points;
-	std::vector <int> elements;
-};
-
-std::vector<OEdge> get_edges(const Grid& grid, const std::vector<int>& element_index) {
-	std::vector<OEdge> edges;
-#ifndef NDEBUG
-	fprintf(stderr,"Create Edges\n");
-#endif
-	for (int _e : element_index) {
-		const Element& e = grid.elements[_e];
-		assert (e.type == Shape::Wedge);
-		edges.push_back( OEdge(e.points[0],e.points[1],_e) );
-		edges.push_back( OEdge(e.points[1],e.points[2],_e) );
-		edges.push_back( OEdge(e.points[2],e.points[0],_e) );
-
-		edges.push_back( OEdge(e.points[3],e.points[4],_e) );
-		edges.push_back( OEdge(e.points[4],e.points[5],_e) );
-		edges.push_back( OEdge(e.points[5],e.points[3],_e) );
-
-		edges.push_back( OEdge(e.points[0],e.points[3],_e) );
-		edges.push_back( OEdge(e.points[1],e.points[4],_e) );
-		edges.push_back( OEdge(e.points[2],e.points[5],_e) );
-	}
-#ifndef NDEBUG
-	fprintf(stderr,"Sorting Faces\n");
-#endif
-	std::sort(edges.begin(),edges.end());
-	int i_edge = 0;
-#ifndef NDEBUG
-	fprintf(stderr,"Checking Edges for Duplicates\n");
-#endif
-	for (int i = 0; i < edges.size(); ++i) {
-		OEdge& edge = edges[i];
-		std::vector <int> elements;
-		while (i+1 < edges.size() && edge == edges[i+1]) {
-			OEdge& edge1 = edges[i+1];
-			edge.elements.push_back(edge1.elements[0]);
-			++i;
-		}
-		edges[i_edge] = edge;
-		i_edge++;
-	}
-	edges.resize(i_edge);
-
-#ifndef NDEBUG
-	fprintf(stderr,"Setting Edge Properties\n");
-#endif
-	for (OEdge& edge : edges) {
-		assert (edge.p1 != -1);
-		assert (edge.p2 != -1);
-		const Point& p1 = grid.points[edge.p1];
-		const Point& p2 = grid.points[edge.p2];
-		edge.min.x = std::min(p1.x,p2.x);
-		edge.min.y = std::min(p1.y,p2.y);
-		edge.min.z = std::min(p1.z,p2.z);
-		edge.max.x = std::max(p1.x,p2.x);
-		edge.max.y = std::max(p1.y,p2.y);
-		edge.max.z = std::max(p1.z,p2.z);
-	}
-	return edges;
-};
-
-std::vector<OFace> get_faces(const Grid& grid, const std::vector<int>& element_index) {
-#ifndef NDEBUG
-	fprintf(stderr,"Creating Faces\n");
-#endif
-	std::vector<OFace> faces;
-	//Create Faces from Elements
-	for (int i : element_index) {
-		const Element& e = grid.elements[i];
-		assert (e.type == Shape::Wedge);
-		OFace face1;
-		face1.elements.push_back(i);
-		face1.points.push_back(e.points[0]);
-		face1.points.push_back(e.points[1]);
-		face1.points.push_back(e.points[2]);
-		faces.push_back(face1);
-
-		OFace face2;
-		face2.elements.push_back(i);
-		face2.points.push_back(e.points[3]);
-		face2.points.push_back(e.points[4]);
-		face2.points.push_back(e.points[5]);
-		faces.push_back(face2);
-
-		OFace face3a;
-		face3a.elements.push_back(i);
-		face3a.points.push_back(e.points[0]);
-		face3a.points.push_back(e.points[1]);
-		face3a.points.push_back(e.points[4]);
-		face3a.points.push_back(e.points[3]);
-		faces.push_back(face3a);
-
-		OFace face3b;
-		face3b.elements.push_back(i);
-		face3b.points.push_back(e.points[1]);
-		face3b.points.push_back(e.points[2]);
-		face3b.points.push_back(e.points[5]);
-		face3b.points.push_back(e.points[4]);
-		faces.push_back(face3b);
-
-		OFace face3c;
-		face3c.elements.push_back(i);
-		face3c.points.push_back(e.points[2]);
-		face3c.points.push_back(e.points[0]);
-		face3c.points.push_back(e.points[3]);
-		face3c.points.push_back(e.points[5]);
-		faces.push_back(face3c);
-	}
-#ifndef NDEBUG
-	fprintf(stderr,"Sorting Faces by Points\n");
-#endif
-	//Create face_sort to sort faces after sorting face points, but maintain index to original vector
-	std::vector< std::pair<OFace,int> > face_sort (faces.size());
-	for (int i = 0; i < faces.size(); ++i) {
-		OFace face = faces[i];
-		std::sort(face.points.begin(),face.points.end());
-		face_sort[i].first = face;
-		face_sort[i].second = i;
-	}
-	std::sort(face_sort.begin(),face_sort.end());
-	std::vector <int> face_indices;
-	int i_face = 0;
-#ifndef NDEBUG
-	fprintf(stderr,"Elimating Duplicate Faces\n");
-#endif
-	for (int i = 0; i < faces.size(); ++i) {
-		std::pair <OFace,int>& face_pair = face_sort[i];
-		OFace& face = faces[face_pair.second];
-		assert(face.elements.size() == 1);
-		if (face_pair.first.points.size() == 4) {
-			while (i+1 < faces.size() && face_pair.first == face_sort[i+1].first) {
-				OFace& face1 = faces[face_sort[i+1].second];
-				face.elements.push_back(face1.elements[0]);
-				++i;
-			}
-			assert(face.elements.size() == 2);
-		}
-		face_indices.push_back(face_pair.second);
-		i_face++;
-	}
-	std::sort(face_indices.begin(),face_indices.end());
-	for (int i = 0; i < face_indices.size(); ++i) {
-		assert (i <= face_indices[i]);
-		faces[i] = faces[face_indices[i]];
-	}
-	faces.resize(i_face);
-
-#ifndef NDEBUG
-	fprintf(stderr,"Setting Face Properties\n");
-#endif
-	for (OFace& face : faces) {
-		const Point& p0 = grid.points[face.points[0]];
-		const Point& p1 = grid.points[face.points[1]];
-		const Point& p2 = grid.points[face.points[2]];
-		face.min.x = std::min(std::min(p0.x,p1.x),p2.x);
-		face.min.y = std::min(std::min(p0.y,p1.y),p2.y);
-		face.min.z = std::min(std::min(p0.z,p1.z),p2.z);
-		face.max.x = std::max(std::max(p0.x,p1.x),p2.x);
-		face.max.y = std::max(std::max(p0.y,p1.y),p2.y);
-		face.max.z = std::max(std::max(p0.z,p1.z),p2.z);
-		if (face.points.size() == 3) {
-			face.normal = cross(p1-p0, p2-p1);
-			face.center.x = (p0.x + p1.x + p2.x)/3;
-			face.center.y = (p0.y + p1.y + p2.y)/3;
-			face.center.z = (p0.z + p1.z + p2.z)/3;
-		} else {
-			const Point& p3 = grid.points[face.points[3]];
-			face.normal = cross(p2-p0, p3-p1);
-
-			double total_length = 0;
-			for (int i = 0; i < 4; ++i) {
-				const Point& p0 = grid.points[face.points[i]];
-				const Point& p1 = grid.points[face.points[(i+1)%4]];
-				const Point& p2 = grid.points[face.points[(i+2)%4]];
-
-				Vector v1 = p1 - p0;
-				Vector v2 = p2 - p1;
-				double length = cross(v1,v2).length();
-
-				face.center.x += (p0.x + p1.x + p2.x)*length/3;
-				face.center.y += (p0.y + p1.y + p2.y)*length/3;
-				face.center.z += (p0.z + p1.z + p2.z)*length/3;
-
-				total_length += length;
-			}
-			if (total_length > 0) {
-				face.center.x /= total_length;
-				face.center.y /= total_length;
-				face.center.z /= total_length;
-			}
-			face.min.x = std::min(face.min.x,p3.x);
-			face.min.y = std::min(face.min.y,p3.y);
-			face.min.z = std::min(face.min.z,p3.z);
-			face.max.x = std::max(face.max.x,p3.x);
-			face.max.y = std::max(face.max.y,p3.y);
-			face.max.z = std::max(face.max.z,p3.z);
-		}
-	}
-	return faces;
-};
-
 std::vector <int> find_negative_volumes(Grid& grid) {
 	std::vector <int> negative_volumes;
 	for (int i = 0; i < grid.elements.size(); ++i) {
@@ -318,110 +44,6 @@ std::vector <int> find_negative_volumes(Grid& grid) {
 			negative_volumes.push_back(i);
 	}
 	return negative_volumes;
-}
-
-IntersectionStruct find_intersections_with_faces_edges(const Grid& grid, const FacesEdges& fe) {
-	int j_current = 0;
-	IntersectionStruct intersections;
-	std::vector <bool> intersected_points (grid.points.size(),false);
-	std::vector <bool> intersected_elements (grid.elements.size(),false);
-	int n_edges = fe.edges.size();
-	int n_status = n_edges/20;
-	for (int i = 0; i < fe.edges.size(); ++i) {
-		if (i % n_status == 0)
-			fprintf(stderr,".");
-		const OEdge& edge = fe.edges[i];
-		const Point& ep1 = grid.points[edge.p1];
-		const Point& ep2 = grid.points[edge.p2];
-		Vector edge_vector = ep2 - ep1;
-		for (int j = j_current; j < fe.faces.size(); ++j) {
-			const OFace& face = fe.faces[j];
-			if (edge.min.x > face.max.x)
-				j_current++;
-			else
-				break;
-		}
-		for (int j = j_current; j < fe.faces.size(); ++j) {
-			const OFace& face = fe.faces[j];
-			if (face.min.x > edge.max.x) break;
-			if (edge.min.x > face.max.x || edge.min.y > face.max.y || edge.min.z > face.max.z) continue;
-			if (edge.max.x < face.min.x || edge.max.y < face.min.y || edge.max.z < face.min.z) continue;
-			bool same = false;
-			for (int p : face.points) {
-				if (edge.p1 == p || edge.p2 == p)
-					same = true;
-				if (ep1 == grid.points[p] || ep2 == grid.points[p])
-					same = true;
-			}
-			if (same) continue;
-			double denom = dot(edge_vector,face.normal);
-			if (denom == 0) continue;
-			double scale = dot(ep1 - face.center,face.normal)/denom;
-			if (-1 <= scale && scale <= 0) {
-				Point proj = ep1 - edge_vector*scale;
-				bool intersected = true;
-				for (int k = 0; k < face.points.size(); ++k) {
-					const Point& p0 = grid.points[face.points[k]];
-					const Point& p1 = grid.points[face.points[(k+1)%face.points.size()]];
-					Vector v1 = p1 - p0;
-					Vector v2 = proj - p1;
-					Vector n = cross(v1,v2);
-					if (dot(n,face.normal) <= 0){
-						intersected = false;
-						break;
-					}
-				}
-				if (intersected) {
-					for (int _e : edge.elements)
-						intersected_elements[_e] = true;
-					for (int _e : face.elements)
-						intersected_elements[_e] = true;
-
-					intersected_points[edge.p1] = true;
-					intersected_points[edge.p2] = true;
-					for (int _p : face.points)
-						intersected_points[_p] = true;
-				}
-			}
-		}
-	}
-	for (int i = 0; i < intersected_points.size(); ++i) {
-		if (intersected_points[i])
-			intersections.points.push_back(i);
-	}
-	for (int i = 0; i < intersected_elements.size(); ++i) {
-		if (intersected_elements[i])
-			intersections.elements.push_back(i);
-	}
-	return intersections;
-}
-
-IntersectionStruct find_intersections_subselection(const Grid& grid,const std::vector<int>& element_index) {
-	FacesEdges fe;
-
-	fe.edges = get_edges(grid,element_index);
-	std::sort(fe.edges.begin(),fe.edges.end(),OEdge::compare_by_min_x);
-
-	fe.faces = get_faces(grid,element_index);
-	std::sort(fe.faces.begin(),fe.faces.end(),OFace::compare_by_min_x);
-
-	return find_intersections_with_faces_edges(grid,fe);
-}
-
-IntersectionStruct find_intersections(Grid& grid) {
-	FacesEdges fe;
-
-	std::vector <int> element_index (grid.elements.size()); 
-	for (int i = 0; i < grid.elements.size(); ++i)
-		element_index[i] = i;
-
-	fe.edges = get_edges(grid,element_index);
-	std::sort(fe.edges.begin(),fe.edges.end(),OEdge::compare_by_min_x);
-
-	fe.faces = get_faces(grid,element_index);
-	std::sort(fe.faces.begin(),fe.faces.end(),OFace::compare_by_min_x);
-
-	return find_intersections_with_faces_edges(grid,fe);
 }
 
 void write_reduced_file(const Grid& grid, std::vector <int> elements, const std::string& filename) {
@@ -936,34 +558,35 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			//	write_reduced_file(offset_volume,negative_volumes,filename+".negative_elements.0.vtk");
 		}
 
-		IntersectionStruct intersections;
+		intersections::Data intersection_data;
 		if (intersected_elements.size() and !failed_steps) {
 			fprintf(stderr,"Checking for Intersections (Subselection)");
-			intersections = find_intersections_subselection(offset_volume,intersected_elements);
-			if (intersections.elements.size() == 0) {
-				fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
+			Grid intersected_volume = offset_volume.extract_from_element_index(intersected_elements);
+			intersection_data = intersections::find(intersected_volume);
+			if (intersection_data.elements.size() == 0) {
+				fprintf(stderr,"%lu Intersected Elements\n",intersection_data.elements.size());
 				fprintf(stderr,"Checking for Intersections");
-				intersections = find_intersections(offset_volume);
+				intersection_data = intersections::find(offset_volume);
 				n_full_iterations++;
 			}
 		} else {
 			fprintf(stderr,"Checking for Intersections");
-			intersections = find_intersections(offset_volume);
+			intersection_data = intersections::find(offset_volume);
 			n_full_iterations++;
 		}
-		fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
-		intersected_elements = intersections.elements;
+		fprintf(stderr,"%lu Intersected Elements\n",intersection_data.elements.size());
+		intersected_elements = intersection_data.elements;
 
-		if (intersections.elements.size() > 0) {
+		if (intersection_data.elements.size() > 0) {
 			successful = false;
 			//if (i == 1)
-			//	write_reduced_file(offset_volume,intersections.elements,filename+".intersected_elements.0.vtk");
+			//	write_reduced_file(offset_volume,intersection_data.elements,filename+".intersected_elements.0.vtk");
 		}
 
 		if (successful) break;
 
 		if (!needs_radical_improvement) {
-			if (intersections.elements.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
+			if (intersection_data.elements.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
 				failed_steps++;
 				fprintf(stderr,"Failed iteration\n");
 				if (failed_steps > 1) {
@@ -972,7 +595,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				}
 			} else
 				failed_steps = 0;
-			last_n_intersected = intersections.elements.size();
+			last_n_intersected = intersection_data.elements.size();
 			last_n_negative = negative_volumes.size();
 		}
 
@@ -985,7 +608,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				poisoned_points[p] = true;
 		}
 
-		for (int _p : intersections.points)
+		for (int _p : intersection_data.points)
 			poisoned_points[_p] = true;
 
 		for (Element& e : offset_volume.elements) {
@@ -1029,9 +652,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 
 		fprintf(stderr,"Checking for Intersections");
-		IntersectionStruct intersections = find_intersections(offset_volume);
-		if (intersections.elements.size() > 0) {
-			fprintf(stderr,"%lu Intersected Points\n",intersections.elements.size());
+		intersections::Data intersection_data = intersections::find(offset_volume);
+		if (intersection_data.elements.size() > 0) {
+			fprintf(stderr,"%lu Intersected Points\n",intersection_data.elements.size());
 			Fatal("Still Intersections");
 		}
 	}
@@ -1040,91 +663,6 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		offset.points[i] = offset_volume.points[i+n_surface_points];
 	}
 	return offset;
-}
-
-struct OEdgeElement {
-	OEdge edge;
-	int element1,element2;
-	OEdgeElement() {};
-	OEdgeElement(int p1, int p2, int element1, int element2) : edge(p1,p2), element1(element1), element2(element2) {};
-	bool operator<(const OEdgeElement& other) const { return edge < other.edge; };
-};
-
-void verify_complete_surface(const Grid& surface) {
-	std::vector <OEdge> edges;
-	std::vector < std::vector<OEdgeElement> > edges_per_point (surface.points.size());
-	for (int i = 0; i < surface.elements.size(); ++i) {
-		const Element& e = surface.elements[i];
-		if (Shape::Info[e.type].dim != 2)
-			Fatal("Not a surface. Has non-surface elements");
-		for (int j = 0; j < e.points.size(); ++j) {
-			int j2 = (j + 1)%e.points.size();
-			int p = e.points[j];
-			int p2 = e.points[j2];
-			edges.push_back( OEdge(p,p2) );
-			edges_per_point[p].push_back( OEdgeElement(p,p2,i,-1) );
-			edges_per_point[p2].push_back( OEdgeElement(p,p2,i,-1) );
-		}
-	}
-	std::sort(edges.begin(),edges.end());
-	for (int i = 0; i < edges.size(); ++i) {
-		if (i == edges.size()-1)
-			Fatal("Boundary Edge found (1)");
-		int i2 = i + 1;
-		if (edges[i] != edges[i2])
-			Fatal("Boundary Edge found (2)");
-		if (i + 2 < edges.size()) {
-			int i3 = i + 2;
-			if (edges[i2] == edges[i3])
-				Fatal("Non-Manifold Edge Found");
-		}
-		++i;
-	}
-	for (std::vector <OEdgeElement> edges : edges_per_point) {
-		if (edges.size()%2 != 0)
-			Fatal("Boundary Edge found (3)");
-		std::sort(edges.begin(),edges.end());
-		std::list <OEdgeElement> edge_list;
-		for (int i = 0; i < edges.size()/2; ++i) {
-			const OEdgeElement& ee1 = edges[2*i];
-			const OEdgeElement& ee2 = edges[2*i+1];
-			if (ee1.edge != ee2.edge)
-				Fatal("Boundary Edge found (4)");
-			edge_list.push_back( OEdgeElement(ee1.edge.p1,ee2.edge.p2,ee1.element1,ee2.element1) );
-		}
-		std::list <int> surface_list;
-		int initial_size = edge_list.size();
-		for (int i = 0; i < initial_size; ++i) {
-			if (edge_list.size() == 0) break;
-			auto it = edge_list.begin();
-			while (it != edge_list.end()) {
-				OEdgeElement& ee = *it;
-				if (surface_list.size() == 0) {
-					surface_list.push_back(ee.element1);
-					surface_list.push_back(ee.element2);
-					it = edge_list.erase(it);
-				} else if (ee.element1 == surface_list.front()) {
-					surface_list.push_front(ee.element2);
-					it = edge_list.erase(it);
-				} else if (ee.element2 == surface_list.front()) {
-					surface_list.push_front(ee.element1);
-					it = edge_list.erase(it);
-				} else if (ee.element1 == surface_list.back()) {
-					surface_list.push_back(ee.element2);
-					it = edge_list.erase(it);
-				} else if (ee.element2 == surface_list.back()) {
-					surface_list.push_back(ee.element1);
-					it = edge_list.erase(it);
-				} else {
-					it++;
-				}
-			}
-		}
-		if (surface_list.front() != surface_list.back())
-			Fatal("Boundary Edge Found (5)");
-		if (edge_list.size() > 0)
-			Fatal("Non-manifold Point Found");
-	}
 }
 
 void print_usage () {
