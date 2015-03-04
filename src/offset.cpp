@@ -8,12 +8,12 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
-const static bool use_tangents = true;
+const static bool use_tangents = false;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
-const static bool use_original_offset = false;
+const static bool use_original_offset = true;
 
-const static bool use_increased_max = true;
+const static bool use_increased_max = false;
 
 const static bool use_n_failed = false;
 const static bool use_last_offset_size = false;
