@@ -3,6 +3,8 @@
 #include "unstruc.h"
 #include "surface.h"
 
+namespace tetmesh {
+
 Grid create_farfield_box(Grid const& surface) {
 	Point min = surface.get_bounding_min();
 	Point max = surface.get_bounding_max();
@@ -43,4 +45,6 @@ Grid create_farfield_box(Grid const& surface) {
 	Grid tetra_farfield = tetrahedralize_surface(farfield,max_area);
 	tetra_farfield.names[0].name = "farfield";
 	return tetra_farfield;
+}
+
 }

@@ -26,10 +26,10 @@ int main(int argc, char* argv[]) {
 	offset.merge_points(0);
 	write_grid("offset.vtk",offset);
 
-	Grid farfield = create_farfield_box(offset);
+	Grid farfield = tetmesh::create_farfield_box(offset);
 	write_grid("farfield.vtk",farfield);
 
-	Point hole = find_point_inside_surface(offset);
+	Point hole = tetmesh::find_point_inside_surface(offset);
 
 	Grid grid = offset + farfield;
 	write_grid("input.vtk",grid);

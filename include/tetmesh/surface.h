@@ -3,6 +3,8 @@
 
 struct Grid;
 
-Grid tetrahedralize_surface(Grid const& surface, double max_area);
+namespace tetmesh {
+	Grid tetrahedralize_surface(Grid const& surface, double max_area);
+}
 
 #endif

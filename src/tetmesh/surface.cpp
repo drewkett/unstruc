@@ -5,6 +5,12 @@
 
 #include <tetgen.h>
 
+#include <list>
+#include <vector>
+#include <utility>
+
+namespace tetmesh {
+
 Grid surfacegrid_from_tetgenio(tetgenio const& tg) {
 	Grid grid (3);
 	grid.points.reserve(tg.numberofpoints);
@@ -83,4 +89,6 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 	tetgenio out;
 	tetrahedralize(&tg,&in,&out,NULL,NULL);
 	return surfacegrid_from_tetgenio(out);
+}
+
 }

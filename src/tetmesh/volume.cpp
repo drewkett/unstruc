@@ -4,6 +4,8 @@
 
 #include <tetgen.h>
 
+namespace tetmesh {
+
 Grid grid_from_tetgenio(tetgenio const& tg) {
 	Grid grid (3);
 	grid.points.reserve(tg.numberofpoints);
@@ -149,4 +151,5 @@ Point orient_surface(Grid& surface) {
 	}
 	Fatal("Neither guessed point is inside surface. Hmmm");
 	return NullPoint;
+}
 }
