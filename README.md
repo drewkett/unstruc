@@ -1,4 +1,4 @@
-This is a collection of utilities related to unstructured meshes. It is written in C++. The only dependency is [tetgen](http://wias-berlin.de/software/tetgen/), which is used by unstruc-volmesh.
+This is a collection of utilities related to unstructured meshes. It is written in C++. The only dependency is [tetgen](http://wias-berlin.de/software/tetgen/), which is used by unstruc-offset.
 
 ##unstruc-convert
 
@@ -13,10 +13,6 @@ This is a work in progress tool for generating prismatic boundary layers of a 3D
 ##unstruc-offset
 
 This is a work in progress tool for generating prismatic boundary layers of a 3D surface mesh by creating a complete offset surface 
-
-##unstruc-volmesh
-
-This is a work in progress tool for generating a volume mesh with a farfield mesh using just a surface object for use with CFD.
 
 ## Build Instructions
 This project can be built using make or [CMake](http://www.cmake.org). The Makefile is more basic and mainly is useful for building the project one time. Run `make` in the top level directory to build the executables, which are placed in bin.
