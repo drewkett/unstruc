@@ -770,7 +770,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	int i_max_skew = 20;
 	bool successful;
 	std::vector <int> intersected_elements;
-	for (int i = 1; i < 100; ++i) {
+	int n_full_iterations = 0;
+	for (int i = 1; i < 1000; ++i) {
+		if (n_full_iterations > 100) break;
 		double skew_fraction = ((double) i)/i_max_skew;
 		if (skew_fraction > 1) skew_fraction = 1;
 
@@ -793,10 +795,12 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 				fprintf(stderr,"Checking for Intersections");
 				intersections = find_intersections(offset_volume);
+				n_full_iterations++;
 			}
 		} else {
 			fprintf(stderr,"Checking for Intersections");
 			intersections = find_intersections(offset_volume);
+			n_full_iterations++;
 		}
 		fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 		intersected_elements = intersections.elements;
