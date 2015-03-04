@@ -1,5 +1,9 @@
 - Create surface smoothing (repair?) tool
-- Decide on final smoothing method/options for offset tool
 - Remove unstruc-layers. Extract out any useful functionality
 - Clean up coding conventions. Not much consistency at the moment
 - Look into missing intersection where one object is swallowed by another
+
+(unstruc-offset)
+- Look into analyzing volume element quality
+  - Possibly use mesh smoothing to clean up
+- Decide on final smoothing method/options
