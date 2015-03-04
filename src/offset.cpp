@@ -1190,8 +1190,7 @@ int main(int argc, char* argv[]) {
 	printf("%zu points\n",surface.points.size());
 
 	fprintf(stderr,"Verifying surface\n");
-	verify_complete_surface(surface);
-	Point hole = orient_surface(surface);
+	std::vector <Point> holes = tetmesh::orient_surfaces(surface);
 
 	write_grid(output_filename+".surface.su2",surface);
 
@@ -1225,12 +1224,12 @@ int main(int argc, char* argv[]) {
 		//TODO: add layer splitting
 
 		Grid farfield_surface = tetmesh::create_farfield_box(offset_surface);
-		Grid farfield_volume = tetmesh::volgrid_from_surface(offset_surface+farfield_surface,hole,tetgen_min_ratio);
+		Grid farfield_volume = tetmesh::volgrid_from_surface(offset_surface+farfield_surface,holes,tetgen_min_ratio);
 		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume + farfield_surface + surface;
 	} else {
 		Grid farfield_surface = tetmesh::create_farfield_box(surface);
-		volume = tetmesh::volgrid_from_surface(surface+farfield_surface,hole,tetgen_min_ratio);
+		volume = tetmesh::volgrid_from_surface(surface+farfield_surface,holes,tetgen_min_ratio);
 		volume += farfield_surface + surface;
 	}
 	volume.merge_points(0);

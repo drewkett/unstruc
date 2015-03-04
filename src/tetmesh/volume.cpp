@@ -29,7 +29,7 @@ Grid grid_from_tetgenio(tetgenio const& tg) {
 	return grid;
 }
 
-Grid volgrid_from_surface(Grid const& surface, const Point& hole, double min_ratio) {
+Grid volgrid_from_surface(Grid const& surface, const std::vector<Point>& holes, double min_ratio) {
 	tetgenio in;
 	in.mesh_dim = 3;
 	in.firstnumber = 0;
@@ -69,12 +69,13 @@ Grid volgrid_from_surface(Grid const& surface, const Point& hole, double min_rat
 		p.vertexlist[2] = e.points[2];
 	}
 
-	if (&hole != &NullPoint) {
-		in.numberofholes = 1;
-		in.holelist = new REAL[3];
-		in.holelist[0] = hole.x;
-		in.holelist[1] = hole.y;
-		in.holelist[2] = hole.z;
+	in.numberofholes = holes.size();
+	in.holelist = new REAL[in.numberofholes*3];
+	for (int i = 0; i < holes.size(); ++i) {
+		const Point& hole = holes[i];
+		in.holelist[3*i]   = hole.x;
+		in.holelist[3*i+1] = hole.y;
+		in.holelist[3*i+2] = hole.z;
 	}
 	tetgenbehavior tg;
 	tg.plc = 1;
@@ -90,6 +91,12 @@ Grid volgrid_from_surface(Grid const& surface, const Point& hole, double min_rat
 	tetrahedralize(&tg,&in,&out,NULL,NULL);
 
 	return grid_from_tetgenio(out);
+}
+
+Grid volgrid_from_surface(Grid const& surface) {
+	std::vector <Point> holes;
+	double min_ratio = 0;
+	return volgrid_from_surface(surface,holes,min_ratio);
 }
 
 Point find_point_inside_surface(const Grid& surface) {
