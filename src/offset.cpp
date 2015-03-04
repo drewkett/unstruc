@@ -9,6 +9,7 @@
 #include "tetmesh.h"
 
 const static bool use_skew_restriction = true;
+const static bool use_per_iteration_smoothing = true;
 
 const static double min_geometric_stretch = 0.1;
 const static double max_geometric_stretch = 2;
@@ -739,7 +740,7 @@ Grid offset_surface_with_point_connections(const Grid& surface, const std::vecto
 	return offset;
 }
 
-Grid create_offset_surface (const Grid& surface, double offset_size, const bool per_iteration_smoothing, std::string filename) {
+Grid create_offset_surface (const Grid& surface, double offset_size, std::string filename) {
 
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
 
@@ -838,7 +839,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 						pc.current_adjustment = 0;
 						pc.normal *= 0;
 					} else {
-						if (per_iteration_smoothing) {
+						if (use_per_iteration_smoothing) {
 							pc.current_adjustment *= 0.8;
 							if (pc.current_adjustment < 0.1)
 								pc.current_adjustment = 0.1;
@@ -850,7 +851,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, const bool 
 				}
 			}
 		}
-		if (per_iteration_smoothing) {
+		if (use_per_iteration_smoothing) {
 			for (int j = 0; j < 20; ++j)
 				smooth_point_connections(surface,smoothing_data);
 		}
@@ -1047,7 +1048,7 @@ int main(int argc, char* argv[]) {
 			snprintf(c_filename,50,"%s.%d",output_filename.c_str(),i+1);
 			std::string filename (c_filename);
 
-			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,true,filename);
+			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,filename);
 
 			write_grid(filename+".offset.vtk",offset_surface);
 			const Grid& input_surface = offset_surface;
