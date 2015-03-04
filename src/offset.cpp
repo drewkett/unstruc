@@ -547,7 +547,6 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		double skew_fraction = ((double) i)/i_max_skew;
 		if (skew_fraction > 1) skew_fraction = 1;
 
-		//TODO Look into calculating and/or smoothing normals per iteration
 		successful = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		printf("%lu Negative Volumes\n",negative_volumes.size());
@@ -758,8 +757,6 @@ int main(int argc, char* argv[]) {
 		offset_volume.merge_points(0);
 		offset_volume.collapse_elements(false);
 		write_grid(output_filename+".offset_volume.vtk",offset_volume);
-
-		//TODO: add layer splitting
 
 		Grid farfield_surface = tetmesh::create_farfield_box(offset_surface);
 		Grid farfield_volume = tetmesh::volgrid_from_surface(offset_surface+farfield_surface,holes,tetgen_min_ratio);
