@@ -8,6 +8,8 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
+const static bool use_sqrt_length = true;
+const static bool use_normalized_weights = true;
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
@@ -647,7 +649,11 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			Vector d = p1 - p;
 			if (d.length()== 0)
 				Fatal("Coincedent points found");
-			double w = (pw1.w + pw2.w)/sqrt(d.length());
+			double w;
+			if (use_sqrt_length)
+				w = (pw1.w + pw2.w)/sqrt(d.length());
+			else
+				w = (pw1.w + pw2.w)/d.length();
 
 			pc.pointweights[j].p = pw1.p;
 			pc.pointweights[j].w = w;
@@ -656,8 +662,9 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		pc.pointweights.resize(new_size);
 		if (total_weight== 0)
 			Fatal("Weights sum to zero");
-		for (PointWeight& pw : pc.pointweights)
-			pw.w /= total_weight;
+		if (use_normalized_weights)
+			for (PointWeight& pw : pc.pointweights)
+				pw.w /= total_weight;
 	}
 	return sdata;
 }
