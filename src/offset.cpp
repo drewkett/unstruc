@@ -601,7 +601,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			const Vector& n = sdata.element_normals[_e];
 			double d = dot(point_norm,n);
 			if (d <= 0) {
-				fprintf(stderr,"Can't create normal\n");
+				fprintf(stderr,"Can't create normal for ");
 				dump(p);
 				//Fatal ("Can't find normal");
 				bad_vector = true;
