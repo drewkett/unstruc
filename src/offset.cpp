@@ -723,18 +723,16 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			orig_p = surface_p + curr_normal;
 
 		double min_adj = 1, max_adj = 1;
-		Point smoothed_point;
-		smoothed_point.x = orig_p.x*orig_weight;
-		smoothed_point.y = orig_p.y*orig_weight;
-		smoothed_point.z = orig_p.z*orig_weight;
+		Point smoothed_point (orig_p);
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
 			const Vector& n = data.connections[pw.p].normal;
 			double w = pw.w * (1-orig_weight);
 			Point offset_p = p+n;
-			smoothed_point.x += w*offset_p.x;
-			smoothed_point.y += w*offset_p.y;
-			smoothed_point.z += w*offset_p.z;
+			Vector delta = offset_p - orig_p;
+			smoothed_point.x += w * delta.x;
+			smoothed_point.y += w * delta.y;
+			smoothed_point.z += w * delta.z;
 			
 			const PointConnection& other = data.connections[pw.p];
 			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
