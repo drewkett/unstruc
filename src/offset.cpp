@@ -10,6 +10,9 @@
 
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
+const static bool use_n_failed = false;
+const static bool use_last_offset_size = false;
+
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
@@ -472,15 +475,17 @@ struct PointWeight {
 };
 
 struct PointConnection {
+	std::vector <PointWeight> pointweights;
+	std::vector <int> elements;
 	Vector normal;
 	Vector orig_normal;
 	double current_adjustment;
 	double geometric_severity;
 	double geometric_stretch_factor;
 	double max_skew_angle;
+	double last_offset_size;
+	int n_failed;
 	bool convex;
-	std::vector <PointWeight> pointweights;
-	std::vector <int> elements;
 };
 
 struct SmoothingData {
@@ -559,6 +564,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		pc.max_skew_angle = max_skew_angle;
 		pc.current_adjustment = 1;
+		pc.last_offset_size = 0;
+		pc.n_failed = 0;
 
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
@@ -684,6 +691,12 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		if (orig_normal.length() == 0) continue;
 		Point orig_p = surface_p + orig_normal;
 
+		if (use_n_failed && pc.n_failed > 1) {
+			smoothed_pc.normal = NullVector;
+			smoothed_pc.orig_normal = NullVector;
+			continue;
+		}
+
 		double orig_weight = pc.current_adjustment*(1 - pc.geometric_severity);
 
 		double min_adj = 1, max_adj = 1;
@@ -704,6 +717,14 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
 			if (l < min_adj) min_adj = l;
 			if (l > max_adj) max_adj = l;
+		}
+		if (use_last_offset_size && pc.last_offset_size) {
+			double fac_offset = pc.last_offset_size/orig_normal.length();
+			if (fac_offset < 1) {
+				if (min_adj < fac_offset) {
+					min_adj = fac_offset;
+				}
+			}
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		assert (orig_normal.length() > 0);
@@ -741,7 +762,15 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 	offset.points = surface.points;
 	for (int i = 0; i < surface.points.size(); ++i) {
 		Point& p = offset.points[i];
-		const Vector& n = point_connections[i].normal;
+		PointConnection& pc = point_connections[i];
+		const Vector& n = pc.normal;
+		pc.last_offset_size = n.length();
+		if (n.length() == 0) {
+			pc.n_failed++;
+		} else {
+			if (pc.n_failed)
+				pc.n_failed = 0;
+		}
 		p += n;
 	}
 	return offset;
