@@ -226,7 +226,7 @@ bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
 		} else if (e.points[3] == e.points[0]) {
 			tri_from_quad(e,0,1,2);
 		} else {
-			throw 1;
+			Fatal("Don't know how to collapse quad into tri");
 		}
 		return collapse_tri(e);
 	} else {
