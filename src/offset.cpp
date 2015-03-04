@@ -12,6 +12,8 @@ const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
 const static bool use_original_offset = false;
 
+const static bool use_increased_max = true;
+
 const static bool use_n_failed = false;
 const static bool use_last_offset_size = false;
 
@@ -723,7 +725,11 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			const PointConnection& other = data.connections[pw.p];
 			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
 			if (l < min_adj) min_adj = l;
-			if (l > max_adj) max_adj = l;
+			if (use_increased_max) {
+				if (l > max_adj) max_adj = 1.5*l;
+			} else {
+				if (l > max_adj) max_adj = l;
+			}
 		}
 		if (use_last_offset_size && pc.last_offset_size) {
 			double fac_offset = pc.last_offset_size/orig_normal.length();
