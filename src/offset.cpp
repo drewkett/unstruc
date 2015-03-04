@@ -10,6 +10,8 @@
 
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
+const static bool use_original_offset = false;
+
 const static bool use_n_failed = false;
 const static bool use_last_offset_size = false;
 
@@ -698,6 +700,11 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		}
 
 		double orig_weight = pc.current_adjustment*(1 - pc.geometric_severity);
+		Point orig_p;
+		if (use_original_offset)
+			orig_p = surface_p + orig_normal;
+		else
+			orig_p = surface_p + curr_normal;
 
 		double min_adj = 1, max_adj = 1;
 		Point smoothed_point;
