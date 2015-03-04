@@ -1136,10 +1136,10 @@ void print_usage () {
 "-h                   Print Usage\n");
 }
 
-void parse_failed (std::string msg) {
+int parse_failed (std::string msg) {
 	print_usage();
 	fprintf(stderr,"\n%s\n",msg.c_str());
-	exit(1);
+	return 1;
 }
 
 int main(int argc, char* argv[]) {
@@ -1153,21 +1153,21 @@ int main(int argc, char* argv[]) {
 			std::string arg (argv[i]);
 			if (arg == "-s") {
 				++i;
-				if (i == argc) parse_failed("Must pass float option to -s");
+				if (i == argc) return parse_failed("Must pass float option to -s");
 				offset_size = atof(argv[i]);
 			} else if (arg == "-n") {
 				++i;
-				if (i == argc) parse_failed("Must pass integer to -n");
+				if (i == argc) return parse_failed("Must pass integer to -n");
 				nlayers = atoi(argv[i]);
 			} else if (arg == "-g") {
 				++i;
-				if (i == argc) parse_failed("Must pass float to -n");
+				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
 			} else if (arg == "-h") {
 				print_usage();
-				std::exit(0);
+				return 0;
 			} else {
-				parse_failed("Unknown option passed '"+arg+"'");
+				return parse_failed("Unknown option passed '"+arg+"'");
 			}
 		} else {
 			argnum++;
@@ -1176,12 +1176,12 @@ int main(int argc, char* argv[]) {
 			} else if (argnum == 2) {
 				output_filename = std::string(argv[i]);
 			} else {
-				parse_failed("Extra argument passed");
+				return parse_failed("Extra argument passed");
 			}
 		}
 	}
 	if (argnum != 2)
-		parse_failed("Must pass 2 arguments");
+		return parse_failed("Must pass 2 arguments");
 
 	Grid surface = read_grid(input_filename);
 	surface.merge_points(0);
