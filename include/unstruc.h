@@ -6,5 +6,6 @@
 #include "unstruc/error.h"
 #include "unstruc/io.h"
 #include "unstruc/point.h"
+#include "unstruc/intersections.h"
 
 #endif
