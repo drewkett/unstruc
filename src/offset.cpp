@@ -8,6 +8,8 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
+const static bool use_skew_restriction = true;
+
 const static double min_geometric_stretch = 0.1;
 const static double max_geometric_stretch = 2;
 const static double max_skew_angle = 45;
@@ -707,7 +709,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 
 		double lat_length = smoothed_lateral.length();
 		double perp_length = smoothed_perp.length();
-		if (lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
+		if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 
