@@ -708,7 +708,6 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		const double max_normal_skew_factor = tan(pc.max_skew_angle*pc.geometric_severity/180.0*M_PI);
 
 		if (orig_normal.length() == 0) continue;
-		Point orig_p = surface_p + orig_normal;
 
 		if (use_n_failed && pc.n_failed > 1) {
 			smoothed_pc.normal = NullVector;
