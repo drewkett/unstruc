@@ -8,6 +8,7 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
+const static bool use_tangents = true;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
 const static bool use_original_offset = false;
@@ -556,8 +557,13 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 			PointConnection& pc = sdata.connections[_p];
 
-			pc.pointweights.push_back( PointWeight(_pm,angle) );
-			pc.pointweights.push_back( PointWeight(_pp,angle) );
+			if (use_tangents) {
+				pc.pointweights.push_back( PointWeight(_pm,tan(angle/2.0/180*M_PI)) );
+				pc.pointweights.push_back( PointWeight(_pp,tan(angle/2.0/180*M_PI)) );
+			} else {
+				pc.pointweights.push_back( PointWeight(_pm,angle) );
+				pc.pointweights.push_back( PointWeight(_pp,angle) );
+			}
 
 			pc.elements.push_back(i);
 		}
