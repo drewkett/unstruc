@@ -485,7 +485,7 @@ struct PointWeight {
 	double w;
 	PointWeight() : p(-1), w(-1) {};
 	PointWeight(int p, double w) : p(p), w(w) {};
-	bool operator<(const PointWeight& other) { return p < other.p; };
+	bool operator<(const PointWeight& other) const { return p < other.p; };
 };
 
 struct PointConnection {
@@ -1047,7 +1047,7 @@ struct OEdgeElement {
 	int element1,element2;
 	OEdgeElement() {};
 	OEdgeElement(int p1, int p2, int element1, int element2) : edge(p1,p2), element1(element1), element2(element2) {};
-	bool operator<(const OEdgeElement& other) { return edge < other.edge; };
+	bool operator<(const OEdgeElement& other) const { return edge < other.edge; };
 };
 
 void verify_complete_surface(const Grid& surface) {
