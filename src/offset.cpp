@@ -27,6 +27,15 @@ const static double max_skew_angle = 45;
 const static double max_relaxed_skew_angle = 60;
 const static double tetgen_min_ratio = 1.03;
 
+const static bool use_taubin = false;
+namespace taubin {
+	const static double kpb = 0.1;
+	//const static double taubin_gamma = 0.5;
+	const static double gamma = (kpb - 3)/(3*kpb - 5);
+	const static double mu = 1/(kpb - 1/gamma);
+	const static double n = 20;
+};
+
 struct OEdge {
 	int p1, p2;
 	std::vector <int> elements;
@@ -774,6 +783,94 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 	data.connections = smoothed_connections;
 }
 
+void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, double gamma) {
+	std::vector <PointConnection> smoothed_connections (data.connections);
+
+	for (int i = 0; i < surface.points.size(); ++i) {
+		const Point& surface_p = surface.points[i];
+		const PointConnection& pc = data.connections[i];
+		PointConnection& smoothed_pc = smoothed_connections[i];
+
+		const Vector& curr_normal = pc.normal;
+		const Vector& orig_normal = pc.orig_normal*pc.current_adjustment;
+		const double max_normal_skew_factor = tan(pc.max_skew_angle*pc.geometric_severity/180.0*M_PI);
+
+		if (orig_normal.length() == 0) continue;
+
+		if (use_n_failed && pc.n_failed > 1) {
+			smoothed_pc.normal = NullVector;
+			smoothed_pc.orig_normal = NullVector;
+			continue;
+		}
+
+		Point orig_p;
+		if (use_original_offset)
+			orig_p = surface_p + orig_normal;
+		else
+			orig_p = surface_p + curr_normal;
+
+		double min_adj = 1, max_adj = 1;
+		Point smoothed_point (orig_p);
+		for (const PointWeight& pw : pc.pointweights) {
+			const Point& p = surface.points[pw.p];
+			const Vector& n = data.connections[pw.p].normal;
+			double w = pw.w * gamma;
+			Point offset_p = p + n;
+			Vector delta = offset_p - orig_p;
+			smoothed_point.x += w * delta.x;
+			smoothed_point.y += w * delta.y;
+			smoothed_point.z += w * delta.z;
+			
+			const PointConnection& other = data.connections[pw.p];
+			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
+			if (min_adj > 0 && l < min_adj) min_adj = l;
+			if (use_increased_max) {
+				if (l > max_adj) max_adj = 1.5*l;
+			} else {
+				if (l > max_adj) max_adj = l;
+			}
+		}
+		if (use_last_offset_size && pc.last_offset_size) {
+			double fac_offset = pc.last_offset_size/orig_normal.length();
+			if (fac_offset < 1) {
+				if (min_adj < fac_offset) {
+					min_adj = fac_offset;
+				}
+			}
+		}
+		Vector smoothed_normal = smoothed_point - surface_p;
+		if (true || gamma > 0) {
+			smoothed_pc.normal = smoothed_normal;
+		} else {
+			assert (orig_normal.length() > 0);
+			double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
+			Vector smoothed_perp = fac*orig_normal;
+			Vector smoothed_lateral = smoothed_normal - smoothed_perp;
+			if (fac < min_adj) fac = min_adj;
+			else if (fac > max_adj) fac = max_adj;
+
+			smoothed_perp = fac*orig_normal;
+
+			double lat_length = smoothed_lateral.length();
+			double perp_length = smoothed_perp.length();
+			if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
+				smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
+			smoothed_pc.normal = smoothed_lateral + smoothed_perp;
+
+			// Check for creation of self intersection elements
+			for (int _e : pc.elements) {
+				const Vector& n = data.element_normals[_e];
+				if (dot(smoothed_pc.normal,n) <= 0) {
+					// Use old normal if self intersections created
+					smoothed_pc.normal = pc.normal;
+					break;
+				}
+			}
+		}
+	}
+	data.connections = smoothed_connections;
+}
+
 Grid offset_surface_with_point_connections(const Grid& surface, std::vector <PointConnection>& point_connections) {
 	Grid offset (3);
 	offset.elements = surface.elements;
@@ -802,8 +899,15 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(filename+".presmooth.vtk",presmooth);
 
-	for (int i = 0; i < 100; ++i)
-		smooth_point_connections(surface,smoothing_data);
+	if (use_taubin) {
+		for (int i = 0; i < taubin::n; ++i) {
+			smooth_point_connections_taubin(surface,smoothing_data,taubin::gamma);
+			smooth_point_connections_taubin(surface,smoothing_data,taubin::mu);
+		}
+	} else {
+		for (int i = 0; i < 100; ++i)
+			smooth_point_connections(surface,smoothing_data);
+	}
 
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(filename+".smoothed.vtk",offset);
