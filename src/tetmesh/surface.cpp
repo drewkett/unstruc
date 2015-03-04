@@ -215,8 +215,10 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 			surface_map.push_back(s);
 		}
 	}
+	int n_surfaces = 0;
 	for (int i = 0; i < surface_map.size(); ++i) {
 		std::vector<bool>& s1 = surface_map[i];
+		bool deleted = false;
 		for (int j = i+1; j < surface_map.size(); ++j) {
 			std::vector<bool>& s2 = surface_map[j];
 			bool match = false;
@@ -228,21 +230,15 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 			}
 			if (match) {
 				for (int k = 0; k < s1.size(); ++k) {
-					if (s2[k]) s1[k] = true;
-					s2[k] = false;
+					if (s1[k]) s2[k] = true;
 				}
-			}
-		}
-	}
-	int n_surfaces = 0;
-	for (int i = 0; i < surface_map.size(); ++i) {
-		std::vector<bool>& s = surface_map[i];
-		for (int j = 0; j < s.size(); ++j) {
-			if (s[j]) {
-				surface_map[n_surfaces] = surface_map[i];
-				n_surfaces++;
+				deleted = true;
 				break;
 			}
+		}
+		if (!deleted) {
+			surface_map[n_surfaces] = surface_map[i];
+			n_surfaces++;
 		}
 	}
 	surface_map.resize(n_surfaces);
