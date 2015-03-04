@@ -117,31 +117,32 @@ Point find_point_inside_surface(const Grid& surface) {
 Point orient_surface(Grid& surface) {
 	Grid vol = volgrid_from_surface(surface);
 
-	const Element& e = surface.elements[0];
-	assert (e.type == Shape::Triangle);
-	const Point& p0 = surface.points[e.points[0]];
-	const Point& p1 = surface.points[e.points[1]];
-	const Point& p2 = surface.points[e.points[2]];
-	Vector v1 = p1 - p0;
-	Vector v2 = p2 - p1;
-	Vector n = cross(v1,v2);
-	Point test = p0 - n/1000;
-	Point test2 = p0 + n/1000;
+	bool found_point = false;
+	for (const Element& e : surface.elements) {
+		assert (e.type == Shape::Triangle);
+		const Point& p0 = surface.points[e.points[0]];
+		const Point& p1 = surface.points[e.points[1]];
+		const Point& p2 = surface.points[e.points[2]];
+		Vector v1 = p1 - p0;
+		Vector v2 = p2 - p1;
+		Vector n = cross(v1,v2);
+		Point test = p0 - n/1000;
+		Point test2 = p0 + n/1000;
 
-	if (vol.test_point_inside(test))
-		return test;
-	else if (vol.test_point_inside(test2)) {
+		if (vol.test_point_inside(test))
+			return test;
+		else if (vol.test_point_inside(test2)) {
 #ifndef NDEBUG
-		fprintf(stderr,"(tetmesh::orient_surface) Reorienting Surface\n");
+			fprintf(stderr,"(tetmesh::orient_surface) Reorienting Surface\n");
 #endif
-		for (Element& e : surface.elements) {
-			if (e.type != Shape::Triangle)
-				Fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
-			std::swap(e.points[1],e.points[2]);
+			for (Element& e : surface.elements) {
+				if (e.type != Shape::Triangle)
+					Fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
+				std::swap(e.points[1],e.points[2]);
+			}
+			return test2;
 		}
-		return test2;
-	} else 
-		Fatal("Neither guessed point is inside surface. Hmmm");
-
-	return Point();
+	}
+	Fatal("Neither guessed point is inside surface. Hmmm");
+	return NullPoint;
 }
