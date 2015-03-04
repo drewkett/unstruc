@@ -101,8 +101,8 @@ Point find_point_inside_surface(const Grid& surface) {
 	Vector v1 = p1 - p0;
 	Vector v2 = p2 - p1;
 	Vector n = cross(v1,v2);
-	Point test = p0 + n/1000;
-	Point test2 = p0 - n/1000;
+	Point test = p0 + n*1e-6;
+	Point test2 = p0 - n*1e-6;
 
 	if (vol.test_point_inside(test))
 		return test;
@@ -123,11 +123,15 @@ Point orient_surface(Grid& surface) {
 		const Point& p0 = surface.points[e.points[0]];
 		const Point& p1 = surface.points[e.points[1]];
 		const Point& p2 = surface.points[e.points[2]];
+		Point p;
+		p.x = (p0.x + p1.x + p2.x)/3;
+		p.y = (p0.y + p1.y + p2.y)/3;
+		p.z = (p0.z + p1.z + p2.z)/3;
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
 		Vector n = cross(v1,v2);
-		Point test = p0 - n/1000;
-		Point test2 = p0 + n/1000;
+		Point test = p - n*1e-6;
+		Point test2 = p + n*1e-6;
 
 		if (vol.test_point_inside(test))
 			return test;
