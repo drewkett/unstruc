@@ -14,7 +14,7 @@
 #include <vector>
 #include <map>
 
-bool toSU2(const std::string& outputfile, const Grid& grid) {
+bool su2_write(const std::string& outputfile, const Grid& grid) {
 	int i, j;
 
 	FILE * f;
@@ -87,7 +87,7 @@ bool toSU2(const std::string& outputfile, const Grid& grid) {
 	return true;
 }
 
-Grid readSU2(const std::string& inputfile) {
+Grid su2_read(const std::string& inputfile) {
 	Grid grid;
 	int ipoint, iname, i, j, k;
 	int nelem;

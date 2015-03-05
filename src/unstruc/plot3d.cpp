@@ -10,7 +10,7 @@
 #include <string>
 
 
-MultiBlock readPlot3DToMultiBlock(const std::string& filename) {
+MultiBlock plot3d_read_to_multiblock(const std::string& filename) {
 	std::ifstream f;
 	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in|std::ios::binary);
@@ -67,7 +67,7 @@ MultiBlock readPlot3DToMultiBlock(const std::string& filename) {
 	return mb;
 }
 
-Grid readPlot3D(const std::string& filename) {
-	MultiBlock mb = readPlot3DToMultiBlock(filename);
+Grid plot3d_read(const std::string& filename) {
+	MultiBlock mb = plot3d_read_to_multiblock(filename);
 	return mb.to_grid();
 }

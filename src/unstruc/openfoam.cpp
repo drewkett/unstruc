@@ -956,7 +956,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 	return OFUnknown;
 }
 
-Grid readOpenFoam(const std::string& polymesh) {
+Grid openfoam_read(const std::string& polymesh) {
 	struct stat s;
 	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
 		fatal(polymesh + " isn't a directory");

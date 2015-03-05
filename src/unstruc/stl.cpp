@@ -11,9 +11,8 @@
 #include <array>
 #include <cstdio>
 
-namespace STL {
 
-Point read_vertex_ascii(std::istream& ss) {
+Point stl_read_vertex_ascii(std::istream& ss) {
 	Point p;
 	std::string token;
 	ss >> token;
@@ -24,7 +23,7 @@ Point read_vertex_ascii(std::istream& ss) {
 	return p;
 }
 
-Grid read_ascii(const std::string& filename) {
+Grid stl_read_ascii(const std::string& filename) {
 	fprintf(stderr,"Reading ASCII STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.push_back( Name(2,filename) );
@@ -67,9 +66,9 @@ Grid read_ascii(const std::string& filename) {
 			if (token != "loop") fatal("Expected loop after outer");
 			
 			int i = grid.points.size();
-			grid.points.push_back(read_vertex_ascii(f));
-			grid.points.push_back(read_vertex_ascii(f));
-			grid.points.push_back(read_vertex_ascii(f));
+			grid.points.push_back(stl_read_vertex_ascii(f));
+			grid.points.push_back(stl_read_vertex_ascii(f));
+			grid.points.push_back(stl_read_vertex_ascii(f));
 
 			Element e (Shape::Triangle);
 			e.points[0] = i;
@@ -79,20 +78,20 @@ Grid read_ascii(const std::string& filename) {
 			grid.elements.push_back(e);
 
 			f >> token;
-			if (token != "endloop") Fatal("Expected endloop");
+			if (token != "endloop") fatal("Expected endloop");
 			f >> token;
-			if (token != "endfacet") Fatal("Expected endfacet");
+			if (token != "endfacet") fatal("Expected endfacet");
 		} else {
 			char c_msg[100];
 			snprintf(c_msg,100,"Unknown Token '%s'",token.c_str());
-			Fatal(std::string(c_msg));
+			fatal(std::string(c_msg));
 		}
 	}
 	fprintf(stderr,"%lu Triangles Read\n",grid.elements.size());
 	return grid;
 }
 
-Point read_vertex_binary(std::ifstream& f) {
+Point stl_read_vertex_binary(std::ifstream& f) {
 	float x,y,z;
 	f.read((char *) &x, sizeof(x));
 	f.read((char *) &y, sizeof(y));
@@ -100,7 +99,7 @@ Point read_vertex_binary(std::ifstream& f) {
 	return Point (x,y,z);
 }
 
-Grid read_binary(const std::string& filename) {
+Grid stl_read_binary(const std::string& filename) {
 	fprintf(stderr,"Reading Binary STL File '%s'\n",filename.c_str());
 	Grid grid (3);
 	grid.names.push_back( Name(2,filename) );
@@ -115,10 +114,10 @@ Grid read_binary(const std::string& filename) {
 	fprintf(stderr,"Reading %d Triangles\n",n_triangles);
 
 	for (int i = 0; i < n_triangles; ++i) {
-		Point normal = read_vertex_binary(f);
-		grid.points.push_back(read_vertex_binary(f));
-		grid.points.push_back(read_vertex_binary(f));
-		grid.points.push_back(read_vertex_binary(f));
+		Point normal = stl_read_vertex_binary(f);
+		grid.points.push_back(stl_read_vertex_binary(f));
+		grid.points.push_back(stl_read_vertex_binary(f));
+		grid.points.push_back(stl_read_vertex_binary(f));
 		uint16_t attr;
 		f.read((char *) &attr,sizeof(attr));
 
@@ -135,19 +134,19 @@ Grid read_binary(const std::string& filename) {
 	return grid;
 }
 
-Grid read(const std::string& filename) {
+Grid stl_read(const std::string& filename) {
 	std::ifstream f;
 	f.open(filename);
 	if (!f.is_open()) fatal("Could not open file");
 	std::string token;
 	f >> token;
 	if (token == "solid")
-		return read_ascii(filename);
+		return stl_read_ascii(filename);
 	else
-		return read_binary(filename);
+		return stl_read_binary(filename);
 }
 
-void write_ascii(const std::string& filename, const Grid& grid) {
+void stl_write_ascii(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
 	fprintf(stderr,"Outputting %s\n",filename.c_str());
@@ -172,7 +171,7 @@ void write_ascii(const std::string& filename, const Grid& grid) {
 	fprintf(f,"endsolid\n");
 }
 
-void write_binary_vertex(FILE * f, const Point& p) {
+void stl_write_binary_vertex(FILE * f, const Point& p) {
 	float x = p.x;
 	fwrite(&x,sizeof(x),1,f);
 	float y = p.y;
@@ -181,7 +180,7 @@ void write_binary_vertex(FILE * f, const Point& p) {
 	fwrite(&z,sizeof(z),1,f);
 }
 
-void write_binary_vertex(FILE * f, const Vector& v) {
+void stl_write_binary_vertex(FILE * f, const Vector& v) {
 	float x = v.x;
 	fwrite(&x,sizeof(x),1,f);
 	float y = v.y;
@@ -190,7 +189,7 @@ void write_binary_vertex(FILE * f, const Vector& v) {
 	fwrite(&z,sizeof(z),1,f);
 }
 
-void write_binary(const std::string& filename, const Grid& grid) {
+void stl_write_binary(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
 	fprintf(stderr,"Outputting %s\n",filename.c_str());
@@ -207,14 +206,13 @@ void write_binary(const std::string& filename, const Grid& grid) {
 	fwrite(&n,sizeof(n),1,f);
 	for (const Element& e : grid.elements) {
 		Vector normal (0, 0, 1);
-		write_binary_vertex(f,normal);
+		stl_write_binary_vertex(f,normal);
 		for (int _p : e.points) {
 			const Point& p = grid.points[_p];
-			write_binary_vertex(f,p);
+			stl_write_binary_vertex(f,p);
 		}
 		uint16_t attr = 0;
 		fwrite(&attr,sizeof(attr),1,f);
 	}
 }
 
-}

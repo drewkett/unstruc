@@ -33,11 +33,11 @@ Grid read_grid(const std::string& filename) {
 	Grid grid;
 	switch (type) {
 		case FileType::Plot3D:
-			return readPlot3D(filename);
+			return plot3d_read(filename);
 		case FileType::SU2:
-			return readSU2(filename);
+			return su2_read(filename);
 		case FileType::STL:
-			return STL::read(filename);
+			return stl_read(filename);
 		default:
 			fatal("Unsupported filetype for reading");
 	}
@@ -52,18 +52,20 @@ void write_grid(const std::string& filename,const Grid& grid) {
 
 	switch (type) {
 		case FileType::SU2:
-			toSU2(filename,grid);
+			su2_write(filename,grid);
 			break;
 		case FileType::VTK:
-			toVTK(filename,grid);
+			vtk_write(filename,grid);
 			break;
 		case FileType::GMSH:
-			toGMSH(filename,grid);
+			gmsh_write(filename,grid);
 			break;
 		case FileType::STL:
-			STL::write_ascii(filename,grid);
+			stl_write_ascii(filename,grid);
 			break;
 		default:
 			fatal("Unsupported filetype for writing");
 	}
 }
+
+} //namespace unstruc
