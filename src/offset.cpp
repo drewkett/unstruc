@@ -8,6 +8,8 @@
 #include "unstruc.h"
 #include "tetmesh.h"
 
+using namespace unstruc;
+
 const static bool use_tangents = false;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
@@ -557,35 +559,35 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			//	write_reduced_file(offset_volume,negative_volumes,filename+".negative_elements.0.vtk");
 		}
 
-		intersections::Data intersection_data;
+		Intersections intersections;
 		if (intersected_elements.size() and !failed_steps) {
 			fprintf(stderr,"Checking for Intersections (Subselection)");
 			Grid intersected_volume = offset_volume.extract_from_element_index(intersected_elements);
-			intersection_data = intersections::find(intersected_volume);
-			if (intersection_data.elements.size() == 0) {
-				fprintf(stderr,"%lu Intersected Elements\n",intersection_data.elements.size());
+			intersections = Intersections::find(intersected_volume);
+			if (intersections.elements.size() == 0) {
+				fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 				fprintf(stderr,"Checking for Intersections");
-				intersection_data = intersections::find(offset_volume);
+				intersections = Intersections::find(offset_volume);
 				n_full_iterations++;
 			}
 		} else {
 			fprintf(stderr,"Checking for Intersections");
-			intersection_data = intersections::find(offset_volume);
+			intersections = Intersections::find(offset_volume);
 			n_full_iterations++;
 		}
-		fprintf(stderr,"%lu Intersected Elements\n",intersection_data.elements.size());
-		intersected_elements = intersection_data.elements;
+		fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
+		intersected_elements = intersections.elements;
 
-		if (intersection_data.elements.size() > 0) {
+		if (intersections.elements.size() > 0) {
 			successful = false;
 			//if (i == 1)
-			//	write_reduced_file(offset_volume,intersection_data.elements,filename+".intersected_elements.0.vtk");
+			//	write_reduced_file(offset_volume,intersections.elements,filename+".intersected_elements.0.vtk");
 		}
 
 		if (successful) break;
 
 		if (!needs_radical_improvement) {
-			if (intersection_data.elements.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
+			if (intersections.elements.size() >= last_n_intersected && negative_volumes.size() >= last_n_negative) {
 				failed_steps++;
 				fprintf(stderr,"Failed iteration\n");
 				if (failed_steps > 1) {
@@ -594,7 +596,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				}
 			} else
 				failed_steps = 0;
-			last_n_intersected = intersection_data.elements.size();
+			last_n_intersected = intersections.elements.size();
 			last_n_negative = negative_volumes.size();
 		}
 
@@ -607,7 +609,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				poisoned_points[p] = true;
 		}
 
-		for (int _p : intersection_data.points)
+		for (int _p : intersections.points)
 			poisoned_points[_p] = true;
 
 		for (Element& e : offset_volume.elements) {
@@ -651,9 +653,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 
 		fprintf(stderr,"Checking for Intersections");
-		intersections::Data intersection_data = intersections::find(offset_volume);
-		if (intersection_data.elements.size() > 0) {
-			fprintf(stderr,"%lu Intersected Points\n",intersection_data.elements.size());
+		Intersections intersections = Intersections::find(offset_volume);
+		if (intersections.elements.size() > 0) {
+			fprintf(stderr,"%lu Intersected Points\n",intersections.elements.size());
 			fatal("Still Intersections");
 		}
 	}

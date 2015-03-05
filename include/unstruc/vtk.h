@@ -5,6 +5,8 @@
 
 struct Grid;
 
-bool vtk_write(const std::string& filename, const Grid &grid);
+namespace unstruc {
+	bool vtk_write(const std::string& filename, const Grid &grid);
+}
 
 #endif

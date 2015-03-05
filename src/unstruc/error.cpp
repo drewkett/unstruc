@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdlib>
 
+namespace unstruc {
+
 void fatal() {
 	std::cerr << "Fatal Error" << std::endl;
 	exit(1);
@@ -23,3 +25,5 @@ void not_implemented(std::string s) {
 	std::cerr << "Not Implemented Yet : " << s << std::endl;
 	exit(1);
 }
+
+} //namespace unstruc

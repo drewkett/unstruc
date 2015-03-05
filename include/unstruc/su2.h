@@ -3,9 +3,11 @@
 
 #include <string>
 
-struct Grid;
+namespace unstruc {
+	struct Grid;
 
-bool su2_write(const std::string& filename, const Grid &grid);
-Grid su2_read(const std::string& filename);
+	bool su2_write(const std::string& filename, const Grid &grid);
+	Grid su2_read(const std::string& filename);
+}
 
 #endif

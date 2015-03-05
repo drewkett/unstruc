@@ -10,6 +10,8 @@
 #include <fstream>
 #include <sstream>
 
+namespace unstruc {
+
 const Shape Shape::Info[Shape::NShapes] {
 	{ "Undefined", 0, 0, 0 },
 	{ "Line"     , 1, 2, 3 },
@@ -546,7 +548,9 @@ bool collapse_wo_split(Element &e) {
 			return collapse_wedge_wo_split(e);
 		default:
 			fprintf(stderr,"Eltype == %s\n",Shape::Info[e.type].name.c_str());
-			NotImplemented("collapse_wo_split for ElType");
+			not_implemented("collapse_wo_split for ElType");
 	}
 	return false;
 };
+
+} // namespace unstruc

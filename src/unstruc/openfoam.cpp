@@ -18,6 +18,8 @@
 #include <fstream>
 #include <vector>
 
+namespace unstruc {
+
 enum OFCellType {
 	OFUnknown,
 	OFHexa,
@@ -1619,3 +1621,5 @@ Grid openfoam_read(const std::string& polymesh) {
 	printf("Created Boundary Elements: %d\n",n_boundary_elems);
 	return grid;
 }
+
+} // namespace unstruc::openfoam

@@ -9,6 +9,8 @@
 #include <vector>
 #include <utility>
 
+using namespace unstruc;
+
 namespace tetmesh {
 
 Grid surfacegrid_from_tetgenio(tetgenio const& tg) {
@@ -185,8 +187,8 @@ void verify_complete_surfaces(const Grid& surface) {
 std::vector <Point> orient_surfaces(Grid& surface) {
 	verify_complete_surfaces(surface);
 
-	intersections::Data data = intersections::find(surface);
-	if (data.points.size() || data.elements.size()) {
+	Intersections intersections = Intersections::find(surface);
+	if (intersections.points.size() || intersections.elements.size()) {
 		fatal("Intersections found in surface");
 	}
 

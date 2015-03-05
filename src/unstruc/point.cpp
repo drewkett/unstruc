@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+namespace unstruc {
+
 void dump(Point p) {
 	printf("Point %8.6g %8.6g %8.6g\n",p.x,p.y,p.z);
 };
@@ -33,3 +35,5 @@ Vector cross(const Vector& v1, const Vector& v2) {
 	v.z = v1.x*v2.y - v1.y*v2.x;
 	return v;
 };
+
+} // namespace unstruc

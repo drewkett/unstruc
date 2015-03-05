@@ -3,8 +3,10 @@
 
 #include <string> 
 
-struct Grid;
+namespace unstruc {
+	struct Grid;
 
-void gmsh_write(const std::string& filename, const Grid &grid);
+	void gmsh_write(const std::string& filename, const Grid &grid);
+}
 
 #endif

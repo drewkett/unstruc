@@ -11,6 +11,8 @@
 #include <iostream>
 #include <algorithm>
 
+namespace unstruc {
+
 Grid::Grid(int _dim) : dim(_dim) {
 	names.push_back( Name(dim, "default") );
 }
@@ -353,3 +355,5 @@ Grid Grid::extract_from_element_index(const std::vector <int>& element_index) co
 	}
 	return extracted;
 }
+
+} //namespace unstruc

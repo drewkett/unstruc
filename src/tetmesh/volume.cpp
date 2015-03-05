@@ -4,6 +4,8 @@
 
 #include <tetgen.h>
 
+using namespace unstruc;
+
 namespace tetmesh {
 
 Grid grid_from_tetgenio(tetgenio const& tg) {

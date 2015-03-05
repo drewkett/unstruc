@@ -11,6 +11,7 @@
 #include <array>
 #include <cstdio>
 
+namespace unstruc {
 
 Point stl_read_vertex_ascii(std::istream& ss) {
 	Point p;
@@ -216,3 +217,4 @@ void stl_write_binary(const std::string& filename, const Grid& grid) {
 	}
 }
 
+} // namespace unstruc::stl

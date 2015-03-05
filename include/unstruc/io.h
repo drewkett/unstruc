@@ -3,21 +3,23 @@
 
 #include <string>
 
-struct Grid;
+namespace unstruc {
+	struct Grid;
 
-enum struct FileType {
-	Unknown,
-	Plot3D,
-	SU2,
-	VTK,
-	OpenFoam,
-	STL,
-	GMSH,
-	Count
-};
+	enum struct FileType {
+		Unknown,
+		Plot3D,
+		SU2,
+		VTK,
+		OpenFoam,
+		STL,
+		GMSH,
+		Count
+	};
 
-FileType filetype_from_filename(const std::string& filename);
-Grid read_grid(const std::string& filename);
-void write_grid(const std::string& filename,const Grid& grid);
+	FileType filetype_from_filename(const std::string& filename);
+	Grid read_grid(const std::string& filename);
+	void write_grid(const std::string& filename,const Grid& grid);
+}
 
 #endif

@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 
+namespace unstruc {
 
 MultiBlock plot3d_read_to_multiblock(const std::string& filename) {
 	std::ifstream f;
@@ -71,3 +72,5 @@ Grid plot3d_read(const std::string& filename) {
 	MultiBlock mb = plot3d_read_to_multiblock(filename);
 	return mb.to_grid();
 }
+
+} // namespace unstruc

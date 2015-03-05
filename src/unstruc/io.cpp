@@ -10,6 +10,8 @@
 #include "grid.h"
 #include "error.h"
 
+namespace unstruc {
+
 FileType filetype_from_filename(const std::string& filename) {
 	int n = filename.size();
 	if (filename.compare(n-4,4,".su2") == 0)

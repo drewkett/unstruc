@@ -3,9 +3,9 @@
 
 #include <string> 
 
-struct MultiBlock;
-struct Grid;
-
-Grid plot3d_read(const std::string& filename);
+namespace unstruc {
+	struct Grid;
+	Grid plot3d_read(const std::string& filename);
+}
 
 #endif

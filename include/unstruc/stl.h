@@ -3,12 +3,14 @@
 
 #include <string>
 
-struct Grid;
+namespace unstruc {
+	struct Grid;
 
-Grid stl_read_ascii(const std::string& filename);
-Grid stl_read_binary(const std::string& filename);
-Grid stl_read(const std::string& filename);
-void stl_write_ascii(const std::string& filename, const Grid& grid);
-void stl_write_binary(const std::string& filename, const Grid& grid);
+	Grid stl_read_ascii(const std::string& filename);
+	Grid stl_read_binary(const std::string& filename);
+	Grid stl_read(const std::string& filename);
+	void stl_write_ascii(const std::string& filename, const Grid& grid);
+	void stl_write_binary(const std::string& filename, const Grid& grid);
+}
 
 #endif

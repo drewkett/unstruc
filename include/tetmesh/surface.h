@@ -3,12 +3,14 @@
 
 #include <vector>
 
-struct Grid;
-struct Point;
+namespace unstruc{
+	struct Grid;
+	struct Point;
+};
 
 namespace tetmesh {
-	Grid tetrahedralize_surface(Grid const& surface, double max_area);
-	std::vector <Point> orient_surfaces(Grid& surface);
+	unstruc::Grid tetrahedralize_surface(unstruc::Grid const& surface, double max_area);
+	std::vector <unstruc::Point> orient_surfaces(unstruc::Grid& surface);
 }
 
 #endif

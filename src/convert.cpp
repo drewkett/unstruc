@@ -8,6 +8,8 @@
 
 #define TOL 3.e-8
 
+using namespace unstruc;
+
 struct TranslationTable {
 	std::vector <Name> names;
 	std::vector <int> index;

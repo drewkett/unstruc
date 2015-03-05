@@ -3,8 +3,9 @@
 
 #include <string>
 
-struct Grid;
-
-Grid openfoam_read(const std::string& filename);
+namespace unstruc {
+	struct Grid;
+	Grid openfoam_read(const std::string& filename);
+}
 
 #endif

@@ -52,3 +52,5 @@ bool vtk_write(const std::string& outputfile, const Grid &grid) {
 	}
 	return true;
 }
+
+} // namespace unstruc::vtk

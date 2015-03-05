@@ -8,6 +8,8 @@
 #include <sstream>
 #include <vector>
 
+namespace unstruc {
+
 Block::Block(int s1, int s2, int s3) : size1(s1), size2(s2), size3(s3) {
 	points = std::vector <Point> (size1*size2*size3);
 };
@@ -170,3 +172,5 @@ Grid MultiBlock::to_grid() {
 	std::cerr << grid.elements.size() << " Elements" << std::endl;
 	return grid;
 }
+
+} // namespace unstruc

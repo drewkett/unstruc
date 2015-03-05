@@ -3,6 +3,8 @@
 #include "unstruc.h"
 #include "surface.h"
 
+using namespace unstruc;
+
 namespace tetmesh {
 
 Grid create_farfield_box(Grid const& surface) {

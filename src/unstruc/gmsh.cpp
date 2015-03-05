@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+namespace unstruc {
+
 void gmsh_write(const std::string& filename, const Grid &grid) {
 	FILE* f = fopen(filename.c_str(),"w");
 	if (!f) fatal("Could not open file");
@@ -47,3 +49,5 @@ void gmsh_write(const std::string& filename, const Grid &grid) {
 	}
 	fprintf(f,"$EndPhysicalNames\n");
 }
+
+} // namespace unstruc::GMSH

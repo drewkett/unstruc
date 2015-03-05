@@ -4,53 +4,57 @@
 #include <vector>
 #include <string>
 
-struct Point;
+namespace unstruc {
 
-struct Shape {
-	std::string name;
-	int dim, n_points, vtk_id;
+	struct Point;
+	struct Grid;
 
-	static const Shape Info[];
+	struct Shape {
+		std::string name;
+		int dim, n_points, vtk_id;
 
-	enum Type {
-		Undefined,
-		Line,
-		Triangle,
-		Quad,
-		Polygon,
-		Tetra,
-		Hexa,
-		Wedge,
-		Pyramid,
-		NShapes
+		static const Shape Info[];
+
+		enum Type {
+			Undefined,
+			Line,
+			Triangle,
+			Quad,
+			Polygon,
+			Tetra,
+			Hexa,
+			Wedge,
+			Pyramid,
+			NShapes
+		};
 	};
-};
 
-Shape::Type type_from_vtk_id(int vtk_id);
+	Shape::Type type_from_vtk_id(int vtk_id);
 
-struct Grid;
 
-struct Element
-{
-	Shape::Type type;
-	int name_i;
-	std::vector<int> points;
+	struct Element
+	{
+		Shape::Type type;
+		int name_i;
+		std::vector<int> points;
 
-	Element() : type(Shape::Type::Undefined), name_i(0) {};
-	Element(Shape::Type T);
+		Element() : type(Shape::Type::Undefined), name_i(0) {};
+		Element(Shape::Type T);
 
-	double calc_volume(Grid& grid);
+		double calc_volume(Grid& grid);
 
-};
+	};
 
-void dump(const Element &e);
-void dump(const Element &e, const Grid& grid);
-bool same(Element e1, Element e2);
+	void dump(const Element &e);
+	void dump(const Element &e, const Grid& grid);
+	bool same(Element e1, Element e2);
 
-bool can_collapse(const Element& e);
-bool collapse(Element& e,std::vector<Element>& new_elements);
+	bool can_collapse(const Element& e);
+	bool collapse(Element& e,std::vector<Element>& new_elements);
 
-bool can_collapse_wo_split(const Element& e);
-bool collapse_wo_split(Element& e);
+	bool can_collapse_wo_split(const Element& e);
+	bool collapse_wo_split(Element& e);
+
+}
 
 #endif

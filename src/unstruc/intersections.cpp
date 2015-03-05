@@ -8,7 +8,7 @@
 #include <vector>
 #include <cassert>
 
-using namespace intersections;
+namespace unstruc {
 
 struct Edge {
 	int p1, p2;
@@ -294,11 +294,11 @@ std::vector<Face> get_faces(const Grid& grid) {
 	return faces;
 };
 
-Data intersections::find(const Grid& grid) {
+Intersections Intersections::find(const Grid& grid) {
 	std::vector <Face> faces = get_faces(grid);
 	std::vector <Edge> edges = get_edges(grid);
 	int j_current = 0;
-	Data intersections;
+	Intersections intersections;
 	std::vector <bool> intersected_points (grid.points.size(),false);
 	std::vector <bool> intersected_elements (grid.elements.size(),false);
 	for (int i = 0; i < edges.size(); ++i) {
@@ -367,3 +367,5 @@ Data intersections::find(const Grid& grid) {
 	}
 	return intersections;
 }
+
+} // namespace unstruc

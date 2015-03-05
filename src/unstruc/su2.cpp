@@ -14,6 +14,8 @@
 #include <vector>
 #include <map>
 
+namespace unstruc {
+
 bool su2_write(const std::string& outputfile, const Grid& grid) {
 	int i, j;
 
@@ -273,3 +275,5 @@ Grid su2_read(const std::string& inputfile) {
 		fprintf(stderr,"%d Negative Volume Elements\n",n_negative);
 	return grid;
 }
+
+} // namespace unstruc::su2

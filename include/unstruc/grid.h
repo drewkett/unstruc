@@ -7,33 +7,35 @@
 #include "point.h"
 #include "element.h"
 
-struct Name {
-	int dim;
-	std::string name;
-	Name() : dim(0) {};
-	Name(int dim,std::string name) : dim(dim), name(name) {};
-};
+namespace unstruc {
+	struct Name {
+		int dim;
+		std::string name;
+		Name() : dim(0) {};
+		Name(int dim,std::string name) : dim(dim), name(name) {};
+	};
 
-struct Grid {
-	std::vector <Point> points;
-	std::vector <Element> elements;
-	std::vector <Name> names;
-	int dim;
+	struct Grid {
+		std::vector <Point> points;
+		std::vector <Element> elements;
+		std::vector <Name> names;
+		int dim;
 
-	Grid () : dim(0) {};
-	Grid (int _dim);
-	void merge_points(double tol);
-	void delete_inner_faces();
-	void collapse_elements(bool split);
-	Grid grid_from_elements(std::vector<Element>&);
-	Grid& operator+=(const Grid&);
-	Grid operator+(const Grid& other) const { return Grid(*this) += other; };
-	void delete_empty_names();
-	bool test_point_inside(Point const& p);
-	bool check_integrity() const;
-	Point get_bounding_min() const;
-	Point get_bounding_max() const;
-	Grid extract_from_element_index(const std::vector <int>& element_index) const;
-};
+		Grid () : dim(0) {};
+		Grid (int _dim);
+		void merge_points(double tol);
+		void delete_inner_faces();
+		void collapse_elements(bool split);
+		Grid grid_from_elements(std::vector<Element>&);
+		Grid& operator+=(const Grid&);
+		Grid operator+(const Grid& other) const { return Grid(*this) += other; };
+		void delete_empty_names();
+		bool test_point_inside(Point const& p);
+		bool check_integrity() const;
+		Point get_bounding_min() const;
+		Point get_bounding_max() const;
+		Grid extract_from_element_index(const std::vector <int>& element_index) const;
+	};
+}
 
 #endif

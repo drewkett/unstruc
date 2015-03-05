@@ -3,14 +3,15 @@
 
 #include <vector>
 
-struct Grid;
-namespace intersections {
-	struct Data {
+namespace unstruc {
+	struct Grid;
+
+	struct Intersections {
 		std::vector <int> points;
 		std::vector <int> elements;
-	};
 
-	Data find(const Grid& grid);
+		static Intersections find(const Grid& grid);
+	};
 }
 
 #endif
