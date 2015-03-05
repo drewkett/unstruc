@@ -105,7 +105,7 @@ std::vector<Edge> get_edges(const Grid& grid) {
 			edges.push_back( Edge(e.points[2],e.points[3],_e) );
 			edges.push_back( Edge(e.points[3],e.points[0],_e) );
 		} else
-			Fatal("Shape not supported");
+			fatal("Shape not supported");
 
 	}
 #ifndef NDEBUG
@@ -199,7 +199,7 @@ std::vector<Face> get_faces(const Grid& grid) {
 			face.points = e.points;
 			faces.push_back(face);
 		} else
-			Fatal("Shape not supported");
+			fatal("Shape not supported");
 	}
 #ifndef NDEBUG
 	fprintf(stderr,"Sorting Faces by Points\n");

@@ -4,22 +4,22 @@
 #include <string>
 #include <cstdlib>
 
-void Fatal() {
+void fatal() {
 	std::cerr << "Fatal Error" << std::endl;
 	exit(1);
 }
 
-void Fatal(std::string s) {
+void fatal(std::string s) {
 	std::cerr << s << std::endl << "Fatal Error" << std::endl;
 	exit(1);
 }
 
-void NotImplemented() {
+void not_implemented() {
 	std::cerr << "Not Implemented Yet" << std::endl;
 	exit(1);
 }
 
-void NotImplemented(std::string s) {
+void not_implemented(std::string s) {
 	std::cerr << "Not Implemented Yet : " << s << std::endl;
 	exit(1);
 }

@@ -163,7 +163,7 @@ void Grid::collapse_elements(bool split) {
 				}
 				n_collapsed++;
 			} else if (can_collapse(e))
-				Fatal("Can't collapse without splitting");
+				fatal("Can't collapse without splitting");
 		}
 	}
 	std::cerr << n_collapsed << " Elements Collapsed" << std::endl;
@@ -207,7 +207,7 @@ Grid Grid::grid_from_elements(std::vector<Element>& elements) {
 
 Grid& Grid::operator+=(const Grid& other) {
 	if (dim != other.dim)
-		Fatal("Dimensions must match");
+		fatal("Dimensions must match");
 	int point_offset = points.size();
 	int name_offset = names.size();
 	points.insert(points.end(),other.points.begin(),other.points.end());
@@ -252,7 +252,7 @@ bool Grid::test_point_inside(Point const& p) {
 	bool inside = false;
 	for (Element const& e : elements) {
 		if (e.type != Shape::Tetra)
-			NotImplemented("test_point_inside_volume only surpports Tetra's");
+			not_implemented("test_point_inside_volume only surpports Tetra's");
 		Point const& p0 = points[e.points[0]];
 		Point const& p1 = points[e.points[1]];
 		Point const& p2 = points[e.points[2]];
@@ -348,7 +348,7 @@ Grid Grid::extract_from_element_index(const std::vector <int>& element_index) co
 	extracted.elements.reserve(element_index.size());
 	for (int _e : element_index) {
 		if (_e >= elements.size())
-			Fatal("Non-existent element referenced");
+			fatal("Non-existent element referenced");
 		extracted.elements.push_back(elements[_e]);
 	}
 	return extracted;

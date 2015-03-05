@@ -19,7 +19,7 @@ bool toSU2(const std::string& outputfile, const Grid& grid) {
 
 	FILE * f;
 	f = fopen(outputfile.c_str(),"w");
-	if (!f) Fatal("Could not open file");
+	if (!f) fatal("Could not open file");
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
@@ -99,7 +99,7 @@ Grid readSU2(const std::string& inputfile) {
 	bool use_point_map = false;
 	f.open(inputfile.c_str(),std::ios::in);
 	std::cerr << "Opening SU2 File '" << inputfile << "'" << std::endl;
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	bool read_dime = false, read_poin = false, read_elem = false;
 	while (getline(f,line)) {
 		std::stringstream ss(line);
@@ -135,7 +135,7 @@ Grid readSU2(const std::string& inputfile) {
 				std::stringstream ss(line);
 				ss >> token;
 				Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
-				if (type == Shape::Undefined) Fatal("Unrecognized shape type");
+				if (type == Shape::Undefined) fatal("Unrecognized shape type");
 				Element elem = Element(type);
 				//Assign to default name block
 				elem.name_i = 0;
@@ -173,7 +173,7 @@ Grid readSU2(const std::string& inputfile) {
 				ss >> token;
 				point.y = std::atof(token.c_str());
 				if (!grid.dim)
-					Fatal("Dimension (NDIME) not defined");
+					fatal("Dimension (NDIME) not defined");
 				if (grid.dim == 3) {
 					ss >> token;
 					point.z = std::atof(token.c_str());
@@ -207,7 +207,7 @@ Grid readSU2(const std::string& inputfile) {
 				std::stringstream ss(line);
 				ss >> token;
 				if (token.substr(0,11) != "MARKER_TAG=")
-					Fatal("Invalid Marker Definition: Expected MARKER_TAG=");
+					fatal("Invalid Marker Definition: Expected MARKER_TAG=");
 				if (token.size() > 11) {
 					name.name.assign(token.substr(11));
 				} else {
@@ -223,7 +223,7 @@ Grid readSU2(const std::string& inputfile) {
 				ss.str(line);
 				ss >> token;
 				if (token.substr(0,13) != "MARKER_ELEMS=") 
-					Fatal("Invalid Marker Definition: Expected MARKER_ELEMS=");
+					fatal("Invalid Marker Definition: Expected MARKER_ELEMS=");
 				if (token.size() > 13) {
 					nelem = std::atoi(token.substr(13).c_str());
 				} else {
@@ -236,12 +236,12 @@ Grid readSU2(const std::string& inputfile) {
 					ss.str(line);
 					ss >> token;
 					Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
-					if (type == Shape::Undefined) Fatal("Unrecognized shape type");
+					if (type == Shape::Undefined) fatal("Unrecognized shape type");
 					Element elem = Element(type);
 					for (k=0; k<elem.points.size(); k++) {
 						ss >> token;
 						ipoint = std::atoi(token.c_str());
-						if (ipoint >= grid.points.size()) Fatal("Error Marker Element");
+						if (ipoint >= grid.points.size()) fatal("Error Marker Element");
 						elem.points[k] = ipoint;
 					}
 					elem.name_i = iname;

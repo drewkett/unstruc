@@ -3,10 +3,10 @@
 
 #include <string>
 
-void Fatal();
-void Fatal(std::string s);
-void NotImplemented();
-void NotImplemented(std::string s);
-void Error(std::string s);
+void fatal();
+void fatal(std::string s);
+void not_implemented();
+void not_implemented(std::string s);
+void error(std::string s);
 
 #endif

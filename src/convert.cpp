@@ -19,7 +19,7 @@ void ReadTranslationFile(std::string &filename, TranslationTable &tt) {
 	std::string line, s;
 	std::cerr << "Reading Translation File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	while (getline(f,line)) {
 		tt.names.resize(tt.names.size() + 1);
 		Name &name = tt.names.back();
@@ -79,20 +79,20 @@ int main (int argc, char* argv[])
 			std::string arg (argv[i]);
 			if (arg == "-t") {
 				i++;
-				if (i == argc) Fatal("Must pass filename option to -t");
+				if (i == argc) fatal("Must pass filename option to -t");
 				c_translationfile = argv[i];
 			} else if (arg == "-m") {
 				mergepoints = true;
 			} else if (arg == "-s") {
 				i++;
-				if (i == argc) Fatal("Must pass float option to -s");
+				if (i == argc) fatal("Must pass float option to -s");
 				scale_factor = atof(argv[i]);
 			} else if (arg == "-h" || arg == "--help") {
 				print_usage();
 				exit(0);
 			} else {
 				print_usage();
-				Fatal("Unknown argument");
+				fatal("Unknown argument");
 			}
 		} else {
 			if (j == 0)
@@ -105,11 +105,11 @@ int main (int argc, char* argv[])
 	}
 	if (!c_outputfile) {
 		print_usage();
-		Fatal("Must specify output file");
+		fatal("Must specify output file");
 	}
 	if (inputfiles.size() == 0) {
 		print_usage();
-		Fatal("Must specify input file[s]");
+		fatal("Must specify input file[s]");
 	}
 	std::string outputfile (c_outputfile);
 	Grid grid;

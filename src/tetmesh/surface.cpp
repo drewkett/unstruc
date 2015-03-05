@@ -105,7 +105,7 @@ void verify_complete_surfaces(const Grid& surface) {
 	for (int i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
 		if (Shape::Info[e.type].dim != 2)
-			Fatal("Not a surface. Has non-surface elements");
+			fatal("Not a surface. Has non-surface elements");
 		for (int j = 0; j < e.points.size(); ++j) {
 			int j2 = (j + 1)%e.points.size();
 			int p = e.points[j];
@@ -124,27 +124,27 @@ void verify_complete_surfaces(const Grid& surface) {
 	std::sort(edges.begin(),edges.end());
 	for (int i = 0; i < edges.size(); ++i) {
 		if (i == edges.size()-1)
-			Fatal("Boundary Edge found (1)");
+			fatal("Boundary Edge found (1)");
 		int i2 = i + 1;
 		if (edges[i].points != edges[i2].points)
-			Fatal("Boundary Edge found (2)");
+			fatal("Boundary Edge found (2)");
 		if (i + 2 < edges.size()) {
 			int i3 = i + 2;
 			if (edges[i2].points == edges[i3].points)
-				Fatal("Non-Manifold Edge Found");
+				fatal("Non-Manifold Edge Found");
 		}
 		++i;
 	}
 	for (std::vector <Edge> edges : edges_per_point) {
 		if (edges.size()%2 != 0)
-			Fatal("Boundary Edge found (3)");
+			fatal("Boundary Edge found (3)");
 		std::sort(edges.begin(),edges.end());
 		std::list <Edge> edge_list;
 		for (int i = 0; i < edges.size()/2; ++i) {
 			const Edge& ee1 = edges[2*i];
 			const Edge& ee2 = edges[2*i+1];
 			if (ee1.points != ee2.points)
-				Fatal("Boundary Edge found (4)");
+				fatal("Boundary Edge found (4)");
 			edge_list.push_back( Edge(ee1.points.first,ee2.points.second,ee1.elements.first,ee2.elements.first) );
 		}
 		std::list <int> surface_list;
@@ -176,9 +176,9 @@ void verify_complete_surfaces(const Grid& surface) {
 			}
 		}
 		if (surface_list.front() != surface_list.back())
-			Fatal("Boundary Edge Found (5)");
+			fatal("Boundary Edge Found (5)");
 		if (edge_list.size() > 0)
-			Fatal("Non-manifold Point Found");
+			fatal("Non-manifold Point Found");
 	}
 }
 
@@ -187,7 +187,7 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 
 	intersections::Data data = intersections::find(surface);
 	if (data.points.size() || data.elements.size()) {
-		Fatal("Intersections found in surface");
+		fatal("Intersections found in surface");
 	}
 
 	Grid vol = volgrid_from_surface(surface);
@@ -196,7 +196,7 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 
 	bool found_point = false;
 	for (const Element& e : surface.elements) {
-		if (e.type != Shape::Triangle) Fatal("orient_surface only works with triangles currently");
+		if (e.type != Shape::Triangle) fatal("orient_surface only works with triangles currently");
 		bool match = false;
 		for (std::vector<bool>& s : surface_map) {
 			if (s[e.points[0]] || s[e.points[1]] || s[e.points[2]]) {
@@ -274,7 +274,7 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 				for (Element& e : surface.elements) {
 					if (!s[e.points[0]]) continue;
 					if (e.type != Shape::Triangle)
-						Fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
+						fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
 					std::swap(e.points[1],e.points[2]);
 				}
 				holes.push_back(test2);
@@ -283,7 +283,7 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 			}
 		}
 		if (!hole_found) {
-			Fatal("Couldn't find hole for one of the surfaces");
+			fatal("Couldn't find hole for one of the surfaces");
 		}
 	}
 	return holes;

@@ -74,7 +74,7 @@ void write_reduced_file_from_points(const Grid& grid, std::vector <int> points, 
 
 Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	if (surface1.elements.size() != surface2.elements.size())
-		Fatal("surfaces don't match");
+		fatal("surfaces don't match");
 	int npoints1 = surface1.points.size();
 
 	Grid volume (3);
@@ -85,7 +85,7 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 		const Element& e1 = surface1.elements[i];
 		const Element& e2 = surface2.elements[i];
 		if (e1.type != e2.type)
-			Fatal("elements in surfaces don't match");
+			fatal("elements in surfaces don't match");
 		if (e1.type == Shape::Triangle) {
 			Element e (Shape::Wedge);
 			for (int j = 0; j < 3; ++j) {
@@ -96,7 +96,7 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 			volume.elements.push_back(e);
 		} else {
 			fprintf(stderr,"%s\n",Shape::Info[e1.type].name.c_str());
-			NotImplemented("Must pass triangle surfaces");
+			not_implemented("Must pass triangle surfaces");
 		}
 	}
 	return volume;
@@ -154,7 +154,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		const Element& e = surface.elements[i];
 
 		if (e.type != Shape::Triangle)
-			NotImplemented("(unstruc-offset::calculate_point_connections) Surface must only contain triangles");
+			not_implemented("(unstruc-offset::calculate_point_connections) Surface must only contain triangles");
 		const Point& p0 = surface.points[e.points[0]];
 		const Point& p1 = surface.points[e.points[1]];
 		const Point& p2 = surface.points[e.points[2]];
@@ -162,7 +162,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		Vector v1 = p1 - p0;
 		Vector v2 = p2 - p1;
 		if (cross(v1,v2).length() == 0)
-			Fatal("Bad Element. Has no normal");
+			fatal("Bad Element. Has no normal");
 		sdata.element_normals[i] = cross(v1,v2).normalized();
 
 		for (int j = 0; j < e.points.size(); ++j) {
@@ -228,7 +228,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 		double norm_length = point_norm.length();
 		if (point_norm.length() == 0)
-			Fatal("Point Normal length == 0");
+			fatal("Point Normal length == 0");
 
 		double convex_test = dot(point_norm.normalized(),point_bisect.normalized());
 		pc.convex = convex_test < 0;
@@ -253,7 +253,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			if (d <= 0) {
 				fprintf(stderr,"Can't create normal for ");
 				dump(p);
-				//Fatal ("Can't find normal");
+				//fatal ("Can't find normal");
 				bad_vector = true;
 				point_norm *= 0;
 				break;
@@ -266,7 +266,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 
 		if (point_norm.length() == 0)
-			Fatal("Adjusted Point Normal length == 0");
+			fatal("Adjusted Point Normal length == 0");
 		point_norm = norm_length*point_norm.normalized();
 
 		assert(norm_length < 1 + sqrt(DBL_EPSILON));
@@ -296,7 +296,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			const Point& p1 = surface.points[pw1.p];
 			Vector d = p1 - p;
 			if (d.length()== 0)
-				Fatal("Coincedent points found");
+				fatal("Coincedent points found");
 			double w;
 			if (use_sqrt_length)
 				w = (pw1.w + pw2.w)/sqrt(d.length());
@@ -309,7 +309,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 		pc.pointweights.resize(new_size);
 		if (total_weight== 0)
-			Fatal("Weights sum to zero");
+			fatal("Weights sum to zero");
 		if (use_normalized_weights)
 			for (PointWeight& pw : pc.pointweights)
 				pw.w /= total_weight;
@@ -647,14 +647,14 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
 		if (negative_volumes.size() > 0) {
 			printf("%lu Negative Volumes\n",negative_volumes.size());
-			Fatal("Still Negative Volumes");
+			fatal("Still Negative Volumes");
 		}
 
 		fprintf(stderr,"Checking for Intersections");
 		intersections::Data intersection_data = intersections::find(offset_volume);
 		if (intersection_data.elements.size() > 0) {
 			fprintf(stderr,"%lu Intersected Points\n",intersection_data.elements.size());
-			Fatal("Still Intersections");
+			fatal("Still Intersections");
 		}
 	}
 

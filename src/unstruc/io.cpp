@@ -23,7 +23,7 @@ FileType filetype_from_filename(const std::string& filename) {
 	else if (filename.compare(n-8,8,"polyMesh") == 0 || filename.compare(n-9,9,"polyMesh/") == 0)
 		return FileType::OpenFoam;
 	else
-		Fatal("Unknown filetype");
+		fatal("Unknown filetype");
 	return FileType::Unknown;
 }
 
@@ -39,14 +39,14 @@ Grid read_grid(const std::string& filename) {
 		case FileType::STL:
 			return STL::read(filename);
 		default:
-			Fatal("Unsupported filetype for reading");
+			fatal("Unsupported filetype for reading");
 	}
 	return grid;
 }
 
 void write_grid(const std::string& filename,const Grid& grid) {
 	if (!grid.check_integrity())
-		Fatal("Grid integrity check failed");
+		fatal("Grid integrity check failed");
 
 	FileType type = filetype_from_filename(filename);
 
@@ -64,6 +64,6 @@ void write_grid(const std::string& filename,const Grid& grid) {
 			STL::write_ascii(filename,grid);
 			break;
 		default:
-			Fatal("Unsupported filetype for writing");
+			fatal("Unsupported filetype for writing");
 	}
 }

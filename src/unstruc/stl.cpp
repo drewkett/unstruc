@@ -17,7 +17,7 @@ Point read_vertex_ascii(std::istream& ss) {
 	Point p;
 	std::string token;
 	ss >> token;
-	if (token != "vertex") Fatal("Expected vertex");
+	if (token != "vertex") fatal("Expected vertex");
 	ss >> p.x;
 	ss >> p.y;
 	ss >> p.z;
@@ -30,7 +30,7 @@ Grid read_ascii(const std::string& filename) {
 	grid.names.push_back( Name(2,filename) );
 	std::ifstream f;
 	f.open(filename);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	bool in_solid = false;
 	std::string token;
 	std::string solid_name;
@@ -55,16 +55,16 @@ Grid read_ascii(const std::string& filename) {
 			continue;
 		} else if (in_solid && token == "facet") {
 			f >> token;
-			if (token != "normal") Fatal("Expected normal after facet");
+			if (token != "normal") fatal("Expected normal after facet");
 			Vector normal;
 			f >> normal.x;
 			f >> normal.y;
 			f >> normal.z;
 
 			f >> token;
-			if (token != "outer") Fatal("Expected outer after normal definition");
+			if (token != "outer") fatal("Expected outer after normal definition");
 			f >> token;
-			if (token != "loop") Fatal("Expected loop after outer");
+			if (token != "loop") fatal("Expected loop after outer");
 			
 			int i = grid.points.size();
 			grid.points.push_back(read_vertex_ascii(f));
@@ -131,14 +131,14 @@ Grid read_binary(const std::string& filename) {
 	}
 	f.get();
 	if (!f.eof())
-		Fatal("(read_stl_binary) End Of File not reached");
+		fatal("(read_stl_binary) End Of File not reached");
 	return grid;
 }
 
 Grid read(const std::string& filename) {
 	std::ifstream f;
 	f.open(filename);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	std::string token;
 	f >> token;
 	if (token == "solid")
@@ -151,12 +151,12 @@ void write_ascii(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
 	fprintf(stderr,"Outputting %s\n",filename.c_str());
-	if (!f) Fatal("Could not open file");
+	if (!f) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
-			Fatal("STL files only support triangles");
+			fatal("STL files only support triangles");
 		if (e.points.size() != 3)
-			Fatal("One of the triangles does not have 3 points");
+			fatal("One of the triangles does not have 3 points");
 	}
 	fprintf(f,"solid\n");
 	for (const Element& e : grid.elements) {
@@ -194,12 +194,12 @@ void write_binary(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
 	fprintf(stderr,"Outputting %s\n",filename.c_str());
-	if (!f) Fatal("Could not open file");
+	if (!f) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
-			Fatal("STL files only support triangles");
+			fatal("STL files only support triangles");
 		if (e.points.size() != 3)
-			Fatal("One of the triangles does not have 3 points");
+			fatal("One of the triangles does not have 3 points");
 	}
 	char header[80];
 	fwrite(header,sizeof(header),1,f);

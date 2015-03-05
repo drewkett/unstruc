@@ -34,7 +34,7 @@ void WrongElement(Shape::Type T1, Shape::Type T2) {
 	std::ostringstream oss;
 	oss << "Wrong Element Type" << std::endl;
 	oss << "Got: " << Shape::Info[T1].name << " Expected: " << Shape::Info[T2].name;
-	Fatal(oss.str());
+	fatal(oss.str());
 }
 
 Element::Element(Shape::Type T) : type(T) {
@@ -176,7 +176,7 @@ double Element::calc_volume(Grid& grid) {
 				return dot(v3,v)/12 + dot(v4,v)/12;
 			}
 		default:
-			Fatal("Invalid Element Type");
+			fatal("Invalid Element Type");
 	}
 	return 0;
 }
@@ -226,7 +226,7 @@ bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
 		} else if (e.points[3] == e.points[0]) {
 			tri_from_quad(e,0,1,2);
 		} else {
-			Fatal("Don't know how to collapse quad into tri");
+			fatal("Don't know how to collapse quad into tri");
 		}
 		return collapse_tri(e);
 	} else {
@@ -315,7 +315,7 @@ bool collapse_pyramid(Element& e) {
 			tetra_from_pyramid(e,0,1,2,4);
 			return collapse_tetra(e);
 		} else {
-			NotImplemented("Don't know how to collapse this pyramid");
+			not_implemented("Don't know how to collapse this pyramid");
 		}
 	}
 	return false;
@@ -334,7 +334,7 @@ bool collapse_wedge(Element& e, std::vector<Element>& new_elements) {
 			pyramid_from_wedge(e,0,1,4,3,2);
 			return collapse_pyramid(e);
 		} else {
-			NotImplemented("Don't know how to collapse this wedge");
+			not_implemented("Don't know how to collapse this wedge");
 		}
 	}
 	return false;
@@ -354,7 +354,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,2,5,6,3,4,7);
 				pyramid_from_hexa(e_pyramid,2,5,4,3,0);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -369,7 +369,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,3,6,7,0,5,4);
 				pyramid_from_hexa(e_pyramid,3,6,5,0,1);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -381,7 +381,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,0,7,4,1,6,5);
 				pyramid_from_hexa(e_pyramid,0,7,6,1,2);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -393,7 +393,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,1,4,5,2,7,6);
 				pyramid_from_hexa(e_pyramid,1,4,7,2,3);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -408,7 +408,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,1,2,3,5,6,7);
 				pyramid_from_hexa(e_pyramid,3,1,5,7,0);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -420,7 +420,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,2,3,0,6,7,4);
 				pyramid_from_hexa(e_pyramid,0,2,6,4,1);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -432,7 +432,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,3,0,1,7,4,5);
 				pyramid_from_hexa(e_pyramid,1,3,7,5,2);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -440,7 +440,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 			Element e_pyramid = e;
 			wedge_from_hexa(e,0,1,2,4,5,6);
 			pyramid_from_hexa(e_pyramid,2,0,4,6,3);
-			if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+			if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 			new_elements.push_back(e_pyramid);
 			return collapse_wedge(e,new_elements);
 		} else if (e.points[4] == e.points[5]) {
@@ -451,7 +451,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,0,3,7,1,2,6);
 				pyramid_from_hexa(e_pyramid,0,1,6,7,4);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -463,7 +463,7 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 				Element e_pyramid = e;
 				wedge_from_hexa(e,1,0,4,2,3,7);
 				pyramid_from_hexa(e_pyramid,1,2,7,4,5);
-				if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+				if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 				new_elements.push_back(e_pyramid);
 				return collapse_wedge(e,new_elements);
 			}
@@ -471,14 +471,14 @@ bool collapse_hexa(Element &e,std::vector<Element>& new_elements) {
 			Element e_pyramid = e;
 			wedge_from_hexa(e,2,1,5,3,0,4);
 			pyramid_from_hexa(e_pyramid,2,3,4,5,6);
-			if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+			if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 			new_elements.push_back(e_pyramid);
 			return collapse_wedge(e,new_elements);
 		} else if (e.points[7] == e.points[4]) {
 			Element e_pyramid = e;
 			wedge_from_hexa(e,3,2,6,0,1,5);
 			pyramid_from_hexa(e_pyramid,3,0,5,6,7);
-			if (collapse_pyramid(e_pyramid)) NotImplemented("Return from Pyramid Collapse");
+			if (collapse_pyramid(e_pyramid)) not_implemented("Return from Pyramid Collapse");
 			new_elements.push_back(e_pyramid);
 			return collapse_wedge(e,new_elements);
 		}
@@ -494,7 +494,7 @@ bool collapse(Element &e,std::vector<Element>& new_elements) {
 			return collapse_hexa(e,new_elements);
 		default:
 			fprintf(stderr,"Eltype == %s\n",Shape::Info[e.type].name.c_str());
-			NotImplemented("Collapse for ElType");
+			not_implemented("Collapse for ElType");
 	}
 	return false;
 };
@@ -512,7 +512,7 @@ bool collapse_wedge_wo_split(Element& e) {
 			pyramid_from_wedge(e,0,1,4,3,2);
 			return collapse_pyramid(e);
 		} else {
-			NotImplemented("Don't know how to collapse this wedge");
+			not_implemented("Don't know how to collapse this wedge");
 		}
 	}
 	return false;
@@ -529,7 +529,7 @@ bool can_collapse_wo_split(const Element& e) {
 			return can_collapse(e);
 		default:
 			fprintf(stderr,"Eltype == %s\n",Shape::Info[e.type].name.c_str());
-			NotImplemented("can_collapse_wo_split for ElType");
+			not_implemented("can_collapse_wo_split for ElType");
 	}
 	return false;
 }

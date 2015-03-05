@@ -9,7 +9,7 @@
 
 void toGMSH(const std::string& filename, const Grid &grid) {
 	FILE* f = fopen(filename.c_str(),"w");
-	if (!f) Fatal("Could not open file");
+	if (!f) fatal("Could not open file");
 
 	fprintf(f,"$MeshFormat\n");
 	fprintf(f,"2.2 0 %lu\n",sizeof(double));
@@ -32,7 +32,7 @@ void toGMSH(const std::string& filename, const Grid &grid) {
 				eltype = 5;
 				break;
 			default:
-				NotImplemented("ElType for GMSH");
+				not_implemented("ElType for GMSH");
 		}
 		fprintf(f,"%d %d 2 %d %d",i+1,eltype,e.name_i+1,e.name_i+1);
 		for (int p : e.points)

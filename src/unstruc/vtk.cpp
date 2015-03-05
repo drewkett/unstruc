@@ -9,11 +9,13 @@
 #include <fstream>
 #include <string>
 
-bool toVTK(const std::string& outputfile, const Grid &grid) {
+namespace unstruc {
+
+bool vtk_write(const std::string& outputfile, const Grid &grid) {
 	std::cerr << "Writing '" << outputfile << "'" << std::endl;
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	f.precision(15);
 	f << "# vtk DataFile Version 2.0" << std::endl;
 	f << "Description" << std::endl;

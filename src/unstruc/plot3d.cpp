@@ -14,7 +14,7 @@ MultiBlock readPlot3DToMultiBlock(const std::string& filename) {
 	std::ifstream f;
 	std::cerr << "Opening Block File '" << filename << "'" << std::endl;
 	f.open(filename.c_str(),std::ios::in|std::ios::binary);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	int n_blocks;
 	float temp_f, temp_f2;
 	f.read((char *) &n_blocks,4);
@@ -28,15 +28,15 @@ MultiBlock readPlot3DToMultiBlock(const std::string& filename) {
 	for (int ib = 0; ib < n_blocks; ib++) {
 		if (dim[ib][0] > 10000) {
 			std::cerr << "Something is wrong with idir in block " << ib << std::endl;
-			Fatal();
+			fatal();
 		}
 		if (dim[ib][1] > 10000) {
 			std::cerr << "Something is wrong with jdir in block " << ib << std::endl;
-			Fatal();
+			fatal();
 		}
 		if (dim[ib][2] > 10000) {
 			std::cerr << "Something is wrong with kdir in block " << ib << std::endl;
-			Fatal();
+			fatal();
 		}
 	}
 

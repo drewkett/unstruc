@@ -82,7 +82,7 @@ int removeStraightEdges(OFFace& face, Grid& grid) {
 
 	std::vector<int> new_points;
 	if (face.points.size() - n_large_angles < 3) {
-		Fatal("angles");
+		fatal("angles");
 	} else {
 		for (int i = 0; i < face.points.size(); ++i) {
 			if (large_angles[i]) continue;
@@ -140,7 +140,7 @@ Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
 }
 
 std::vector<OFFace> splitPolyFace(OFFace& face, Grid& grid, bool debug) {
-	if (face.points.size() < 5) Fatal("(openfoam.cpp::splitFace) Not a PolyFace");
+	if (face.points.size() < 5) fatal("(openfoam.cpp::splitFace) Not a PolyFace");
 	std::vector<OFFace> split_faces;
 
 	double max_angle = 0;
@@ -223,7 +223,7 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 		case 0:
 		case 1:
 		case 2:
-			Fatal("calcFaceCenter passed face with less than 3 points");
+			fatal("calcFaceCenter passed face with less than 3 points");
 		case 3:
 			{
 				Point& p0 = grid.points[face.points[0]];
@@ -658,11 +658,11 @@ FoamHeader readFoamHeader(std::ifstream& f, std::string filename) {
 			break;
 		}
 	}
-	if (!is_foamfile) Fatal("Not a valid FoamFile");
+	if (!is_foamfile) fatal("Not a valid FoamFile");
 
 	std::string token;
 	f >> token;
-	if (token != "{") Fatal("Not a valid FoamFile");
+	if (token != "{") fatal("Not a valid FoamFile");
 
 	FoamHeader header;
 	header.filename = filename;
@@ -694,7 +694,7 @@ FoamHeader readFoamHeader(std::ifstream& f, std::string filename) {
 			header.note = token;
 		} else {
 			std::cerr << token << std::endl;
-			Fatal("Not a valid FoamFile");
+			fatal("Not a valid FoamFile");
 		}
 		f >> token;
 	}
@@ -711,7 +711,7 @@ int readNextInt(std::ifstream& f) {
 		n = atoi(line.c_str());
 		break;
 	}
-	if (n == -1) Fatal("Invalid FoamFile");
+	if (n == -1) fatal("Invalid FoamFile");
 	return n;
 }
 
@@ -724,13 +724,13 @@ std::vector<T> readBinary(std::ifstream& f, FoamHeader& header) {
 
 	if (n) {
 		char c = f.get();
-		if (c != '(') Fatal("Invalid FoamFile: Expected '(' in "+header.filename);
+		if (c != '(') fatal("Invalid FoamFile: Expected '(' in "+header.filename);
 
 		for (int i = 0; i < n; ++i) {
 			f.read((char *) &vec[i], sizeof(T));
 		}
 		c = f.get();
-		if (c != ')') Fatal("Invalid FoamFile: Expected ')' in "+header.filename);
+		if (c != ')') fatal("Invalid FoamFile: Expected ')' in "+header.filename);
 	}
 	
 	return vec;
@@ -741,7 +741,7 @@ OFInfo readInfoFromOwners(const std::string& polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"owner");
 
 	std::string note = header.note.substr(1,header.note.size()-2);
@@ -783,13 +783,13 @@ OFInfo readInfoFromOwners(const std::string& polymesh) {
 				info.n_internal_faces = atoi(token.c_str());
 			}
 		} else {
-			Fatal("Invalid FoamFile: Unknown key in header.note "+token.substr(0,i));
+			fatal("Invalid FoamFile: Unknown key in header.note "+token.substr(0,i));
 		}
 	}
-	if (info.n_points == -1) Fatal("Invalid FoamFile: nPoints not found in owner.note");
-	if (info.n_cells == -1) Fatal("Invalid FoamFile: nCells not found in owner.note");
-	if (info.n_faces == -1) Fatal("Invalid FoamFile: nFaces not found in owner.note");
-	if (info.n_internal_faces == -1) Fatal("Invalid FoamFile: nInternalFaces not found in owner.note");
+	if (info.n_points == -1) fatal("Invalid FoamFile: nPoints not found in owner.note");
+	if (info.n_cells == -1) fatal("Invalid FoamFile: nCells not found in owner.note");
+	if (info.n_faces == -1) fatal("Invalid FoamFile: nFaces not found in owner.note");
+	if (info.n_internal_faces == -1) fatal("Invalid FoamFile: nInternalFaces not found in owner.note");
 	return info;
 }
 
@@ -798,10 +798,10 @@ std::vector<int> readOwners(const std::string polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"owner");
 
-	if (header.format == "ascii") Fatal("ascii not supported");
+	if (header.format == "ascii") fatal("ascii not supported");
 
 	return readBinary<int>(f,header);
 }
@@ -811,10 +811,10 @@ std::vector<int> readNeighbours(const std::string& polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"neighbour");
 
-	if (header.format == "ascii") Fatal("ascii not supported");
+	if (header.format == "ascii") fatal("ascii not supported");
 
 	return readBinary<int>(f,header);
 }
@@ -824,10 +824,10 @@ std::vector<Point> readPoints(const std::string& polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"points");
 
-	if (header.format == "ascii") Fatal("ascii not supported");
+	if (header.format == "ascii") fatal("ascii not supported");
 
 	return readBinary<Point>(f,header);
 }
@@ -837,10 +837,10 @@ std::vector<OFFace> readFaces(const std::string& polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"faces");
 
-	if (header.format == "ascii") Fatal("ascii not supported");
+	if (header.format == "ascii") fatal("ascii not supported");
 
 	std::vector<OFFace> faces;
 	std::vector<int> index = readBinary<int>(f,header);
@@ -858,14 +858,14 @@ std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
 
 	std::ifstream f;
 	f.open(filepath.c_str(),std::ios::in);
-	if (!f.is_open()) Fatal("Could not open "+filepath);
+	if (!f.is_open()) fatal("Could not open "+filepath);
 	FoamHeader header = readFoamHeader(f,"boundary");
 
 	int n = readNextInt(f);
 
 	std::string token;
 	f >> token;
-	if (token != "(") Fatal("Invalid FoamFile: Expected '(' in "+header.location);
+	if (token != "(") fatal("Invalid FoamFile: Expected '(' in "+header.location);
 
 	std::vector<OFBoundary> boundaries;
 	boundaries.resize(n);
@@ -875,7 +875,7 @@ std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
 		boundaries[i].n_faces = -1;
 		boundaries[i].start_face = -1;
 		f >> token;
-		if (token != "{") Fatal("Invalid FoamFile: Expected '{' in "+header.location);
+		if (token != "{") fatal("Invalid FoamFile: Expected '{' in "+header.location);
 		while (token != "}") {
 			if (token == "nFaces") {
 				std::getline(f,token,';');
@@ -888,12 +888,12 @@ std::vector<OFBoundary> readBoundaries(const std::string& polymesh) {
 			}
 			f >> token;
 		}
-		if (boundaries[i].n_faces == -1) Fatal("Invalid FoamFile: Expected nFaces for patch "+boundaries[i].name);
-		if (boundaries[i].start_face == -1) Fatal("Invalid FoamFile: Expected startFace for patch "+boundaries[i].name);
+		if (boundaries[i].n_faces == -1) fatal("Invalid FoamFile: Expected nFaces for patch "+boundaries[i].name);
+		if (boundaries[i].start_face == -1) fatal("Invalid FoamFile: Expected startFace for patch "+boundaries[i].name);
 	}
 
 	f >> token;
-	if (token != ")") Fatal("Invalid FoamFile: Expected ')' in "+header.location);
+	if (token != ")") fatal("Invalid FoamFile: Expected ')' in "+header.location);
 
 	return boundaries;
 }
@@ -907,7 +907,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 			case 0:
 			case 1:
 			case 2:
-				Fatal("Bad Face");
+				fatal("Bad Face");
 			case 3:
 				n_tri++;
 				break;
@@ -924,7 +924,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 		case 1:
 		case 2:
 		case 3:
-			Fatal("Bad Cell");
+			fatal("Bad Cell");
 		case 4:
 			if (n_tri == 4)
 				return OFTetra;
@@ -951,7 +951,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 	}
 	if (cell_type == OFUnknown) {
 		printf("nFaces %zu nTri %d nQuad %d\n",faces.size(),n_tri,n_quad);
-		Fatal("Unknown Cell Type");
+		fatal("Unknown Cell Type");
 	}
 	return OFUnknown;
 }
@@ -959,7 +959,7 @@ OFCellType determineCellType (std::vector<OFFace*>& faces) {
 Grid readOpenFoam(const std::string& polymesh) {
 	struct stat s;
 	if (! (stat(polymesh.c_str(),&s) == 0 && (s.st_mode & S_IFDIR)) )
-		Fatal(polymesh + " isn't a directory");
+		fatal(polymesh + " isn't a directory");
 	
 	Grid grid (3);
 
@@ -971,10 +971,10 @@ Grid readOpenFoam(const std::string& polymesh) {
 	std::vector<OFBoundary> boundaries = readBoundaries(polymesh);
 
 	printf("Points: %d\nFaces: %d\nInternal Faces: %d\nCells: %d\n",info.n_points,info.n_faces,info.n_internal_faces,info.n_cells);
-	if (info.n_points != grid.points.size()) Fatal("Invalid FoamFile: number of points do not match");
+	if (info.n_points != grid.points.size()) fatal("Invalid FoamFile: number of points do not match");
 
 	int default_name = 0;
-	if (info.n_faces != faces.size() ) Fatal("Invalid FoamFile: number of faces do not match");
+	if (info.n_faces != faces.size() ) fatal("Invalid FoamFile: number of faces do not match");
 
 	for (OFFace& face : faces) {
 		calcFaceCenter(face,grid);
@@ -1077,7 +1077,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 						bool success = createWedgeElementsFromSideFace(grid,side_face,face,other_face,side_faces_out,face_center_id,other_face_center_id,new_elements);
 						for (Element& e : new_elements) {
 							if (e.calc_volume(grid) < -1e-3)
-								Fatal("Large negative volume");
+								fatal("Large negative volume");
 							if (e.calc_volume(grid) < 0)
 								success = false;
 						}
@@ -1189,7 +1189,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 		//			else if (tri2_j == -1)
 		//				tri2_j = j;
 		//			else
-		//				Fatal("Shouldn't be Possible");
+		//				fatal("Shouldn't be Possible");
 		//		} else {
 		//			if (quad1_j == -1)
 		//				quad1_j = j;
@@ -1270,7 +1270,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 					break;
 				}
 			}
-			if (quad_j == -1) Fatal("Shape::Pyramid: Shouldn't be possible");
+			if (quad_j == -1) fatal("Shape::Pyramid: Shouldn't be possible");
 			bool faces_out = (quad_j < n_owners_per_cell[i]);
 
 			OFFace* quad_face = cell_faces[quad_j];
@@ -1314,11 +1314,11 @@ Grid readOpenFoam(const std::string& polymesh) {
 		//			else if (tri2_j == -1)
 		//				tri2_j = j;
 		//			else
-		//				Fatal("Shape::Wedge: Shouldn't be possible");
+		//				fatal("Shape::Wedge: Shouldn't be possible");
 		//		}
 		//	}
-		//	if (tri1_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (2)");
-		//	if (tri2_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (3)");
+		//	if (tri1_j == -1) fatal("Shape::Wedge: Shouldn't be possible (2)");
+		//	if (tri2_j == -1) fatal("Shape::Wedge: Shouldn't be possible (3)");
 		//	OFFace* tri1_face = cell_faces[tri1_j];
 		//	OFFace* tri2_face = cell_faces[tri2_j];
 
@@ -1332,7 +1332,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 		//		}
 		//		if (common_point != -1) break;
 		//	}
-		//	if (common_point == -1) Fatal("Shape::Wedge: Shouldn't be possible (4)");
+		//	if (common_point == -1) fatal("Shape::Wedge: Shouldn't be possible (4)");
 
 		//	int quad1_j = -1;
 		//	int quad2_j = -1;
@@ -1359,8 +1359,8 @@ Grid readOpenFoam(const std::string& polymesh) {
 		//		if (!match1) quad1_j = j;
 		//		if (!match2) quad2_j = j;
 		//	}
-		//	if (quad1_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (5)");
-		//	if (quad2_j == -1) Fatal("Shape::Wedge: Shouldn't be possible (6)");
+		//	if (quad1_j == -1) fatal("Shape::Wedge: Shouldn't be possible (5)");
+		//	if (quad2_j == -1) fatal("Shape::Wedge: Shouldn't be possible (6)");
 
 		//	bool quad1_faces_out = (quad1_j < n_owners_per_cell[i]);
 		//	bool quad2_faces_out = (quad2_j < n_owners_per_cell[i]);
@@ -1410,7 +1410,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 					else if (tri2_j == -1)
 						tri2_j = j;
 					else
-						Fatal("PRISM: Shouldn't be possible");
+						fatal("PRISM: Shouldn't be possible");
 				} else
 					quad_j = j;
 			}
@@ -1580,7 +1580,7 @@ Grid readOpenFoam(const std::string& polymesh) {
 		grid.names.push_back( Name(2,boundary.name) );
 		for (int i = boundary.start_face; i < boundary.start_face+boundary.n_faces; ++i) {
 			OFFace& face = faces[i];
-			if (face.points.size() < 3) Fatal("1D Boundary Element Found");
+			if (face.points.size() < 3) fatal("1D Boundary Element Found");
 			if (face.points.size() == 3 && !face.is_tri_split) {
 				grid.elements.push_back( Element(Shape::Triangle) );
 				Element &e = grid.elements.back();

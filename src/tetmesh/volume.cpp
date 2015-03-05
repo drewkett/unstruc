@@ -60,7 +60,7 @@ Grid volgrid_from_surface(Grid const& surface, const std::vector<Point>& holes, 
 		tetgenio::polygon& p = f.polygonlist[0];
 		tetgenio::init(&p);
 		if (e.type != Shape::Triangle)
-			NotImplemented("Currently only supports triangles");
+			not_implemented("Currently only supports triangles");
 
 		p.numberofvertices = e.points.size();
 		p.vertexlist = new int[e.points.size()];
@@ -118,7 +118,7 @@ Point find_point_inside_surface(const Grid& surface) {
 	else if (vol.test_point_inside(test2))
 		return test2;
 	else 
-		Fatal("Not sure what to do");
+		fatal("Not sure what to do");
 
 	return NullPoint;
 }
@@ -150,13 +150,13 @@ Point orient_surface(Grid& surface) {
 #endif
 			for (Element& e : surface.elements) {
 				if (e.type != Shape::Triangle)
-					Fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
+					fatal("(tetmesh::orient_surface) current only works with triangle surfaces");
 				std::swap(e.points[1],e.points[2]);
 			}
 			return test2;
 		}
 	}
-	Fatal("Neither guessed point is inside surface. Hmmm");
+	fatal("Neither guessed point is inside surface. Hmmm");
 	return NullPoint;
 }
 }
