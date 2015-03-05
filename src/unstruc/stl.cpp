@@ -106,7 +106,7 @@ Grid stl_read_binary(const std::string& filename) {
 	grid.names.push_back( Name(2,filename) );
 	std::ifstream f;
 	f.open(filename);
-	if (!f.is_open()) Fatal("Could not open file");
+	if (!f.is_open()) fatal("Could not open file");
 	char header[80];
 
 	f.read(header, sizeof(header));
