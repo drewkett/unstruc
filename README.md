@@ -6,10 +6,6 @@ Unstructured mesh conversion tool
 
 This tool is a CFD mesh conversion tool. It currently supports reading in [SU2](https://github.com/su2code/SU2), [OpenFoam](http://www.openfoam.com), STL files, and Plot3D meshes and outputting [SU2](https://github.com/su2code/SU2) and VTK files.
 
-##unstruc-layers
-
-This is a work in progress tool for generating prismatic boundary layers of a 3D surface mesh by incrementally adding layers where possible.
-
 ##unstruc-offset
 
 This is a work in progress tool for generating prismatic boundary layers of a 3D surface mesh by creating a complete offset surface 

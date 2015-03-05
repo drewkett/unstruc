@@ -1,5 +1,4 @@
 - Create surface smoothing (repair?) tool
-- Remove unstruc-layers. Extract out any useful functionality
 - Clean up coding conventions. Not much consistency at the moment
 - Look into missing intersection where one object is swallowed by another
 

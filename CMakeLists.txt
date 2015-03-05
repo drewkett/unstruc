@@ -15,9 +15,6 @@ ADD_SUBDIRECTORY(src/tetmesh)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
-add_executable(unstruc-layers src/layers.cpp)
-target_link_libraries(unstruc-layers unstruc)
-
 add_executable(unstruc-convert src/convert.cpp)
 target_link_libraries(unstruc-convert unstruc)
 

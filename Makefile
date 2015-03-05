@@ -12,7 +12,7 @@ tetmesh_src = $(wildcard src/tetmesh/*.cpp)
 tetmesh_filenames = $(basename $(notdir $(tetmesh_src)))
 tetmesh_obj = $(addsuffix .o,$(addprefix $(BUILDDIR)/tetmesh/,$(tetmesh_filenames)))
 
-names= convert offset layers volmesh
+names= convert offset
 executables= $(addprefix bin/unstruc-,$(names))
 
 all: $(executables)
@@ -33,15 +33,11 @@ $(BUILDDIR)/lib/libtetmesh.a : $(tetmesh_obj)
 	@mkdir -p $(dir $@)
 	ar cr $@ $^
 
-bin/unstruc-volmesh : src/volmesh.cpp $(BUILDDIR)/lib/libunstruc.a $(BUILDDIR)/lib/libtetmesh.a
-	@mkdir -p bin
-	$(CC) $(CXXFLAGS) $^ -ltet -o $@
-
 bin/unstruc-offset : src/offset.cpp $(BUILDDIR)/lib/libunstruc.a $(BUILDDIR)/lib/libtetmesh.a
 	@mkdir -p bin
 	$(CC) $(CXXFLAGS) $^ -ltet -o $@
 
-bin/unstruc-% : src/%.cpp $(BUILDDIR)/lib/libunstruc.a
+bin/unstruc-convert : src/convert.cpp $(BUILDDIR)/lib/libunstruc.a
 	@mkdir -p bin
 	$(CC) $(CXXFLAGS) $^ -o $@
 
