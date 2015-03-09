@@ -6,6 +6,7 @@
 #include "error.h"
 
 #include <vector>
+#include <algorithm>
 #include <cassert>
 
 namespace unstruc {
