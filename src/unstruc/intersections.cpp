@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "error.h"
 
+#include <algorithm>
 #include <vector>
 #include <algorithm>
 #include <cassert>

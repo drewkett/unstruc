@@ -5,6 +5,7 @@
 
 #include <tetgen.h>
 
+#include <algorithm>
 #include <list>
 #include <algorithm>
 #include <vector>
