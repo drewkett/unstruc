@@ -20,8 +20,6 @@ const static bool use_n_failed = false;
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
-const static double min_geometric_stretch = 0.1;
-const static double max_geometric_stretch = 2;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 45;
 const static double tetgen_min_ratio = 1.03;
@@ -270,10 +268,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		pc.geometric_severity = norm_length;
 		if (pc.convex) {
 			pc.geometric_stretch_factor = pc.geometric_severity;
-			if (pc.geometric_stretch_factor > max_geometric_stretch) pc.geometric_stretch_factor = max_geometric_stretch;
 		} else { 
 			pc.geometric_stretch_factor = 1/pc.geometric_severity;
-			if (pc.geometric_stretch_factor < min_geometric_stretch) pc.geometric_stretch_factor = min_geometric_stretch;
 		}
 
 		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
