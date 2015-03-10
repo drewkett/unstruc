@@ -14,15 +14,15 @@ namespace unstruc {
 
 FileType filetype_from_filename(const std::string& filename) {
 	int n = filename.size();
-	if (filename.compare(n-4,4,".su2") == 0)
+	if (n > 4 && filename.compare(n-4,4,".su2") == 0)
 		return FileType::SU2;
-	else if (filename.compare(n-4,4,".stl") == 0)
+	else if (n > 4 && filename.compare(n-4,4,".stl") == 0)
 		return FileType::STL;
-	else if (filename.compare(n-4,4,".vtk") == 0)
+	else if (n > 4 && filename.compare(n-4,4,".vtk") == 0)
 		return FileType::VTK;
-	else if (filename.compare(n-4,4,".xyz") == 0 || filename.compare(n-4,4,".p3d") == 0)
+	else if (n > 4 && (filename.compare(n-4,4,".xyz") == 0 || filename.compare(n-4,4,".p3d") == 0))
 		return FileType::Plot3D;
-	else if (filename.compare(n-8,8,"polyMesh") == 0 || filename.compare(n-9,9,"polyMesh/") == 0)
+	else if ((n > 8 && filename.compare(n-8,8,"polyMesh") == 0) || (n > 9 && filename.compare(n-9,9,"polyMesh/") == 0))
 		return FileType::OpenFoam;
 	else
 		fatal("Unknown filetype");
