@@ -492,6 +492,29 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 	return offset;
 }
 
+void write_grid_with_data (std::string filename, const Grid& surface, const SmoothingData& smoothing_data) {
+	std::vector <Vector> orig_normals, normals;
+	std::vector <double> geometric_severity;
+
+	int n_points = surface.points.size();
+
+	orig_normals.reserve(n_points);
+	normals.reserve(n_points);
+	geometric_severity.reserve(n_points);
+
+	for (const PointConnection& pc : smoothing_data.connections) {
+		orig_normals.push_back(pc.orig_normal);
+		normals.push_back(pc.normal);
+		geometric_severity.push_back(pc.geometric_severity);
+	}
+
+	write_grid(filename,surface);
+	vtk_write_point_data_header(filename,surface);
+	vtk_write_data(filename,"orig_normals",orig_normals);
+	vtk_write_data(filename,"normals",normals);
+	vtk_write_data(filename,"geometric_severity",geometric_severity);
+}
+
 Grid create_offset_surface (const Grid& surface, double offset_size, std::string filename) {
 
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
@@ -509,6 +532,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			smooth_point_connections(surface,smoothing_data);
 	}
 
+	write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(filename+".smoothed.vtk",offset);
 
