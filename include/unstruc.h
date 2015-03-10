@@ -5,6 +5,7 @@
 #include "unstruc/element.h"
 #include "unstruc/error.h"
 #include "unstruc/io.h"
+#include "unstruc/vtk.h"
 #include "unstruc/point.h"
 #include "unstruc/intersections.h"
 
