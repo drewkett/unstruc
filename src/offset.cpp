@@ -513,12 +513,11 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 			smoothed_point.z += w * delta.z;
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
-		if (true || gamma > 0) {
-			smoothed_pc.normal = smoothed_normal;
+		if (gamma > 0) {
+			smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 		} else {
-			assert (orig_normal.length() > 0);
-
 			double perp_length = dot(orig_normal.normalized(),smoothed_normal);
+			assert (perp_length > 0);
 
 			Vector smoothed_perp = perp_length * orig_normal.normalized();
 			Vector smoothed_lateral = smoothed_normal - smoothed_perp;
