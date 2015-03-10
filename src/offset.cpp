@@ -22,6 +22,7 @@ const static bool use_n_failed = false;
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
+const static double min_orig_weight = 0.5;
 const static double max_normal_skew_angle = 30;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 45;
@@ -414,7 +415,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		PointConnection& smoothed_pc = smoothed_connections[i];
 
 		const Vector& curr_normal = pc.normal;
-		const Vector& orig_normal = pc.orig_normal*pc.current_adjustment;
+		const Vector& orig_normal = pc.orig_normal;
 		const double max_normal_skew_factor = tan(pc.max_skew_angle*pc.geometric_severity/180.0*M_PI);
 
 		if (orig_normal.length() == 0) continue;
@@ -425,7 +426,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			continue;
 		}
 
-		double orig_weight = pc.current_adjustment*(1 - pc.geometric_severity);
+		double orig_weight = min_orig_weight + (1-min_orig_weight)*(1 - pc.geometric_severity);
 		Point orig_p;
 		if (use_original_offset)
 			orig_p = surface_p + orig_normal;
@@ -716,12 +717,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 					PointConnection& pc = smoothing_data.connections[_p-n_surface_points];
 					if (needs_radical_improvement) {
 						pc.current_adjustment = 0;
+						pc.orig_normal *= 0;
 						pc.normal *= 0;
 					} else {
 						if (use_per_iteration_smoothing) {
-							pc.current_adjustment *= 0.8;
-							if (pc.current_adjustment < 0.1)
-								pc.current_adjustment = 0.1;
+							pc.current_adjustment *= 0.9;
+							if (pc.current_adjustment < 0.6)
+								pc.current_adjustment = 0.6;
 							pc.max_skew_angle = max_relaxed_skew_angle;
 						} else
 							pc.normal *= 0.9;
