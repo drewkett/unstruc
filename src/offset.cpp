@@ -514,7 +514,7 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		if (gamma > 0) {
-			smoothed_pc.normal = smoothed_lateral + smoothed_perp;
+			smoothed_pc.normal = smoothed_normal;
 		} else {
 			double perp_length = dot(orig_normal.normalized(),smoothed_normal);
 			assert (perp_length > 0);
