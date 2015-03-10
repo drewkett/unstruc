@@ -14,6 +14,7 @@ const static bool use_tangents = true;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
 const static bool use_original_offset = false;
+const static bool use_smooth_minmax_offset_size = true;
 
 const static bool use_n_failed = false;
 
@@ -316,6 +317,32 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		if (use_normalized_weights)
 			for (PointWeight& pw : pc.pointweights)
 				pw.w /= total_weight;
+	}
+	if (use_smooth_minmax_offset_size) {
+		if (use_normalized_angles) fatal("Incompatible options");
+		for (int j = 0; j < 100; ++j) {
+			for (int i = 0; i < surface.points.size(); ++i) {
+				PointConnection& pc = sdata.connections[i];
+
+				double orig_weight = 0.1 + 0.9*(1-pc.geometric_severity);
+
+				double min_adj = 0;
+				double max_adj = 0;
+
+				for (const PointWeight& pw : pc.pointweights) {
+					const PointConnection& other_pc = sdata.connections[pw.p];
+					double delta_min = other_pc.min_offset_size - pc.orig_min_offset_size;
+					min_adj += pw.w * delta_min * (1-orig_weight);
+
+					double delta_max = other_pc.max_offset_size - pc.orig_max_offset_size;
+					max_adj += pw.w * delta_max * (1-orig_weight);
+				}
+				if (min_adj < 0)
+					pc.min_offset_size = pc.orig_min_offset_size + min_adj;
+				if (max_adj > 0)
+					pc.max_offset_size = pc.orig_max_offset_size + max_adj;
+			}
+		}
 	}
 	return sdata;
 }
