@@ -10,12 +10,10 @@
 
 using namespace unstruc;
 
-const static bool use_tangents = false;
+const static bool use_tangents = true;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
-const static bool use_original_offset = true;
-
-const static bool use_increased_max = false;
+const static bool use_original_offset = false;
 
 const static bool use_n_failed = false;
 
@@ -24,8 +22,8 @@ const static bool use_per_iteration_smoothing = true;
 
 const static double min_geometric_stretch = 0.1;
 const static double max_geometric_stretch = 2;
-const static double max_skew_angle = 45;
-const static double max_relaxed_skew_angle = 60;
+const static double max_skew_angle = 30;
+const static double max_relaxed_skew_angle = 45;
 const static double tetgen_min_ratio = 1.03;
 
 const static bool use_taubin = false;
