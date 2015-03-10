@@ -114,6 +114,10 @@ struct PointConnection {
 	Vector orig_normal;
 	double current_adjustment;
 	double geometric_severity;
+	double orig_min_offset_size;
+	double orig_max_offset_size;
+	double min_offset_size;
+	double max_offset_size;
 	double geometric_stretch_factor;
 	double max_skew_angle;
 	int n_failed;
@@ -268,9 +272,15 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		pc.geometric_severity = norm_length;
 		if (pc.convex) {
 			pc.geometric_stretch_factor = pc.geometric_severity;
+			pc.min_offset_size = offset_size*pc.geometric_severity;
+			pc.max_offset_size = offset_size*2;
 		} else { 
 			pc.geometric_stretch_factor = 1/pc.geometric_severity;
+			pc.min_offset_size = offset_size;
+			pc.max_offset_size = offset_size/pc.geometric_severity*2;
 		}
+		pc.orig_min_offset_size = pc.min_offset_size;
+		pc.orig_max_offset_size = pc.max_offset_size;
 
 		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
 		pc.orig_normal = pc.normal;
@@ -348,28 +358,21 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			smoothed_point.x += w * delta.x;
 			smoothed_point.y += w * delta.y;
 			smoothed_point.z += w * delta.z;
-			
-			const PointConnection& other = data.connections[pw.p];
-			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
-			if (l < min_adj) min_adj = l;
-			if (use_increased_max) {
-				if (l > max_adj) max_adj = 1.5*l;
-			} else {
-				if (l > max_adj) max_adj = l;
-			}
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
-		assert (orig_normal.length() > 0);
-		double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
-		Vector smoothed_perp = fac*orig_normal;
-		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
-		if (fac < min_adj) fac = min_adj;
-		else if (fac > max_adj) fac = max_adj;
 
-		smoothed_perp = fac*orig_normal;
+		assert (orig_normal.length() > 0);
+
+		double perp_length = dot(orig_normal.normalized(),smoothed_normal);
+
+		Vector smoothed_perp = perp_length * orig_normal.normalized();
+		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
+
+		if (perp_length < pc.min_offset_size*pc.current_adjustment) smoothed_perp *= pc.min_offset_size*pc.current_adjustment/perp_length;
+		else if (perp_length > pc.max_offset_size) smoothed_perp *= pc.max_offset_size/perp_length;
 
 		double lat_length = smoothed_lateral.length();
-		double perp_length = smoothed_perp.length();
+		perp_length = smoothed_perp.length();
 		if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
@@ -413,7 +416,6 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 		else
 			orig_p = surface_p + curr_normal;
 
-		double min_adj = 1, max_adj = 1;
 		Point smoothed_point (orig_p);
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
@@ -424,30 +426,23 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 			smoothed_point.x += w * delta.x;
 			smoothed_point.y += w * delta.y;
 			smoothed_point.z += w * delta.z;
-			const PointConnection& other = data.connections[pw.p];
-			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
-			if (min_adj > 0 && l < min_adj) min_adj = l;
-			if (use_increased_max) {
-				if (l > max_adj) max_adj = 1.5*l;
-			} else {
-				if (l > max_adj) max_adj = l;
-			}
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		if (true || gamma > 0) {
 			smoothed_pc.normal = smoothed_normal;
 		} else {
 			assert (orig_normal.length() > 0);
-			double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
-			Vector smoothed_perp = fac*orig_normal;
-			Vector smoothed_lateral = smoothed_normal - smoothed_perp;
-			if (fac < min_adj) fac = min_adj;
-			else if (fac > max_adj) fac = max_adj;
 
-			smoothed_perp = fac*orig_normal;
+			double perp_length = dot(orig_normal.normalized(),smoothed_normal);
+
+			Vector smoothed_perp = perp_length * orig_normal.normalized();
+			Vector smoothed_lateral = smoothed_normal - smoothed_perp;
+
+			if (perp_length < pc.min_offset_size) smoothed_perp *= pc.min_offset_size/perp_length;
+			else if (perp_length > pc.max_offset_size) smoothed_perp *= pc.max_offset_size/perp_length;
 
 			double lat_length = smoothed_lateral.length();
-			double perp_length = smoothed_perp.length();
+			perp_length = smoothed_perp.length();
 			if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
 				smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 			smoothed_pc.normal = smoothed_lateral + smoothed_perp;
@@ -488,18 +483,27 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 
 void write_grid_with_data (std::string filename, const Grid& surface, const SmoothingData& smoothing_data) {
 	std::vector <Vector> orig_normals, normals;
-	std::vector <double> geometric_severity;
+	std::vector <double> geometric_severity, min_offset_size, max_offset_size;
+	std::vector <double> orig_min_offset_size, orig_max_offset_size;
 
 	int n_points = surface.points.size();
 
 	orig_normals.reserve(n_points);
 	normals.reserve(n_points);
 	geometric_severity.reserve(n_points);
+	min_offset_size.reserve(n_points);
+	max_offset_size.reserve(n_points);
+	orig_min_offset_size.reserve(n_points);
+	orig_max_offset_size.reserve(n_points);
 
 	for (const PointConnection& pc : smoothing_data.connections) {
 		orig_normals.push_back(pc.orig_normal);
 		normals.push_back(pc.normal);
 		geometric_severity.push_back(pc.geometric_severity);
+		min_offset_size.push_back(pc.min_offset_size);
+		max_offset_size.push_back(pc.max_offset_size);
+		orig_min_offset_size.push_back(pc.orig_min_offset_size);
+		orig_max_offset_size.push_back(pc.orig_max_offset_size);
 	}
 
 	write_grid(filename,surface);
@@ -507,6 +511,10 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 	vtk_write_data(filename,"orig_normals",orig_normals);
 	vtk_write_data(filename,"normals",normals);
 	vtk_write_data(filename,"geometric_severity",geometric_severity);
+	vtk_write_data(filename,"orig_min_offset_size",orig_min_offset_size);
+	vtk_write_data(filename,"orig_max_offset_size",orig_max_offset_size);
+	vtk_write_data(filename,"min_offset_size",min_offset_size);
+	vtk_write_data(filename,"max_offset_size",max_offset_size);
 }
 
 Grid create_offset_surface (const Grid& surface, double offset_size, std::string filename) {
@@ -515,6 +523,12 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(filename+".presmooth.vtk",presmooth);
+
+	for (int i = 0; i < 10; ++i)
+		smooth_normals(surface,smoothing_data);
+	write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
+	for (PointConnection& pc : smoothing_data.connections)
+		pc.orig_normal = pc.normal;
 
 	if (use_taubin) {
 		for (int i = 0; i < taubin::n; ++i) {
