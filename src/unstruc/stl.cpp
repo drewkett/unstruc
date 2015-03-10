@@ -141,10 +141,15 @@ Grid stl_read(const std::string& filename) {
 	if (!f.is_open()) fatal("Could not open file");
 	std::string token;
 	f >> token;
-	if (token == "solid")
-		return stl_read_ascii(filename);
-	else
-		return stl_read_binary(filename);
+	if (token == "solid") {
+		f >> token;
+		if (token == "facet")
+			return stl_read_ascii(filename);
+		f >> token;
+		if (token == "facet")
+			return stl_read_ascii(filename);
+	}
+	return stl_read_binary(filename);
 }
 
 void stl_write_ascii(const std::string& filename, const Grid& grid) {
