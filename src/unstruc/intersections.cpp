@@ -298,7 +298,11 @@ std::vector<Face> get_faces(const Grid& grid) {
 
 Intersections Intersections::find(const Grid& grid) {
 	std::vector <Face> faces = get_faces(grid);
+	std::sort(faces.begin(),faces.end(),Face::compare_by_min_x);
+
 	std::vector <Edge> edges = get_edges(grid);
+	std::sort(edges.begin(),edges.end(),Edge::compare_by_min_x);
+
 	int j_current = 0;
 	Intersections intersections;
 	std::vector <bool> intersected_points (grid.points.size(),false);
