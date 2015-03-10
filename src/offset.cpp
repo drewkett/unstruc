@@ -564,12 +564,12 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 		Intersections intersections;
 		if (intersected_elements.size() and !failed_steps) {
-			fprintf(stderr,"Checking for Intersections (Subselection)");
+			fprintf(stderr,"Checking for Intersections (Subselection)\n");
 			Grid intersected_volume = offset_volume.extract_from_element_index(intersected_elements);
 			intersections = Intersections::find(intersected_volume);
 			if (intersections.elements.size() == 0) {
 				fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
-				fprintf(stderr,"Checking for Intersections");
+				fprintf(stderr,"Checking for Intersections\n");
 				intersections = Intersections::find(offset_volume);
 				n_full_iterations++;
 			}
