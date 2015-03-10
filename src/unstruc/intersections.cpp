@@ -230,7 +230,6 @@ std::vector<Face> get_faces(const Grid& grid) {
 				face.elements.push_back(face1.elements[0]);
 				++i;
 			}
-			assert(face.elements.size() == 2);
 		}
 		face_indices.push_back(face_pair.second);
 		i_face++;
