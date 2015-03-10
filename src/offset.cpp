@@ -432,7 +432,6 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		else
 			orig_p = surface_p + curr_normal;
 
-		double min_adj = 1, max_adj = 1;
 		Point smoothed_point (orig_p);
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
@@ -625,7 +624,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			smooth_point_connections(surface,smoothing_data);
 	}
 
-	write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
+	write_grid_with_data(filename+".data2.vtk",surface,smoothing_data);
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 	write_grid(filename+".smoothed.vtk",offset);
 
@@ -647,9 +646,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 		successful = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
-		printf("%lu Negative Volumes\n",negative_volumes.size());
 
 		if (negative_volumes.size() > 0) {
+			fprintf(stderr,"%lu Negative Volumes\n",negative_volumes.size());
 			successful = false;
 			//if (i == 1)
 			//	write_reduced_file(offset_volume,negative_volumes,filename+".negative_elements.0.vtk");
@@ -661,7 +660,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			Grid intersected_volume = offset_volume.extract_from_element_index(intersected_elements);
 			intersections = Intersections::find(intersected_volume);
 			if (intersections.elements.size() == 0) {
-				fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
+				//fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 				fprintf(stderr,"Checking for Intersections\n");
 				intersections = Intersections::find(offset_volume);
 				n_full_iterations++;
@@ -671,10 +670,10 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			intersections = Intersections::find(offset_volume);
 			n_full_iterations++;
 		}
-		fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 		intersected_elements = intersections.elements;
 
 		if (intersections.elements.size() > 0) {
+			fprintf(stderr,"%lu Intersected Elements\n",intersections.elements.size());
 			successful = false;
 			//if (i == 1)
 			//	write_reduced_file(offset_volume,intersections.elements,filename+".intersected_elements.0.vtk");
