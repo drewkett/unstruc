@@ -13,6 +13,7 @@ using namespace unstruc;
 const static bool use_tangents = true;
 const static bool use_sqrt_length = true;
 const static bool use_normalized_weights = true;
+const static bool use_normalized_angles = false;
 const static bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
@@ -310,10 +311,13 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 			pc.pointweights[j].p = pw1.p;
 			pc.pointweights[j].w = w;
-			total_weight += w;
+			if (use_normalized_angles)
+				total_weight += pw1.w + pw2.w;
+			else
+				total_weight += w;
 		}
 		pc.pointweights.resize(new_size);
-		if (total_weight== 0)
+		if (new_size > 0 && total_weight== 0)
 			fatal("Weights sum to zero");
 		if (use_normalized_weights)
 			for (PointWeight& pw : pc.pointweights)
