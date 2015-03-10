@@ -18,7 +18,6 @@ const static bool use_original_offset = true;
 const static bool use_increased_max = false;
 
 const static bool use_n_failed = false;
-const static bool use_last_offset_size = false;
 
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
@@ -121,7 +120,6 @@ struct PointConnection {
 	double geometric_severity;
 	double geometric_stretch_factor;
 	double max_skew_angle;
-	double last_offset_size;
 	int n_failed;
 	bool convex;
 };
@@ -207,7 +205,6 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		pc.max_skew_angle = max_skew_angle;
 		pc.current_adjustment = 1;
-		pc.last_offset_size = 0;
 		pc.n_failed = 0;
 
 		const Point& p = surface.points[i];
@@ -367,14 +364,6 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 				if (l > max_adj) max_adj = l;
 			}
 		}
-		if (use_last_offset_size && pc.last_offset_size) {
-			double fac_offset = pc.last_offset_size/orig_normal.length();
-			if (fac_offset < 1) {
-				if (min_adj < fac_offset) {
-					min_adj = fac_offset;
-				}
-			}
-		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		assert (orig_normal.length() > 0);
 		double fac = dot(orig_normal.normalized(),smoothed_normal)/orig_normal.length();
@@ -441,7 +430,6 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 			smoothed_point.x += w * delta.x;
 			smoothed_point.y += w * delta.y;
 			smoothed_point.z += w * delta.z;
-			
 			const PointConnection& other = data.connections[pw.p];
 			double l = (other.current_adjustment*other.orig_normal.length())/orig_normal.length();
 			if (min_adj > 0 && l < min_adj) min_adj = l;
@@ -449,14 +437,6 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 				if (l > max_adj) max_adj = 1.5*l;
 			} else {
 				if (l > max_adj) max_adj = l;
-			}
-		}
-		if (use_last_offset_size && pc.last_offset_size) {
-			double fac_offset = pc.last_offset_size/orig_normal.length();
-			if (fac_offset < 1) {
-				if (min_adj < fac_offset) {
-					min_adj = fac_offset;
-				}
 			}
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
@@ -501,7 +481,6 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 		Point& p = offset.points[i];
 		PointConnection& pc = point_connections[i];
 		const Vector& n = pc.normal;
-		pc.last_offset_size = n.length();
 		if (n.length() == 0) {
 			pc.n_failed++;
 		} else {
