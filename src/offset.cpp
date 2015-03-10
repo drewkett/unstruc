@@ -21,6 +21,7 @@ const static bool use_n_failed = false;
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
+const static double max_normal_skew_angle = 30;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 45;
 const static double tetgen_min_ratio = 1.03;
@@ -345,6 +346,59 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 	}
 	return sdata;
+}
+
+void smooth_normals(const Grid& surface, SmoothingData& data) {
+	std::vector <PointConnection> smoothed_connections (data.connections);
+
+	for (int i = 0; i < surface.points.size(); ++i) {
+		const Point& surface_p = surface.points[i];
+		const PointConnection& pc = data.connections[i];
+		PointConnection& smoothed_pc = smoothed_connections[i];
+
+		const Vector& curr_normal = pc.normal;
+		const Vector& orig_normal = pc.orig_normal;
+
+		if (orig_normal.length() == 0) continue;
+
+		double orig_weight = min_orig_weight + (1-min_orig_weight)*(1 - pc.geometric_severity);
+
+		Vector smoothed_normal (curr_normal);
+		for (const PointWeight& pw : pc.pointweights) {
+			const Point& p = surface.points[pw.p];
+			const Vector& n = data.connections[pw.p].normal;
+			double w = pw.w * (1-orig_weight);
+			Vector delta = n - curr_normal;
+			smoothed_normal.x += w * delta.x;
+			smoothed_normal.y += w * delta.y;
+			smoothed_normal.z += w * delta.z;
+		}
+
+		double perp_length = dot(orig_normal.normalized(),smoothed_normal);
+
+		Vector smoothed_perp = perp_length * orig_normal.normalized();
+		Vector smoothed_lateral = smoothed_normal - smoothed_perp;
+
+		double lat_length = smoothed_lateral.length();
+		perp_length = smoothed_perp.length();
+
+		const double max_normal_skew_factor = tan(max_normal_skew_angle*pc.geometric_severity/180.0*M_PI);
+		if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
+			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
+
+		smoothed_normal = smoothed_lateral + smoothed_perp;
+
+		smoothed_pc.normal = smoothed_normal.normalized()*orig_normal.length();
+		for (int _e : pc.elements) {
+			const Vector& n = data.element_normals[_e];
+			if (dot(smoothed_pc.normal,n) <= 0) {
+				// Use old normal if self intersections created
+				smoothed_pc.normal = pc.normal;
+				break;
+			}
+		}
+	}
+	data.connections = smoothed_connections;
 }
 
 void smooth_point_connections(const Grid& surface, SmoothingData& data) {
