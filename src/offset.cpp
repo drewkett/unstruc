@@ -17,8 +17,6 @@ const static bool use_normalized_angles = false;
 const static bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
-const static bool use_n_failed = false;
-
 const static bool use_skew_restriction = true;
 const static bool use_per_iteration_smoothing = true;
 
@@ -124,7 +122,6 @@ struct PointConnection {
 	double max_offset_size;
 	double geometric_stretch_factor;
 	double max_skew_angle;
-	int n_failed;
 	bool convex;
 };
 
@@ -209,7 +206,6 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		pc.max_skew_angle = max_skew_angle;
 		pc.current_adjustment = 1;
-		pc.n_failed = 0;
 
 		const Point& p = surface.points[i];
 		const std::vector<int>& elements = point_elements[i];
@@ -420,12 +416,6 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 
 		if (orig_normal.length() == 0) continue;
 
-		if (use_n_failed && pc.n_failed > 1) {
-			smoothed_pc.normal = NullVector;
-			smoothed_pc.orig_normal = NullVector;
-			continue;
-		}
-
 		double orig_weight = min_orig_weight + (1-min_orig_weight)*(1 - pc.geometric_severity);
 		Point orig_p;
 		if (use_original_offset)
@@ -489,12 +479,6 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 
 		if (orig_normal.length() == 0) continue;
 
-		if (use_n_failed && pc.n_failed > 1) {
-			smoothed_pc.normal = NullVector;
-			smoothed_pc.orig_normal = NullVector;
-			continue;
-		}
-
 		Point orig_p;
 		if (use_original_offset)
 			orig_p = surface_p + orig_normal;
@@ -554,12 +538,6 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 		Point& p = offset.points[i];
 		PointConnection& pc = point_connections[i];
 		const Vector& n = pc.normal;
-		if (n.length() == 0) {
-			pc.n_failed++;
-		} else {
-			if (pc.n_failed)
-				pc.n_failed = 0;
-		}
 		p += n;
 	}
 	return offset;
