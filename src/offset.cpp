@@ -18,7 +18,6 @@ const static bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
 const static bool use_skew_restriction = true;
-const static bool use_per_iteration_smoothing = true;
 
 const static double min_orig_weight = 0.5;
 const static double max_normal_skew_angle = 30;
@@ -697,21 +696,17 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 						pc.orig_normal *= 0;
 						pc.normal *= 0;
 					} else {
-						if (use_per_iteration_smoothing) {
-							pc.current_adjustment *= 0.9;
-							if (pc.current_adjustment < 0.6)
-								pc.current_adjustment = 0.6;
-							pc.max_skew_angle = max_relaxed_skew_angle;
-						} else
-							pc.normal *= 0.9;
+						pc.current_adjustment *= 0.9;
+						if (pc.current_adjustment < 0.6)
+							pc.current_adjustment = 0.6;
+						pc.max_skew_angle = max_relaxed_skew_angle;
 					}
 					poisoned_points[_p] = false;
 				}
 			}
 		}
-		if (use_per_iteration_smoothing) {
-			for (int j = 0; j < 20; ++j)
-				smooth_point_connections(surface,smoothing_data);
+		for (int i = 0; i < 20; ++i) {
+			smooth_point_connections(surface,smoothing_data);
 		}
 
 		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
