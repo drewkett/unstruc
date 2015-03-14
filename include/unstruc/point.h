@@ -8,9 +8,6 @@ namespace unstruc {
 	{
 		double x,y,z;
 
-		Vector() : x(0), y(0), z(0) {};
-		Vector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
-
 		inline Vector operator*(double value) const {return Vector(*this) *= value;};
 		inline Vector operator/(double value) const {return Vector(*this) /= value;};
 		inline Vector& operator*=(double value) {x *= value; y *= value; z *= value; return *this;};
@@ -30,7 +27,7 @@ namespace unstruc {
 		return vec *= value;
 	}
 
-	const Vector NullVector;
+	const Vector NullVector {};
 
 	struct Point
 	{
@@ -41,7 +38,7 @@ namespace unstruc {
 		inline Point operator/(double value) const { return Point {x/value,y/value,z/value}; }
 
 		//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
-		inline Vector operator-(const Point& other) const { return Vector (x-other.x,y-other.y,z-other.z);}
+		inline Vector operator-(const Point& other) const { return Vector {x-other.x,y-other.y,z-other.z};}
 
 		inline Point operator-(const Vector& other) const { return Point {x-other.x,y-other.y,z-other.z}; }
 		inline Point operator+(const Vector& other) const { return Point {x+other.x,y+other.y,z+other.z}; }

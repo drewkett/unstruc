@@ -12,7 +12,8 @@ Grid create_farfield_box(Grid const& surface) {
 	Point max = surface.get_bounding_max();
 	Vector d = max - min;
 	double max_length = std::max(std::max(d.x,d.y),d.z);
-	Vector delta = 10*max_length*Vector(1,1,1);
+	Vector delta { 1, 1, 1 };
+	delta *= 10*max_length;
 	min -= delta;
 	max += delta;
 	Grid farfield (3);

@@ -211,7 +211,7 @@ void stl_write_binary(const std::string& filename, const Grid& grid) {
 	uint32_t n = grid.elements.size();
 	fwrite(&n,sizeof(n),1,f);
 	for (const Element& e : grid.elements) {
-		Vector normal (0, 0, 1);
+		Vector normal {0, 0, 1};
 		stl_write_binary_vertex(f,normal);
 		for (int _p : e.points) {
 			const Point& p = grid.points[_p];
