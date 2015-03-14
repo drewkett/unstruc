@@ -12,6 +12,7 @@ using namespace unstruc;
 
 const static bool use_tangents = true;
 const static bool use_sqrt_length = true;
+const static bool use_sqrt_angle = true;
 const static bool use_normalized_weights = true;
 const static bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
@@ -299,10 +300,14 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			if (d.length()== 0)
 				fatal("Coincedent points found");
 			double w;
-			if (use_sqrt_length)
-				w = (pw1.w + pw2.w)/sqrt(d.length());
+			if (use_sqrt_angle)
+				w = sqrt(pw1.w + pw2.w);
 			else
-				w = (pw1.w + pw2.w)/d.length();
+				w = pw1.w + pw2.w;
+			if (use_sqrt_length)
+				w /= sqrt(d.length());
+			else
+				w /= d.length();
 
 			total_weight += w;
 
