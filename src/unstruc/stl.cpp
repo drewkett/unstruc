@@ -97,7 +97,7 @@ Point stl_read_vertex_binary(std::ifstream& f) {
 	f.read((char *) &x, sizeof(x));
 	f.read((char *) &y, sizeof(y));
 	f.read((char *) &z, sizeof(z));
-	return Point (x,y,z);
+	return Point {x,y,z};
 }
 
 Grid stl_read_binary(const std::string& filename) {

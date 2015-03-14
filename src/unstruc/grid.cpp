@@ -323,7 +323,7 @@ bool Grid::check_integrity() const {
 }
 
 Point Grid::get_bounding_min() const {
-	Point min ( DBL_MAX, DBL_MAX, DBL_MAX );
+	Point min { DBL_MAX, DBL_MAX, DBL_MAX };
 	for (Point const& p : points) {
 		if (p.x < min.x) min.x = p.x;
 		if (p.y < min.y) min.y = p.y;
@@ -333,7 +333,7 @@ Point Grid::get_bounding_min() const {
 }
 
 Point Grid::get_bounding_max() const {
-	Point max ( DBL_MIN, DBL_MIN, DBL_MIN );
+	Point max { DBL_MIN, DBL_MIN, DBL_MIN };
 	for (Point const& p : points) {
 		if (p.x > max.x) max.x = p.x;
 		if (p.y > max.y) max.y = p.y;

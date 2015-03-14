@@ -34,19 +34,17 @@ namespace unstruc {
 
 	struct Point
 	{
-		double x,y,z;
+		double x, y, z;
 
-		Point () : x(0), y(0), z(0) {};
-		Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
 		inline bool operator==(const Point& other) const {return x == other.x && y == other.y && z == other.z;}
 
-		inline Point operator/(double value) const { return Point (x/value,y/value,z/value); }
+		inline Point operator/(double value) const { return Point {x/value,y/value,z/value}; }
 
 		//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
 		inline Vector operator-(const Point& other) const { return Vector (x-other.x,y-other.y,z-other.z);}
 
-		inline Point operator-(const Vector& other) const { return Point (x-other.x,y-other.y,z-other.z); }
-		inline Point operator+(const Vector& other) const { return Point (x+other.x,y+other.y,z+other.z); }
+		inline Point operator-(const Vector& other) const { return Point {x-other.x,y-other.y,z-other.z}; }
+		inline Point operator+(const Vector& other) const { return Point {x+other.x,y+other.y,z+other.z}; }
 
 		inline void operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z;};
 		inline void operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z;};
@@ -60,7 +58,7 @@ namespace unstruc {
 	double dot(const Vector&, const Vector&);
 	Vector cross(const Vector&, const Vector&);
 
-	const Point NullPoint;
+	const Point NullPoint {0, 0, 0};
 }
 
 #endif
