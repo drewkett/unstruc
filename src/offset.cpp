@@ -613,14 +613,11 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	int last_n_negative = INT_MAX;
 	bool needs_radical_improvement = false;
 	int failed_steps = 0;
-	int i_max_skew = 20;
 	bool successful;
 	std::vector <int> intersected_elements;
 	int n_full_iterations = 0;
 	for (int i = 1; i < 1000; ++i) {
 		if (n_full_iterations > 100) break;
-		double skew_fraction = ((double) i)/i_max_skew;
-		if (skew_fraction > 1) skew_fraction = 1;
 
 		successful = true;
 		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
