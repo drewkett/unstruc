@@ -212,8 +212,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		const std::vector <double>& angle_factors = normalize(point_elements_angle[i]);
 		const std::vector <Vector>& bisect_vectors = point_bisect_vectors[i];
 
-		Vector point_norm;
-		Vector point_bisect;
+		Vector point_norm { 0, 0, 0 };
+		Vector point_bisect { 0, 0, 0 };
 		for (int j = 0; j < elements.size(); ++j) {
 			int _e = elements[j];
 			double fac = angle_factors[j];
