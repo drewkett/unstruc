@@ -45,6 +45,8 @@ namespace unstruc {
 
 		inline void operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z;};
 		inline void operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z;};
+
+		inline Vector to_vector() const { return Vector { x, y, z }; };
 	};
 
 	void dump(Point p);
