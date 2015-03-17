@@ -5,7 +5,7 @@ export CXX=clang++
 
 mkdir -p build/debug
 cd build/debug 
-cmake -DCMAKE_BUILD_TYPE=DEBUG ../..
+cmake -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SUFFIX=-dbg ../..
 make $@ || exit 1
 cd ../..
 
