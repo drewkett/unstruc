@@ -59,7 +59,7 @@ void dump(const Element &e, const Grid &grid) {
 	}
 };
 
-double Element::calc_volume(Grid& grid) {
+double Element::calc_volume(const Grid& grid) const {
 	switch (type) {
 		case Shape::Line:
 		case Shape::Triangle:
@@ -68,21 +68,21 @@ double Element::calc_volume(Grid& grid) {
 			return 0;
 		case Shape::Hexa:
 			{
-				Point& p0 = grid.points[points[0]];
-				Point& p1 = grid.points[points[1]];
-				Point& p2 = grid.points[points[2]];
-				Point& p3 = grid.points[points[3]];
-				Point& p4 = grid.points[points[4]];
-				Point& p5 = grid.points[points[5]];
-				Point& p6 = grid.points[points[6]];
-				Point& p7 = grid.points[points[7]];
+				const Point& p0 = grid.points[points[0]];
+				const Point& p1 = grid.points[points[1]];
+				const Point& p2 = grid.points[points[2]];
+				const Point& p3 = grid.points[points[3]];
+				const Point& p4 = grid.points[points[4]];
+				const Point& p5 = grid.points[points[5]];
+				const Point& p6 = grid.points[points[6]];
+				const Point& p7 = grid.points[points[7]];
 
-				Point face_center1;
+				Point face_center1 { 0, 0, 0};
 				double total_length1 = 0;
 				for (int i = 0; i < 4; ++i) {
 					int j = (i + 1)%4;
-					Point& pi = grid.points[points[i]];
-					Point& pj = grid.points[points[j]];
+					const Point& pi = grid.points[points[i]];
+					const Point& pj = grid.points[points[j]];
 					double l = (pj - pi).length();
 					total_length1 += l;
 
@@ -94,12 +94,12 @@ double Element::calc_volume(Grid& grid) {
 				face_center1.y /= total_length1;
 				face_center1.z /= total_length1;
 
-				Point face_center2;
+				Point face_center2 { 0, 0, 0 };
 				double total_length2 = 0;
 				for (int i = 4; i < 8; ++i) {
 					int j = 4 + (i + 1)%4;
-					Point& pi = grid.points[points[i]];
-					Point& pj = grid.points[points[j]];
+					const Point& pi = grid.points[points[i]];
+					const Point& pj = grid.points[points[j]];
 					double l = (pj - pi).length();
 					total_length2 += l;
 
@@ -124,10 +124,10 @@ double Element::calc_volume(Grid& grid) {
 			}
 		case Shape::Tetra:
 			{
-				Point& p0 = grid.points[points[0]];
-				Point& p1 = grid.points[points[1]];
-				Point& p2 = grid.points[points[2]];
-				Point& p3 = grid.points[points[3]];
+				const Point& p0 = grid.points[points[0]];
+				const Point& p1 = grid.points[points[1]];
+				const Point& p2 = grid.points[points[2]];
+				const Point& p3 = grid.points[points[3]];
 				Vector v1 = p1 - p0;
 				Vector v2 = p2 - p1;
 				Vector v = cross(v1,v2);
@@ -136,12 +136,12 @@ double Element::calc_volume(Grid& grid) {
 			}
 		case Shape::Wedge:
 			{
-				Point& p0 = grid.points[points[0]];
-				Point& p1 = grid.points[points[1]];
-				Point& p2 = grid.points[points[2]];
-				Point& p3 = grid.points[points[3]];
-				Point& p4 = grid.points[points[4]];
-				Point& p5 = grid.points[points[5]];
+				const Point& p0 = grid.points[points[0]];
+				const Point& p1 = grid.points[points[1]];
+				const Point& p2 = grid.points[points[2]];
+				const Point& p3 = grid.points[points[3]];
+				const Point& p4 = grid.points[points[4]];
+				const Point& p5 = grid.points[points[5]];
 
 				Point c1;
 				c1.x = (p0.x + p1.x + p2.x)/3;
@@ -164,11 +164,11 @@ double Element::calc_volume(Grid& grid) {
 			}
 		case Shape::Pyramid:
 			{
-				Point& p0 = grid.points[points[0]];
-				Point& p1 = grid.points[points[1]];
-				Point& p2 = grid.points[points[2]];
-				Point& p3 = grid.points[points[3]];
-				Point& p4 = grid.points[points[4]];
+				const Point& p0 = grid.points[points[0]];
+				const Point& p1 = grid.points[points[1]];
+				const Point& p2 = grid.points[points[2]];
+				const Point& p3 = grid.points[points[3]];
+				const Point& p4 = grid.points[points[4]];
 
 				Vector v1 = p2 - p0;
 				Vector v2 = p3 - p1;

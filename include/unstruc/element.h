@@ -41,8 +41,7 @@ namespace unstruc {
 		Element() : type(Shape::Type::Undefined), name_i(0) {};
 		Element(Shape::Type T);
 
-		double calc_volume(Grid& grid);
-
+		double calc_volume(const Grid& grid) const;
 	};
 
 	void dump(const Element &e);
