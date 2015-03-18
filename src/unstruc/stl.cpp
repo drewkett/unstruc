@@ -5,6 +5,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <cfloat>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -92,11 +93,28 @@ Grid stl_read_ascii(const std::string& filename) {
 	return grid;
 }
 
+uint16_t read_uint16(std::ifstream& f) {
+	uint16_t v;
+	f.read(reinterpret_cast<char *>(&v), sizeof(v));
+	return v;
+}
+
+uint32_t read_uint32(std::ifstream& f) {
+	uint32_t v;
+	f.read(reinterpret_cast<char *>(&v), sizeof(v));
+	return v;
+}
+
+float read_float(std::ifstream& f) {
+	float v;
+	f.read(reinterpret_cast<char *>(&v), sizeof(v));
+	return v;
+}
+
 Point stl_read_vertex_binary(std::ifstream& f) {
-	float x,y,z;
-	f.read((char *) &x, sizeof(x));
-	f.read((char *) &y, sizeof(y));
-	f.read((char *) &z, sizeof(z));
+	float x = read_float(f);
+	float y = read_float(f);
+	float z = read_float(f);
 	return Point {x,y,z};
 }
 
@@ -110,8 +128,7 @@ Grid stl_read_binary(const std::string& filename) {
 	char header[80];
 
 	f.read(header, sizeof(header));
-	uint32_t n_triangles;
-	f.read((char *) &n_triangles, sizeof(n_triangles));
+	uint32_t n_triangles = read_uint32(f);
 	fprintf(stderr,"Reading %d Triangles\n",n_triangles);
 
 	for (int i = 0; i < n_triangles; ++i) {
@@ -119,8 +136,7 @@ Grid stl_read_binary(const std::string& filename) {
 		grid.points.push_back(stl_read_vertex_binary(f));
 		grid.points.push_back(stl_read_vertex_binary(f));
 		grid.points.push_back(stl_read_vertex_binary(f));
-		uint16_t attr;
-		f.read((char *) &attr,sizeof(attr));
+		uint16_t attr = read_uint16(f);
 
 		Element e (Shape::Triangle);
 		e.points[0] = 3*i;
@@ -153,64 +169,67 @@ Grid stl_read(const std::string& filename) {
 }
 
 void stl_write_ascii(const std::string& filename, const Grid& grid) {
-	FILE * f;
-	f = fopen(filename.c_str(),"w");
-	fprintf(stderr,"Writing %s\n",filename.c_str());
-	if (!f) fatal("Could not open file");
+	std::ofstream f (filename, std::ofstream::out);
+	std::cerr << "Writing " << filename << std::endl;
+	if (!f.is_open()) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
 			fatal("STL files only support triangles");
 		if (e.points.size() != 3)
 			fatal("One of the triangles does not have 3 points");
 	}
-	fprintf(f,"solid\n");
+	f.precision(DBL_DIG);
+	f << "solid" << std::endl;
 	for (const Element& e : grid.elements) {
-		fprintf(f,"  facet normal 0.0 0.0 0.0\n");
-		fprintf(f,"    outer loop\n");
+		f << "  face normal 0.0 0.0 0.0" << std::endl;
+		f << "    outer loop" << std::endl;
 		for (int _p : e.points) {
 			const Point& p = grid.points[_p];
-			fprintf(f,"      vertex %.17g %.17g %.17g\n",p.x,p.y,p.z);
+			f << "      vertex " << p.x << " " << p.y << " " << p.z << std::endl;
 		}
-		fprintf(f,"    endloop\n");
-		fprintf(f,"  endfacet\n");
+		f << "    endloop" << std::endl;
+		f << "  endfacet" << std::endl;
 	}
-	fprintf(f,"endsolid\n");
-	fclose(f);
+	f << "endsolid" << std::endl;
 }
 
-void stl_write_binary_vertex(FILE * f, const Point& p) {
-	float x = p.x;
-	fwrite(&x,sizeof(x),1,f);
-	float y = p.y;
-	fwrite(&y,sizeof(y),1,f);
-	float z = p.z;
-	fwrite(&z,sizeof(z),1,f);
+void write_float(std::ofstream& f, float v) {
+	f.write(reinterpret_cast <char *> (&v),sizeof(v));
 }
 
-void stl_write_binary_vertex(FILE * f, const Vector& v) {
-	float x = v.x;
-	fwrite(&x,sizeof(x),1,f);
-	float y = v.y;
-	fwrite(&y,sizeof(y),1,f);
-	float z = v.z;
-	fwrite(&z,sizeof(z),1,f);
+void write_uint32(std::ofstream& f, uint32_t v) {
+	f.write(reinterpret_cast <char *> (&v),sizeof(v));
+}
+
+void write_uint16(std::ofstream& f, uint16_t v) {
+	f.write(reinterpret_cast <char *> (&v),sizeof(v));
+}
+
+void stl_write_binary_vertex(std::ofstream& f, const Point& p) {
+	write_float(f,p.x);
+	write_float(f,p.y);
+	write_float(f,p.z);
+}
+
+void stl_write_binary_vertex(std::ofstream& f, const Vector& v) {
+	write_float(f,v.x);
+	write_float(f,v.y);
+	write_float(f,v.z);
 }
 
 void stl_write_binary(const std::string& filename, const Grid& grid) {
-	FILE * f;
-	f = fopen(filename.c_str(),"w");
-	fprintf(stderr,"Writing %s\n",filename.c_str());
-	if (!f) fatal("Could not open file");
+	std::ofstream f (filename, std::ofstream::out | std::ofstream::binary);
+	std::cerr << "Writing " << filename << std::endl;
+	if (!f.is_open()) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
 			fatal("STL files only support triangles");
 		if (e.points.size() != 3)
 			fatal("One of the triangles does not have 3 points");
 	}
-	char header[80];
-	fwrite(header,sizeof(header),1,f);
-	uint32_t n = grid.elements.size();
-	fwrite(&n,sizeof(n),1,f);
+	std::string header (80,' ');
+	f << header;
+	write_uint32(f,grid.elements.size());
 	for (const Element& e : grid.elements) {
 		Vector normal {0, 0, 1};
 		stl_write_binary_vertex(f,normal);
@@ -218,10 +237,8 @@ void stl_write_binary(const std::string& filename, const Grid& grid) {
 			const Point& p = grid.points[_p];
 			stl_write_binary_vertex(f,p);
 		}
-		uint16_t attr = 0;
-		fwrite(&attr,sizeof(attr),1,f);
+		write_uint16(f,0);
 	}
-	fclose(f);
 }
 
 } // namespace unstruc::stl
