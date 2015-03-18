@@ -155,7 +155,7 @@ Grid stl_read(const std::string& filename) {
 void stl_write_ascii(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
-	fprintf(stderr,"Outputting %s\n",filename.c_str());
+	fprintf(stderr,"Writing %s\n",filename.c_str());
 	if (!f) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
@@ -198,7 +198,7 @@ void stl_write_binary_vertex(FILE * f, const Vector& v) {
 void stl_write_binary(const std::string& filename, const Grid& grid) {
 	FILE * f;
 	f = fopen(filename.c_str(),"w");
-	fprintf(stderr,"Outputting %s\n",filename.c_str());
+	fprintf(stderr,"Writing %s\n",filename.c_str());
 	if (!f) fatal("Could not open file");
 	for (const Element& e : grid.elements) {
 		if (e.type != Shape::Triangle)
