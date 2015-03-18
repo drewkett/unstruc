@@ -13,6 +13,7 @@ namespace unstruc {
 		VTK,
 		OpenFoam,
 		STL,
+		STLB,
 		GMSH,
 		Count
 	};

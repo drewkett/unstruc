@@ -18,6 +18,8 @@ FileType filetype_from_filename(const std::string& filename) {
 		return FileType::SU2;
 	else if (n > 4 && filename.compare(n-4,4,".stl") == 0)
 		return FileType::STL;
+	else if (n > 5 && filename.compare(n-5,5,".stlb") == 0)
+		return FileType::STLB;
 	else if (n > 4 && filename.compare(n-4,4,".vtk") == 0)
 		return FileType::VTK;
 	else if (n > 4 && (filename.compare(n-4,4,".xyz") == 0 || filename.compare(n-4,4,".p3d") == 0))
@@ -40,6 +42,8 @@ Grid read_grid(const std::string& filename) {
 			return su2_read(filename);
 		case FileType::STL:
 			return stl_read(filename);
+		case FileType::STLB:
+			return stl_read_binary(filename);
 		default:
 			fatal("Unsupported filetype for reading");
 	}
@@ -64,6 +68,9 @@ void write_grid(const std::string& filename,const Grid& grid) {
 			break;
 		case FileType::STL:
 			stl_write_ascii(filename,grid);
+			break;
+		case FileType::STLB:
+			stl_write_binary(filename,grid);
 			break;
 		default:
 			fatal("Unsupported filetype for writing");
