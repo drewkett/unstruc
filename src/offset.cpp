@@ -584,7 +584,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
 
 	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(filename+".presmooth.vtk",presmooth);
+	write_grid(filename+".presmooth.stl",presmooth);
 
 	for (int i = 0; i < 10; ++i)
 		smooth_normals(surface,smoothing_data);
@@ -604,7 +604,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 	write_grid_with_data(filename+".data2.vtk",surface,smoothing_data);
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(filename+".smoothed.vtk",offset);
+	write_grid(filename+".smoothed.stl",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
@@ -802,7 +802,7 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		write_grid(output_filename+".0.offset.vtk",surface);
+		write_grid(output_filename+".0.offset.stl",surface);
 
 		Grid offset_volume (3);
 		Grid offset_surface (3);
@@ -815,7 +815,7 @@ int main(int argc, char* argv[]) {
 
 			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,filename);
 
-			write_grid(filename+".offset.vtk",offset_surface);
+			write_grid(filename+".offset.stl",offset_surface);
 			const Grid& input_surface = offset_surface;
 
 			offset_volume += volume_from_surfaces(last_offset_surface,offset_surface);
