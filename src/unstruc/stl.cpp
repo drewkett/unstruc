@@ -175,6 +175,7 @@ void stl_write_ascii(const std::string& filename, const Grid& grid) {
 		fprintf(f,"  endfacet\n");
 	}
 	fprintf(f,"endsolid\n");
+	fclose(f);
 }
 
 void stl_write_binary_vertex(FILE * f, const Point& p) {
@@ -220,6 +221,7 @@ void stl_write_binary(const std::string& filename, const Grid& grid) {
 		uint16_t attr = 0;
 		fwrite(&attr,sizeof(attr),1,f);
 	}
+	fclose(f);
 }
 
 } // namespace unstruc::stl

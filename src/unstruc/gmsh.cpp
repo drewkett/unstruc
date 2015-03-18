@@ -48,6 +48,7 @@ void gmsh_write(const std::string& filename, const Grid &grid) {
 		fprintf(f,"%d %d \"%s\"\n",name.dim,i+1,name.name.c_str());
 	}
 	fprintf(f,"$EndPhysicalNames\n");
+	fclose(f);
 }
 
 } // namespace unstruc::GMSH
