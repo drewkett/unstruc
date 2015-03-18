@@ -83,6 +83,14 @@ std::vector<Edge> get_edges(const Grid& grid) {
 #ifndef NDEBUG
 	fprintf(stderr,"Create Edges\n");
 #endif
+	int n_edges = 0;
+	for (const Element& e : grid.elements) {
+		int n = Shape::Info[e.type].n_edges;
+		if (n == 0) fatal();
+		n_edges += n;
+	}
+	edges.reserve(n_edges);
+
 	for (int _e = 0; _e < grid.elements.size(); ++_e) {
 		const Element& e = grid.elements[_e];
 		if (e.type == Shape::Wedge) {
@@ -154,6 +162,13 @@ std::vector<Face> get_faces(const Grid& grid) {
 	fprintf(stderr,"Creating Faces\n");
 #endif
 	std::vector<Face> faces;
+	int n_faces = 0;
+	for (const Element& e : grid.elements) {
+		int n = Shape::Info[e.type].n_faces;
+		if (n == 0) fatal();
+		n_faces += n;
+	}
+	faces.reserve(n_faces);
 	//Create Faces from Elements
 	for (int _e = 0; _e < grid.elements.size(); ++_e) {
 		const Element& e = grid.elements[_e];
