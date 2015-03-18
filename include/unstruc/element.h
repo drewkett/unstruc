@@ -11,7 +11,7 @@ namespace unstruc {
 
 	struct Shape {
 		std::string name;
-		int dim, n_points, vtk_id;
+		int dim, n_points, n_edges, n_faces, vtk_id;
 
 		static const Shape Info[];
 

@@ -13,15 +13,15 @@
 namespace unstruc {
 
 const Shape Shape::Info[Shape::NShapes] {
-	{ "Undefined", 0, 0, 0 },
-	{ "Line"     , 1, 2, 3 },
-	{ "Triangle" , 2, 3, 5 },
-	{ "Quad"     , 2, 4, 9 },
-	{ "Polygon"  , 2, 0, 7 },
-	{ "Tetra"    , 3, 4, 10 },
-	{ "Hexa"     , 3, 8, 12 },
-	{ "Wedge"    , 3, 6, 13 },
-	{ "Pyramid"  , 3, 5, 14 }
+	{ "Undefined", 0, 0, 0,  0, 0  },
+	{ "Line"     , 1, 2, 1,  0, 3  },
+	{ "Triangle" , 2, 3, 3,  1, 5  },
+	{ "Quad"     , 2, 4, 4,  1, 9  },
+	{ "Polygon"  , 2, 0, 0,  1, 7  },
+	{ "Tetra"    , 3, 4, 6,  4, 10 },
+	{ "Hexa"     , 3, 8, 12, 6, 12 },
+	{ "Wedge"    , 3, 6, 9,  5, 13 },
+	{ "Pyramid"  , 3, 5, 8,  5, 14 }
 };
 
 Shape::Type type_from_vtk_id(int vtk_id) {
