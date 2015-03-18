@@ -35,7 +35,10 @@ namespace unstruc {
 
 		inline bool operator==(const Point& other) const {return x == other.x && y == other.y && z == other.z;}
 
-		inline Point operator/(double value) const { return Point {x/value,y/value,z/value}; }
+		inline Point operator*(double value) const { return Point {x*value,y*value,z*value}; }
+		inline Point operator/(double value) const { return Point(*this) /= value; }
+
+		inline Point& operator/=(double value) { x /= value; y /= value; z /= value; return *this; }
 
 		//inline Point operator+(Point other) { return Point (x+other.x,y+other.y,z+other.z); }
 		inline Vector operator-(const Point& other) const { return Vector {x-other.x,y-other.y,z-other.z};}
@@ -45,6 +48,10 @@ namespace unstruc {
 
 		inline void operator-=(const Vector& other) {x -= other.x; y -= other.y; z -= other.z;};
 		inline void operator+=(const Vector& other) {x += other.x; y += other.y; z += other.z;};
+
+		inline Point operator+(const Point& other) const { return Point(*this) += other; }
+
+		inline Point& operator+=(const Point& other) {x += other.x; y += other.y; z += other.z; return *this; };
 
 		inline Vector to_vector() const { return Vector { x, y, z }; };
 	};
