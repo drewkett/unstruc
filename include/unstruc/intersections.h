@@ -5,6 +5,10 @@
 
 namespace unstruc {
 	struct Grid;
+	struct Vector;
+
+	typedef std::pair<int,int> PointPair;
+	typedef std::vector < PointPair > PointPairList;
 
 	struct Intersections {
 		std::vector <int> points;
@@ -12,6 +16,7 @@ namespace unstruc {
 
 		static Intersections find(const Grid& grid);
 		static Intersections find_with_octree(const Grid& grid);
+		static PointPairList find_future_intersections(const Grid& surface, Grid offset, double factor);
 	};
 }
 
