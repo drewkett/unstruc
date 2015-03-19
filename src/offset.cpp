@@ -17,7 +17,7 @@ bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
 double max_lambda = 0.5;
-const static double max_normal_skew_angle = 30;
+double max_normals_skew_angle = 30;
 
 bool use_skew_restriction = true;
 double max_skew_angle = 30;
@@ -383,7 +383,7 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 		double lat_length = smoothed_lateral.length();
 		perp_length = smoothed_perp.length();
 
-		const double max_normal_skew_factor = tan(max_normal_skew_angle*pc.geometric_severity/180.0*M_PI);
+		const double max_normal_skew_factor = tan(max_normals_skew_angle*pc.geometric_severity/180.0*M_PI);
 		if (use_skew_restriction && lat_length > 0 && lat_length > max_normal_skew_factor*perp_length)
 			smoothed_lateral *= max_normal_skew_factor*perp_length/lat_length;
 
@@ -823,6 +823,7 @@ void print_usage () {
 "--use-sqrt-length               Use sqrt of length in edge weighting\n"
 "--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
 "--use-initial-offset            Always smooth from initial offset point\n"
+"--max-normals-skew-angle angle  Max skew angle for initial normals smoothings (Default=30)\n"
 "--use-taubin                    Use Taubin smoothing\n"
 
 "--disable-skew-restriction      Disable skew angle restriction of offset normal\n"
@@ -876,6 +877,10 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-relaxed-skew-angle");
 				max_relaxed_skew_angle = atof(argv[i]);
+			} else if (arg == "--max-normals-skew-angle") {
+				++i;
+				if (i == argc) return parse_failed("Must pass float to --max-normals-skew-angle");
+				max_normals_skew_angle = atof(argv[i]);
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
