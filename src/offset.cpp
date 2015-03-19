@@ -14,6 +14,7 @@ bool use_tangents = true;
 bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
 bool use_original_offset = false;
+bool use_offset_skew_fix = false;
 
 double max_lambda = 0.5;
 double max_normals_skew_angle = 30;
@@ -23,8 +24,6 @@ double max_skew_angle = 30;
 double max_relaxed_skew_angle = 45;
 
 const static double tetgen_min_ratio = 1.03;
-
-static bool use_offset_skew_fix = false;
 
 bool use_taubin = false;
 namespace taubin {
