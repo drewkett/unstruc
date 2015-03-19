@@ -13,7 +13,7 @@ using namespace unstruc;
 bool use_tangents = true;
 bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
-const static bool use_original_offset = false;
+bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
 const static bool use_skew_restriction = true;
@@ -822,6 +822,7 @@ void print_usage () {
 "--use-absolute-angle            Use absolute angle instead of tangent in edge weighting\n"
 "--use-sqrt-length               Use sqrt of length in edge weighting\n"
 "--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
+"--use-initial-offset            Always smooth from initial offset point\n"
 "-h                              Print Usage\n");
 }
 
@@ -856,6 +857,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--use-absolute-angle") use_tangents = false;
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
+			else if (arg == "--use-initial-offset") use_original_offset = true;
 			else if (arg == "--max-lambda") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
