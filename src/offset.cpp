@@ -579,6 +579,81 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 	vtk_write_data(filename,"max_offset_size",max_offset_size);
 }
 
+void fix_offset_skew ( const Grid& surface, Grid& offset ) {
+	std::vector <Vector> surface_normals (surface.elements.size());
+	for (int _e = 0; _e < surface.elements.size(); ++_e) {
+		const Element& e = surface.elements[_e];
+		if (e.type != Shape::Triangle) fatal();
+
+		const Point& p0 = surface.points[e.points[0]];
+		const Point& p1 = surface.points[e.points[1]];
+		const Point& p2 = surface.points[e.points[2]];
+
+		surface_normals[_e] = cross(p1 - p0, p2 - p1).normalized();
+	}
+	int total_fixed = 0;
+	int fixed = 1;
+	while (fixed > 0) {
+		fixed = 0;
+		for (int _e = 0; _e < surface.elements.size(); ++_e) {
+			const Vector& surface_normal = surface_normals[_e];
+
+			const Element& e = offset.elements[_e];
+			const Point& p0 = offset.points[e.points[0]];
+			const Point& p1 = offset.points[e.points[1]];
+			const Point& p2 = offset.points[e.points[2]];
+
+			Vector offset_normal = cross(p1 - p0, p2 - p1).normalized();
+
+			if (dot(offset_normal,surface_normal) < 0.5) {
+				const Element& se = surface.elements[_e];
+				const Point& sp0 = surface.points[e.points[0]];
+				const Point& sp1 = surface.points[e.points[1]];
+				const Point& sp2 = surface.points[e.points[2]];
+
+				Point surface_center = (sp0 + sp1 + sp2)/3;
+				
+				double min_off = DBL_MAX;
+				for (int i = 0; i < 3; ++i) {
+					const Point& sp = surface.points[e.points[i]];
+					const Point& op = offset.points[e.points[i]];
+					double off;
+					if (sp == op) {
+						off = 0;
+					} else {
+						Vector n = (op - sp);
+						double off = dot(n,surface_normal);
+					}
+					if (off < min_off)
+						min_off = off;
+				}
+				if (min_off < 0) fatal("Shouldn't be possible");
+				for (int i = 0; i < 3; ++i) {
+					const Point& sp = surface.points[e.points[i]];
+					const Point& op = offset.points[e.points[i]];
+					Vector n = (op - sp);
+					double off = dot(n,surface_normal);
+					if (off > 1.5*min_off) {
+						fixed++;
+						dump(offset.elements[_e],offset);
+						if (min_off == 0) {
+							offset.points[e.points[i]] = sp;
+						} else {
+							double ratio = min_off/off + DBL_EPSILON;
+							offset.points[e.points[i]] = sp + ratio*n;
+						}
+					}
+				}
+			}
+		}
+		if (fixed > 0)
+			printf("%d Fixed Points due to skew\n",fixed);
+		total_fixed += fixed;
+	}
+	if (total_fixed > 0)
+		printf("%d Total Fixed Points due to skew\n",total_fixed);
+}
+
 Grid create_offset_surface (const Grid& surface, double offset_size, std::string filename) {
 
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
@@ -708,6 +783,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 
 		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
+
 		for (int j = 0; j < n_surface_points; ++j)
 			offset_volume.points[j+n_surface_points] = offset.points[j];
 	}
@@ -727,6 +803,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 	}
 
+	fix_offset_skew(surface,offset);
 	for (int i = 0; i < n_surface_points; ++i) {
 		offset.points[i] = offset_volume.points[i+n_surface_points];
 	}
