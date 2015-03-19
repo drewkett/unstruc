@@ -11,7 +11,7 @@
 using namespace unstruc;
 
 bool use_tangents = true;
-bool use_sqrt_length = true;
+bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
 const static bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
@@ -814,15 +814,15 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 void print_usage () {
 	fprintf(stderr,
 "unstruc-offset [options] surface_file output_file\n"
-"-g growth_rate           Set target growth rate between layers (Default = 1.5)\n"
-"-n number_of_layers      Set target number of layers to add (Default = 1)\n"
-"-s offset_size           Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
-"--[no-]offset-skew-fix   Use offset skew fix (Experimental)\n"
-"--max-lambda max_lambda  Set max lambda to be used on smoothing updates (Default=0.5)\n"
-"--[no-]tangent-angle     Use tangent of angle in edge weighting (Default=true)\n"
-"--[no-]sqrt-length       Use sqrt of length in edge weighting (Default=true)\n"
-"--[no-]sqrt-angle        Use sqrt of angle in edge weighting (Default=false)\n"
-"-h                       Print Usage\n");
+"-g growth_rate                  Set target growth rate between layers (Default = 1.5)\n"
+"-n number_of_layers             Set target number of layers to add (Default = 1)\n"
+"-s offset_size                  Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"--max-lambda max_lambda         Set max lambda to be used on smoothing updates (Default=0.5)\n"
+"--use-offset-skew-fix           Use offset skew fix (Experimental)\n"
+"--use-absolute-angle            Use absolute angle instead of tangent in edge weighting\n"
+"--use-sqrt-length               Use sqrt of length in edge weighting\n"
+"--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
+"-h                              Print Usage\n");
 }
 
 int parse_failed (std::string msg) {
@@ -852,14 +852,10 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
-			} else if (arg == "--offset-skew-fix")  use_offset_skew_fix = true;
-			else if (arg == "--no-offset-skew-fix") use_offset_skew_fix = false;
-			else if (arg == "--tangent-angle")  use_tangents = true;
-			else if (arg == "--no-tangent-angle") use_tangents = false;
-			else if (arg == "--sqrt-length")    use_sqrt_length = true;
-			else if (arg == "--no-sqrt-length") use_sqrt_length = false;
-			else if (arg == "--sqrt-angle")	   use_sqrt_angle = true;
-			else if (arg == "--no-sqrt-angle") use_sqrt_angle = false;
+			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
+			else if (arg == "--use-absolute-angle") use_tangents = false;
+			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
+			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--max-lambda") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
