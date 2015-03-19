@@ -819,7 +819,7 @@ void print_usage () {
 "-g growth_rate           Set target growth rate between layers (Default = 1.5)\n"
 "-n number_of_layers      Set target number of layers to add (Default = 1)\n"
 "-s offset_size           Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
-"--offset-skew-fix        Turn on offset skew fix (Experimental)\n"
+"--[no-]offset-skew-fix   Use offset skew fix (Experimental)\n"
 "--max-lambda max_lambda  Set max lambda to be used on smoothing updates (Default=0.5)\n"
 "--[no-]tangent-angle     Use tangent of angle in edge weighting (Default=true)\n"
 "--[no-]sqrt-length       Use sqrt of length in edge weighting (Default=true)\n"
@@ -854,9 +854,9 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
-			} else if (arg == "--use-offset-skew-fix") {
-				use_offset_skew_fix = true;
-			} else if (arg == "--tangent-angle")  use_tangents = true;
+			} else if (arg == "--offset-skew-fix")  use_offset_skew_fix = true;
+			else if (arg == "--no-offset-skew-fix") use_offset_skew_fix = false;
+			else if (arg == "--tangent-angle")  use_tangents = true;
 			else if (arg == "--no-tangent-angle") use_tangents = false;
 			else if (arg == "--sqrt-length")    use_sqrt_length = true;
 			else if (arg == "--no-sqrt-length") use_sqrt_length = false;
