@@ -16,12 +16,13 @@ bool use_sqrt_angle = false;
 bool use_original_offset = false;
 const static bool use_smooth_minmax_offset_size = true;
 
-const static bool use_skew_restriction = true;
-
 double max_lambda = 0.5;
 const static double max_normal_skew_angle = 30;
-const static double max_skew_angle = 30;
-const static double max_relaxed_skew_angle = 45;
+
+bool use_skew_restriction = true;
+double max_skew_angle = 30;
+double max_relaxed_skew_angle = 45;
+
 const static double tetgen_min_ratio = 1.03;
 
 static bool use_offset_skew_fix = false;
@@ -823,6 +824,10 @@ void print_usage () {
 "--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
 "--use-initial-offset            Always smooth from initial offset point\n"
 "--use-taubin                    Use Taubin smoothing\n"
+
+"--disable-skew-restriction      Disable skew angle restriction of offset normal\n"
+"--max-skew-angle angle          Max skew angle for restriction (Default=30)\n"
+"--max-relaxed-skew-angle angle  Max skew angle for restriction when relaxed due to intersections (Default=60)\n"
 "-h                              Print Usage\n");
 }
 
@@ -863,10 +868,19 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
 				max_lambda = atof(argv[i]);
+			} else if (arg == "--max-skew-angle") {
+				++i;
+				if (i == argc) return parse_failed("Must pass float to --max-skew-angle");
+				max_skew_angle = atof(argv[i]);
+			} else if (arg == "--max-relaxed-skew-angle") {
+				++i;
+				if (i == argc) return parse_failed("Must pass float to --max-relaxed-skew-angle");
+				max_relaxed_skew_angle = atof(argv[i]);
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
-			} else {
+			} else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
+			else {
 				return parse_failed("Unknown option passed '"+arg+"'");
 			}
 		} else {
