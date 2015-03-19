@@ -25,6 +25,8 @@ const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 45;
 const static double tetgen_min_ratio = 1.03;
 
+static bool use_offset_skew_fix = false;
+
 const static bool use_taubin = false;
 namespace taubin {
 	const static double kpb = 0.1;
@@ -803,7 +805,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 	}
 
-	fix_offset_skew(surface,offset);
+	if (use_offset_skew_fix)
+		fix_offset_skew(surface,offset);
 	for (int i = 0; i < n_surface_points; ++i) {
 		offset.points[i] = offset_volume.points[i+n_surface_points];
 	}
@@ -816,6 +819,7 @@ void print_usage () {
 "-g growth_rate		  Set target growth rate between layers (Default = 1.5)\n"
 "-n number_of_layers  Set target number of layers to add (Default = 1)\n"
 "-s offset_size       Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"--offset-skew-fix    Turn on offset skew fix (Experimental)\n"
 "-h                   Print Usage\n");
 }
 
@@ -846,6 +850,8 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
+			} else if (arg == "--use-offset-skew-fix") {
+				use_offset_skew_fix = true;
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
