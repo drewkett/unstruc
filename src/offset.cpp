@@ -26,13 +26,12 @@ const static double tetgen_min_ratio = 1.03;
 
 static bool use_offset_skew_fix = false;
 
-const static bool use_taubin = false;
+bool use_taubin = false;
 namespace taubin {
-	const static double kpb = 0.1;
-	//const static double taubin_gamma = 0.5;
-	const static double gamma = (kpb - 3)/(3*kpb - 5);
-	const static double mu = 1/(kpb - 1/gamma);
-	const static double n = 20;
+	const double kpb = 0.1;
+	const double gamma = (kpb - 3)/(3*kpb - 5);
+	const double mu = 1/(kpb - 1/gamma);
+	const double n = 20;
 };
 
 std::vector <int> find_negative_volumes(Grid& grid) {
@@ -823,6 +822,7 @@ void print_usage () {
 "--use-sqrt-length               Use sqrt of length in edge weighting\n"
 "--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
 "--use-initial-offset            Always smooth from initial offset point\n"
+"--use-taubin                    Use Taubin smoothing\n"
 "-h                              Print Usage\n");
 }
 
@@ -858,6 +858,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--use-initial-offset") use_original_offset = true;
+			else if (arg == "--use-taubin") use_taubin = true;
 			else if (arg == "--max-lambda") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
