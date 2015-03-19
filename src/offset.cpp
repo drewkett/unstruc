@@ -19,7 +19,7 @@ const static bool use_smooth_minmax_offset_size = true;
 
 const static bool use_skew_restriction = true;
 
-const static double min_orig_weight = 0.5;
+double max_lambda = 0.5;
 const static double max_normal_skew_angle = 30;
 const static double max_skew_angle = 30;
 const static double max_relaxed_skew_angle = 45;
@@ -328,7 +328,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			for (int i = 0; i < surface.points.size(); ++i) {
 				PointConnection& pc = sdata.connections[i];
 
-				double orig_weight = 0.1 + 0.9*(1-pc.geometric_severity);
+				double lambda = 0.9*pc.geometric_severity;
 
 				double min_adj = 0;
 				double max_adj = 0;
@@ -336,10 +336,10 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 				for (const PointWeight& pw : pc.pointweights) {
 					const PointConnection& other_pc = sdata.connections[pw.p];
 					double delta_min = other_pc.min_offset_size - pc.orig_min_offset_size;
-					min_adj += pw.w * delta_min * (1-orig_weight);
+					min_adj += pw.w * delta_min * lambda;
 
 					double delta_max = other_pc.max_offset_size - pc.orig_max_offset_size;
-					max_adj += pw.w * delta_max * (1-orig_weight);
+					max_adj += pw.w * delta_max * lambda;
 				}
 				if (min_adj < 0)
 					pc.min_offset_size = pc.orig_min_offset_size + min_adj;
@@ -364,13 +364,13 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 
 		if (orig_normal.length() == 0) continue;
 
-		double orig_weight = min_orig_weight + (1-min_orig_weight)*(1 - pc.geometric_severity);
+		double lambda = max_lambda*pc.geometric_severity;
 
 		Vector smoothed_normal (curr_normal);
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
 			const Vector& n = data.connections[pw.p].normal;
-			double w = pw.w * (1-orig_weight);
+			double w = pw.w * lambda;
 			Vector delta = n - curr_normal;
 			smoothed_normal.x += w * delta.x;
 			smoothed_normal.y += w * delta.y;
@@ -418,7 +418,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 
 		if (orig_normal.length() == 0) continue;
 
-		double orig_weight = min_orig_weight + (1-min_orig_weight)*(1 - pc.geometric_severity);
+		double lambda = max_lambda*pc.geometric_severity;
 		Point orig_p;
 		if (use_original_offset)
 			orig_p = surface_p + orig_normal;
@@ -429,7 +429,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		for (const PointWeight& pw : pc.pointweights) {
 			const Point& p = surface.points[pw.p];
 			const Vector& n = data.connections[pw.p].normal;
-			double w = pw.w * (1-orig_weight);
+			double w = pw.w * lambda;
 			Point offset_p = p+n;
 			Vector delta = offset_p - orig_p;
 			smoothed_point.x += w * delta.x;
@@ -816,14 +816,15 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 void print_usage () {
 	fprintf(stderr,
 "unstruc-offset [options] surface_file output_file\n"
-"-g growth_rate        Set target growth rate between layers (Default = 1.5)\n"
-"-n number_of_layers   Set target number of layers to add (Default = 1)\n"
-"-s offset_size        Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
-"--offset-skew-fix     Turn on offset skew fix (Experimental)\n"
-"--[no-]tangent-angle  Use tangent of angle in edge weighting (Default=true)\n"
-"--[no-]sqrt-length    Use sqrt of length in edge weighting (Default=true)\n"
-"--[no-]sqrt-angle     Use sqrt of angle in edge weighting (Default=false)\n"
-"-h                    Print Usage\n");
+"-g growth_rate           Set target growth rate between layers (Default = 1.5)\n"
+"-n number_of_layers      Set target number of layers to add (Default = 1)\n"
+"-s offset_size           Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"--offset-skew-fix        Turn on offset skew fix (Experimental)\n"
+"--max-lambda max_lambda  Set max lambda to be used on smoothing updates (Default=0.5)\n"
+"--[no-]tangent-angle     Use tangent of angle in edge weighting (Default=true)\n"
+"--[no-]sqrt-length       Use sqrt of length in edge weighting (Default=true)\n"
+"--[no-]sqrt-angle        Use sqrt of angle in edge weighting (Default=false)\n"
+"-h                       Print Usage\n");
 }
 
 int parse_failed (std::string msg) {
@@ -861,6 +862,10 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--no-sqrt-length") use_sqrt_length = false;
 			else if (arg == "--sqrt-angle")	   use_sqrt_angle = true;
 			else if (arg == "--no-sqrt-angle") use_sqrt_angle = false;
+			else if (arg == "--max-lambda") {
+				++i;
+				if (i == argc) return parse_failed("Must pass float to --max-lambda");
+				max_lambda = atof(argv[i]);
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
