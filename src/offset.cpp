@@ -14,7 +14,6 @@ bool use_tangents = true;
 bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
 bool use_original_offset = false;
-const static bool use_smooth_minmax_offset_size = true;
 
 double max_lambda = 0.5;
 double max_normals_skew_angle = 30;
@@ -321,29 +320,27 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		for (PointWeight& pw : pc.pointweights)
 			pw.w /= total_weight;
 	}
-	if (use_smooth_minmax_offset_size) {
-		for (int j = 0; j < 100; ++j) {
-			for (int i = 0; i < surface.points.size(); ++i) {
-				PointConnection& pc = sdata.connections[i];
+	for (int j = 0; j < 100; ++j) {
+		for (int i = 0; i < surface.points.size(); ++i) {
+			PointConnection& pc = sdata.connections[i];
 
-				double lambda = 0.9*pc.geometric_severity;
+			double lambda = 0.9*pc.geometric_severity;
 
-				double min_adj = 0;
-				double max_adj = 0;
+			double min_adj = 0;
+			double max_adj = 0;
 
-				for (const PointWeight& pw : pc.pointweights) {
-					const PointConnection& other_pc = sdata.connections[pw.p];
-					double delta_min = other_pc.min_offset_size - pc.orig_min_offset_size;
-					min_adj += pw.w * delta_min * lambda;
+			for (const PointWeight& pw : pc.pointweights) {
+				const PointConnection& other_pc = sdata.connections[pw.p];
+				double delta_min = other_pc.min_offset_size - pc.orig_min_offset_size;
+				min_adj += pw.w * delta_min * lambda;
 
-					double delta_max = other_pc.max_offset_size - pc.orig_max_offset_size;
-					max_adj += pw.w * delta_max * lambda;
-				}
-				if (min_adj < 0)
-					pc.min_offset_size = pc.orig_min_offset_size + min_adj;
-				if (max_adj > 0)
-					pc.max_offset_size = pc.orig_max_offset_size + max_adj;
+				double delta_max = other_pc.max_offset_size - pc.orig_max_offset_size;
+				max_adj += pw.w * delta_max * lambda;
 			}
+			if (min_adj < 0)
+				pc.min_offset_size = pc.orig_min_offset_size + min_adj;
+			if (max_adj > 0)
+				pc.max_offset_size = pc.orig_max_offset_size + max_adj;
 		}
 	}
 	return sdata;
