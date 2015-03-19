@@ -859,13 +859,7 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
-			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
-			else if (arg == "--use-absolute-angle") use_tangents = false;
-			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
-			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
-			else if (arg == "--use-initial-offset") use_original_offset = true;
-			else if (arg == "--use-taubin") use_taubin = true;
-			else if (arg == "--max-lambda") {
+			}else if (arg == "--max-lambda") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
 				max_lambda = atof(argv[i]);
@@ -884,7 +878,13 @@ int main(int argc, char* argv[]) {
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
-			} else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
+			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
+			else if (arg == "--use-absolute-angle") use_tangents = false;
+			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
+			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
+			else if (arg == "--use-initial-offset") use_original_offset = true;
+			else if (arg == "--use-taubin") use_taubin = true;
+			else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
 			else {
 				return parse_failed("Unknown option passed '"+arg+"'");
 			}
