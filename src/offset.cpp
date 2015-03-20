@@ -799,11 +799,11 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 	}
 
+	for (int i = 0; i < n_surface_points; ++i)
+		offset.points[i] = offset_volume.points[i+n_surface_points];
+
 	if (use_offset_skew_fix)
 		fix_offset_skew(surface,offset);
-	for (int i = 0; i < n_surface_points; ++i) {
-		offset.points[i] = offset_volume.points[i+n_surface_points];
-	}
 	return offset;
 }
 
