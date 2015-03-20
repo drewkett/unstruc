@@ -271,13 +271,12 @@ std::vector<Face> get_faces(const Grid& grid) {
 		face.max.z = std::max(std::max(p0.z,p1.z),p2.z);
 		if (face.points.size() == 3) {
 			face.normal = cross(p1-p0, p2-p1);
-			face.center.x = (p0.x + p1.x + p2.x)/3;
-			face.center.y = (p0.y + p1.y + p2.y)/3;
-			face.center.z = (p0.z + p1.z + p2.z)/3;
+			face.center = (p0 + p1 + p2)/3;
 		} else {
 			const Point& p3 = grid.points[face.points[3]];
 			face.normal = cross(p2-p0, p3-p1);
 
+			face.center = Point {0, 0, 0};
 			double total_length = 0;
 			for (int i = 0; i < 4; ++i) {
 				const Point& p0 = grid.points[face.points[i]];
@@ -288,17 +287,11 @@ std::vector<Face> get_faces(const Grid& grid) {
 				Vector v2 = p2 - p1;
 				double length = cross(v1,v2).length();
 
-				face.center.x += (p0.x + p1.x + p2.x)*length/3;
-				face.center.y += (p0.y + p1.y + p2.y)*length/3;
-				face.center.z += (p0.z + p1.z + p2.z)*length/3;
-
+				face.center += (p0 + p1 + p2)*length/3;
 				total_length += length;
 			}
-			if (total_length > 0) {
-				face.center.x /= total_length;
-				face.center.y /= total_length;
-				face.center.z /= total_length;
-			}
+			if (total_length > 0)
+				face.center /= total_length;
 			face.min.x = std::min(face.min.x,p3.x);
 			face.min.y = std::min(face.min.y,p3.y);
 			face.min.z = std::min(face.min.z,p3.z);

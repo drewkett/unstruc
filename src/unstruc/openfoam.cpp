@@ -97,19 +97,15 @@ int removeStraightEdges(OFFace& face, Grid& grid) {
 
 Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
 	// Calculate temp_center which is a rough guess at the center of the cell
-	Point temp_center;
+	Point temp_center { 0, 0, 0 };
 	double total_area = 0;
 	for (OFFace* face : faces) {
-		temp_center.x += face->center.x * face->area;
-		temp_center.y += face->center.y * face->area;
-		temp_center.z += face->center.z * face->area;
+		temp_center += face->center * face->area;
 		total_area += face->area;
 	}
-	temp_center.x /= total_area;
-	temp_center.y /= total_area;
-	temp_center.z /= total_area;
+	temp_center /= total_area;
 
-	Point cell_center;
+	Point cell_center { 0, 0, 0 };
 	double total_volume = 0;
 	for (int j = 0; j < faces.size(); ++j) {
 		bool faces_out = (j < n_owners);
@@ -130,14 +126,10 @@ Point calcCellCenter(std::vector<OFFace*> faces, Grid& grid, int n_owners) {
 
 			face_volume += volume;
 			total_volume += volume;
-			cell_center.x += volume*(p1.x + p2.x + face->center.x + temp_center.x)/4;
-			cell_center.y += volume*(p1.y + p2.y + face->center.y + temp_center.y)/4;
-			cell_center.z += volume*(p1.z + p2.z + face->center.z + temp_center.z)/4;
+			cell_center += (p1 + p2 + face->center + temp_center)/4*volume;
 		}
 	}
-	cell_center.x /= total_volume;
-	cell_center.y /= total_volume;
-	cell_center.z /= total_volume;
+	cell_center /= total_volume;
 	return cell_center;
 }
 
@@ -232,9 +224,7 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 				Point& p1 = grid.points[face.points[1]];
 				Point& p2 = grid.points[face.points[2]];
 
-				face.center.x = (p0.x + p1.x + p2.x)/n;
-				face.center.y = (p0.y + p1.y + p2.y)/n;
-				face.center.z = (p0.z + p1.z + p2.z)/n;
+				face.center = (p0 + p1 + p2)/n;
 
 				Vector v1 = p1 - p0;
 				Vector v2 = p2 - p1;
@@ -251,6 +241,7 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 				Point& p3 = grid.points[face.points[3]];
 
 				double total_length = 0;
+				face.center = Point { 0, 0, 0 };
 				for (int i1 = 0; i1 < n; ++i1) {
 					int i2 = (i1 + 1) % n;
 					Point& p1 = grid.points[face.points[i1]];
@@ -259,13 +250,9 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 					Vector v = p1 - p2;
 					double l = v.length();
 					total_length += l;
-					face.center.x += (p1.x+p2.x)*l/2;
-					face.center.y += (p1.y+p2.y)*l/2;
-					face.center.z += (p1.z+p2.z)*l/2;
+					face.center += (p1+p2)*l/2;
 				}
-				face.center.x /= total_length;
-				face.center.y /= total_length;
-				face.center.z /= total_length;
+				face.center /= total_length;
 
 				Vector v02 = p2 - p0;
 				Vector v13 = p3 - p1;
@@ -276,7 +263,7 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 			break;
 		default:
 			{
-				Point temp_center;
+				Point temp_center { 0, 0, 0 };
 				double total_length = 0;
 				for (int i1 = 0; i1 < n; ++i1) {
 					int i2 = (i1 + 1) % n;
@@ -286,14 +273,11 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 					Vector v = p1 - p2;
 					double l = v.length();
 					total_length += l;
-					temp_center.x += (p1.x+p2.x)*l/2;
-					temp_center.y += (p1.y+p2.y)*l/2;
-					temp_center.z += (p1.z+p2.z)*l/2;
+					temp_center += (p1+p2)*l/2;
 				}
-				temp_center.x /= total_length;
-				temp_center.y /= total_length;
-				temp_center.z /= total_length;
+				temp_center /= total_length;
 
+				face.center = Point { 0, 0, 0 };
 				double total_area = 0;
 				for (int i1 = 0; i1 < n; ++i1) {
 					int i2 = (i1 + 1) % n;
@@ -306,15 +290,11 @@ void calcFaceCenter(OFFace& face, Grid& grid) {
 					double area = n.length()/2;
 
 					total_area += area;
-					face.center.x += area*(p1.x + p2.x + temp_center.x)/3;
-					face.center.y += area*(p1.y + p2.y + temp_center.y)/3;
-					face.center.z += area*(p1.z + p2.z + temp_center.z)/3;
+					face.center += (p1 + p2 + temp_center)/3*area;
 					face.normal += n/2;
 				}
 				face.area = face.normal.length();
-				face.center.x /= total_area;
-				face.center.y /= total_area;
-				face.center.z /= total_area;
+				face.center /= total_area;
 				face.center_calculated = true;
 			}
 			break;

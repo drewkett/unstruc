@@ -366,9 +366,7 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 			const Vector& n = data.connections[pw.p].normal;
 			double w = pw.w * lambda;
 			Vector delta = n - curr_normal;
-			smoothed_normal.x += w * delta.x;
-			smoothed_normal.y += w * delta.y;
-			smoothed_normal.z += w * delta.z;
+			smoothed_normal += w * delta;
 		}
 
 		double perp_length = dot(orig_normal.normalized(),smoothed_normal);
@@ -426,9 +424,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 			double w = pw.w * lambda;
 			Point offset_p = p+n;
 			Vector delta = offset_p - orig_p;
-			smoothed_point.x += w * delta.x;
-			smoothed_point.y += w * delta.y;
-			smoothed_point.z += w * delta.z;
+			smoothed_point += w * delta;
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 
@@ -488,9 +484,7 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 			double w = pw.w * gamma;
 			Point offset_p = p + n;
 			Vector delta = offset_p - orig_p;
-			smoothed_point.x += w * delta.x;
-			smoothed_point.y += w * delta.y;
-			smoothed_point.z += w * delta.z;
+			smoothed_point += w * delta;
 		}
 		Vector smoothed_normal = smoothed_point - surface_p;
 		if (gamma > 0) {

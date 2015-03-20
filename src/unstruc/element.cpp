@@ -86,13 +86,9 @@ double Element::calc_volume(const Grid& grid) const {
 					double l = (pj - pi).length();
 					total_length1 += l;
 
-					face_center1.x += l*(pi.x + pj.x)/2;
-					face_center1.y += l*(pi.y + pj.y)/2;
-					face_center1.z += l*(pi.z + pj.z)/2;
+					face_center1 += (pi + pj)/2*l;
 				}
-				face_center1.x /= total_length1;
-				face_center1.y /= total_length1;
-				face_center1.z /= total_length1;
+				face_center1 /= total_length1;
 
 				Point face_center2 { 0, 0, 0 };
 				double total_length2 = 0;
@@ -103,13 +99,9 @@ double Element::calc_volume(const Grid& grid) const {
 					double l = (pj - pi).length();
 					total_length2 += l;
 
-					face_center2.x += l*(pi.x + pj.x)/2;
-					face_center2.y += l*(pi.y + pj.y)/2;
-					face_center2.z += l*(pi.z + pj.z)/2;
+					face_center2 += (pi + pj)/2*l;
 				}
-				face_center2.x /= total_length2;
-				face_center2.y /= total_length2;
-				face_center2.z /= total_length2;
+				face_center2 /= total_length2;
 
 				Vector l = face_center2 - face_center1;
 				Vector v02 = p2 - p0;
@@ -143,15 +135,8 @@ double Element::calc_volume(const Grid& grid) const {
 				const Point& p4 = grid.points[points[4]];
 				const Point& p5 = grid.points[points[5]];
 
-				Point c1;
-				c1.x = (p0.x + p1.x + p2.x)/3;
-				c1.y = (p0.y + p1.y + p2.y)/3;
-				c1.z = (p0.z + p1.z + p2.z)/3;
-
-				Point c2;
-				c2.x = (p3.x + p4.x + p5.x)/3;
-				c2.y = (p3.y + p4.y + p5.y)/3;
-				c2.z = (p3.z + p4.z + p5.z)/3;
+				Point c1 = (p0 + p1 + p2)/3;
+				Point c2 = (p3 + p4 + p5)/3;
 
 				Vector l = c1 - c2;
 				Vector v01 = p1 - p0;
