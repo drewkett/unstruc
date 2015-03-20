@@ -774,9 +774,8 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				}
 			}
 		}
-		for (int i = 0; i < 20; ++i) {
+		for (int j = 0; j < 20; ++j)
 			smooth_point_connections(surface,smoothing_data);
-		}
 
 		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 
