@@ -19,6 +19,9 @@
 
 namespace unstruc {
 
+const int max_depth = 10;
+const int max_bin_size = 20;
+
 struct Edge {
 	int p1, p2;
 	std::vector <int> elements;
@@ -330,7 +333,7 @@ Vector quadrant_vector(uint8_t i) {
 
 std::unique_ptr<Octree> build_octree(const Grid& grid, std::vector<int> points, const Point& center, const double radius, int depth) {
 	std::unique_ptr<Octree> tree (new Octree);
-	if (depth > 10)
+	if (depth > max_depth)
 		return nullptr;
 	tree->center = center;
 	tree->radius = radius;
@@ -345,7 +348,7 @@ std::unique_ptr<Octree> build_octree(const Grid& grid, std::vector<int> points, 
 	}
 
 	for (int i = 0; i < 8; ++i) {
-		if (tree->points[i].size() > 100) {
+		if (tree->points[i].size() > max_bin_size) {
 			Point new_center = center + quadrant_vector(i)*(radius/2);
 			tree->children[i] = std::move(build_octree(grid, tree->points[i], new_center, radius/2, depth+1));
 			if (tree->children[i])
