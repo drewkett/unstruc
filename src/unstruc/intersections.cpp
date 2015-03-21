@@ -335,8 +335,6 @@ Intersections Intersections::find(const Grid& grid) {
 			for (int p : face.points) {
 				if (edge.p1 == p || edge.p2 == p)
 					same = true;
-				if (ep1 == grid.points[p] || ep2 == grid.points[p])
-					same = true;
 			}
 			if (same) continue;
 			double denom = dot(edge_vector,face.normal);
