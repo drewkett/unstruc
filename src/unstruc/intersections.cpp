@@ -509,6 +509,8 @@ void check_intersections(const Grid& grid, const std::vector<Edge>& edges, const
 			for (int p : face.points) {
 				if (edge.p1 == p || edge.p2 == p)
 					same = true;
+				if (ep1 == grid.points[p] || ep2 == grid.points[p])
+					same = true;
 			}
 			if (same) continue;
 
@@ -617,6 +619,8 @@ Intersections Intersections::find(const Grid& grid) {
 			bool same = false;
 			for (int p : face.points) {
 				if (edge.p1 == p || edge.p2 == p)
+					same = true;
+				if (ep1 == grid.points[p] || ep2 == grid.points[p])
 					same = true;
 			}
 			if (same) continue;
