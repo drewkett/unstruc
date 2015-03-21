@@ -11,6 +11,7 @@ namespace unstruc {
 		std::vector <int> elements;
 
 		static Intersections find(const Grid& grid);
+		static Intersections find_with_octree(const Grid& grid);
 	};
 }
 
