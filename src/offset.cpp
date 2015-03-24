@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <climits>
 #include <cfloat>
+#include <sstream>
 
 #include "unstruc.h"
 #include "tetmesh.h"
@@ -920,9 +921,9 @@ int main(int argc, char* argv[]) {
 		Grid last_offset_surface (surface);
 		double current_offset_size = offset_size;
 		for (int i = 0; i < nlayers; ++i) {
-			char c_filename[50];
-			snprintf(c_filename,50,"%s.%d",output_filename.c_str(),i+1);
-			std::string filename (c_filename);
+			std::ostringstream f;
+			f << output_filename << "." << i+1;
+			std::string filename (f.str());
 			printf("Creating Layer %d\n",i+1);
 
 			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,filename);
