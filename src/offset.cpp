@@ -10,6 +10,8 @@
 
 using namespace unstruc;
 
+bool write_intermediate = true;
+
 bool use_tangents = true;
 bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
@@ -649,11 +651,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	SmoothingData smoothing_data = calculate_point_connections(surface,offset_size);
 
 	Grid presmooth = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(filename+".presmooth.stl",presmooth);
+	if (write_intermediate)
+		write_grid(filename+".presmooth.stl",presmooth);
 
 	for (int i = 0; i < 10; ++i)
 		smooth_normals(surface,smoothing_data);
-	write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
+	if (write_intermediate)
+		write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
 	for (PointConnection& pc : smoothing_data.connections)
 		pc.orig_normal = pc.normal;
 
@@ -667,9 +671,11 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			smooth_point_connections(surface,smoothing_data);
 	}
 
-	write_grid_with_data(filename+".data2.vtk",surface,smoothing_data);
+	if (write_intermediate)
+		write_grid_with_data(filename+".data2.vtk",surface,smoothing_data);
 	Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
-	write_grid(filename+".smoothed.stl",offset);
+	if (write_intermediate)
+		write_grid(filename+".smoothed.stl",offset);
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
@@ -806,6 +812,7 @@ void print_usage () {
 "-g growth_rate                  Set target growth rate between layers (Default = 1.5)\n"
 "-n number_of_layers             Set target number of layers to add (Default = 1)\n"
 "-s offset_size                  Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"--no-intermediate-files         Don't write intermediate files\n"
 "--max-lambda max_lambda         Set max lambda to be used on smoothing updates (Default=0.5)\n"
 "--use-offset-skew-fix           Use offset skew fix (Experimental)\n"
 "--use-absolute-angle            Use absolute angle instead of tangent in edge weighting\n"
@@ -848,7 +855,7 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -n");
 				growth_rate = atof(argv[i]);
-			}else if (arg == "--max-lambda") {
+			} else if (arg == "--max-lambda") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-lambda");
 				max_lambda = atof(argv[i]);
@@ -874,6 +881,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--use-initial-offset") use_original_offset = true;
 			else if (arg == "--use-taubin") use_taubin = true;
 			else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
+			else if (arg == "--no-intermediate-files") write_intermediate = false;
 			else {
 				return parse_failed("Unknown option passed '"+arg+"'");
 			}
@@ -900,7 +908,8 @@ int main(int argc, char* argv[]) {
 	fprintf(stderr,"Verifying surface\n");
 	std::vector <Point> holes = tetmesh::orient_surfaces(surface);
 
-	write_grid(output_filename+".surface.su2",surface);
+	if (write_intermediate)
+		write_grid(output_filename+".surface.su2",surface);
 
 	Grid volume;
 	if (offset_size != 0) {
@@ -914,10 +923,12 @@ int main(int argc, char* argv[]) {
 			char c_filename[50];
 			snprintf(c_filename,50,"%s.%d",output_filename.c_str(),i+1);
 			std::string filename (c_filename);
+			printf("Creating Layer %d\n",i+1);
 
 			offset_surface = create_offset_surface(last_offset_surface,current_offset_size,filename);
 
-			write_grid(filename+".offset.stl",offset_surface);
+			if (write_intermediate)
+				write_grid(filename+".offset.stl",offset_surface);
 			const Grid& input_surface = offset_surface;
 
 			offset_volume += volume_from_surfaces(last_offset_surface,offset_surface);
@@ -931,7 +942,8 @@ int main(int argc, char* argv[]) {
 
 		Grid farfield_surface = tetmesh::create_farfield_box(offset_surface);
 		Grid farfield_volume = tetmesh::volgrid_from_surface(offset_surface+farfield_surface,holes,tetgen_min_ratio);
-		write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
+		if (write_intermediate)
+			write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
 		volume = farfield_volume + offset_volume + farfield_surface + surface;
 	} else {
 		Grid farfield_surface = tetmesh::create_farfield_box(surface);
