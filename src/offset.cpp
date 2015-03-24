@@ -18,6 +18,7 @@ bool use_sqrt_length = false;
 bool use_sqrt_angle = false;
 bool use_original_offset = false;
 bool use_offset_skew_fix = false;
+bool use_future_intersections = false;
 
 double max_lambda = 0.5;
 double max_normals_skew_angle = 30;
@@ -729,6 +730,39 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	for (PointConnection& pc : smoothing_data.connections)
 		pc.orig_normal = pc.normal;
 
+	if (use_future_intersections) {
+		fprintf(stderr,"Checking for future intersections\n");
+		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
+		PointPairList intersections = Intersections::find_future(surface,offset);
+		if (intersections.size()) {
+			fprintf(stderr,"%lu Normals scaled due to future intersections\n",intersections.size());
+			std::vector <double> scale_factors (surface.points.size(),1);
+			for (const std::pair <int,int>& pp : intersections) {
+				int _p1 = pp.first;
+				int _p2 = pp.second;
+
+				const Point& p1 = surface.points[_p1];
+				const Point& p2 = surface.points[_p2];
+
+				double d = (p2 - p1).length();
+				double s = Intersections::get_scale_factor(d);
+
+				scale_factors[_p1] = s;
+			}
+			scale_factors = laplace_smooth_down(smoothing_data.connections, scale_factors, 10, 0.9, true);
+			for (int i = 0; i < surface.points.size(); ++i) {
+				PointConnection& pc = smoothing_data.connections[i];
+				double s = scale_factors[i];
+				if (s < 0.2)
+					s = 0;
+				pc.normal *= s;
+				pc.orig_normal *= s;
+				pc.min_offset_size *= s;
+				pc.max_offset_size *= s;
+			}
+		}
+	}
+
 	if (use_taubin) {
 		for (int i = 0; i < taubin::n; ++i) {
 			smooth_point_connections_taubin(surface,smoothing_data,taubin::gamma);
@@ -877,23 +911,24 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 void print_usage () {
 	fprintf(stderr,
 "unstruc-offset [options] surface_file output_file\n"
-"-g growth_rate                  Set target growth rate between layers (Default = 1.5)\n"
-"-n number_of_layers             Set target number of layers to add (Default = 1)\n"
-"-s offset_size                  Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
-"--no-intermediate-files         Don't write intermediate files\n"
-"--max-lambda max_lambda         Set max lambda to be used on smoothing updates (Default=0.5)\n"
-"--use-offset-skew-fix           Use offset skew fix (Experimental)\n"
-"--use-absolute-angle            Use absolute angle instead of tangent in edge weighting\n"
-"--use-sqrt-length               Use sqrt of length in edge weighting\n"
-"--use-sqrt-angle                Use sqrt of angle in edge weighting\n"
-"--use-initial-offset            Always smooth from initial offset point\n"
-"--max-normals-skew-angle angle  Max skew angle for initial normals smoothings (Default=30)\n"
-"--use-taubin                    Use Taubin smoothing\n"
+"-g growth_rate                    Set target growth rate between layers (Default = 1.5)\n"
+"-n number_of_layers               Set target number of layers to add (Default = 1)\n"
+"-s offset_size                    Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
+"--no-intermediate-files           Don't write intermediate files\n"
+"--use-future-intersections-check  Slow down growth rate where future intersections might occur"
+"--max-lambda max_lambda           Set max lambda to be used on smoothing updates (Default=0.5)\n"
+"--use-offset-skew-fix             Use offset skew fix (Experimental)\n"
+"--use-absolute-angle              Use absolute angle instead of tangent in edge weighting\n"
+"--use-sqrt-length                 Use sqrt of length in edge weighting\n"
+"--use-sqrt-angle                  Use sqrt of angle in edge weighting\n"
+"--use-initial-offset              Always smooth from initial offset point\n"
+"--max-normals-skew-angle angle    Max skew angle for initial normals smoothings (Default=30)\n"
+"--use-taubin                      Use Taubin smoothing\n"
 
-"--disable-skew-restriction      Disable skew angle restriction of offset normal\n"
-"--max-skew-angle angle          Max skew angle for restriction (Default=30)\n"
-"--max-relaxed-skew-angle angle  Max skew angle for restriction when relaxed due to intersections (Default=60)\n"
-"-h                              Print Usage\n");
+"--disable-skew-restriction        Disable skew angle restriction of offset normal\n"
+"--max-skew-angle angle            Max skew angle for restriction (Default=30)\n"
+"--max-relaxed-skew-angle angle    Max skew angle for restriction when relaxed due to intersections (Default=60)\n"
+"-h                                Print Usage\n");
 }
 
 int parse_failed (std::string msg) {
@@ -950,6 +985,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--use-taubin") use_taubin = true;
 			else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
 			else if (arg == "--no-intermediate-files") write_intermediate = false;
+			else if (arg == "--use-future-intersections-check") use_future_intersections = true;
 			else {
 				return parse_failed("Unknown option passed '"+arg+"'");
 			}
