@@ -12,7 +12,7 @@
 namespace unstruc {
 
 bool vtk_write(const std::string& outputfile, const Grid &grid) {
-	std::cerr << "Writing '" << outputfile << "'" << std::endl;
+	std::cerr << "Writing " << outputfile << std::endl;
 	std::fstream f;
 	f.open(outputfile.c_str(),std::ios::out);
 	if (!f.is_open()) fatal("Could not open file");
