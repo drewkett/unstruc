@@ -117,8 +117,6 @@ struct PointConnection {
 	Vector orig_normal;
 	double current_adjustment;
 	double geometric_severity;
-	double orig_min_offset_size;
-	double orig_max_offset_size;
 	double min_offset_size;
 	double max_offset_size;
 	double geometric_stretch_factor;
@@ -142,6 +140,39 @@ std::vector<double> normalize(std::vector <double> vec) {
 	return vec;
 }
 
+void smooth_minmax_offset_size(std::vector <PointConnection>& connections) {
+	std::vector <double> orig_min_offset_size, orig_max_offset_size;
+	orig_min_offset_size.reserve(connections.size());
+	orig_max_offset_size.reserve(connections.size());
+	for (const PointConnection& pc : connections) {
+		orig_min_offset_size.push_back(pc.min_offset_size);
+		orig_max_offset_size.push_back(pc.max_offset_size);
+	}
+
+	for (int j = 0; j < 100; ++j) {
+		for (int i = 0; i < connections.size(); ++i) {
+			PointConnection& pc = connections[i];
+
+			double lambda = 0.9*pc.geometric_severity;
+
+			double min_adj = 0;
+			double max_adj = 0;
+
+			for (const PointWeight& pw : pc.pointweights) {
+				const PointConnection& other_pc = connections[pw.p];
+				double delta_min = other_pc.min_offset_size - orig_min_offset_size[i];
+				min_adj += pw.w * delta_min * lambda;
+
+				double delta_max = other_pc.max_offset_size - orig_max_offset_size[i];
+				max_adj += pw.w * delta_max * lambda;
+			}
+			if (min_adj < 0)
+				pc.min_offset_size = orig_min_offset_size[i] + min_adj;
+			if (max_adj > 0)
+				pc.max_offset_size = orig_max_offset_size[i] + max_adj;
+		}
+	}
+}
 
 SmoothingData calculate_point_connections(const Grid& surface, double offset_size) {
 	std::vector< std::vector <int> > point_elements (surface.points.size());
@@ -280,8 +311,6 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			pc.min_offset_size = offset_size;
 			pc.max_offset_size = offset_size/pc.geometric_severity*2;
 		}
-		pc.orig_min_offset_size = pc.min_offset_size;
-		pc.orig_max_offset_size = pc.max_offset_size;
 
 		pc.normal = point_norm.normalized()*(offset_size*pc.geometric_stretch_factor);
 		pc.orig_normal = pc.normal;
@@ -322,29 +351,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		for (PointWeight& pw : pc.pointweights)
 			pw.w /= total_weight;
 	}
-	for (int j = 0; j < 100; ++j) {
-		for (int i = 0; i < surface.points.size(); ++i) {
-			PointConnection& pc = sdata.connections[i];
-
-			double lambda = 0.9*pc.geometric_severity;
-
-			double min_adj = 0;
-			double max_adj = 0;
-
-			for (const PointWeight& pw : pc.pointweights) {
-				const PointConnection& other_pc = sdata.connections[pw.p];
-				double delta_min = other_pc.min_offset_size - pc.orig_min_offset_size;
-				min_adj += pw.w * delta_min * lambda;
-
-				double delta_max = other_pc.max_offset_size - pc.orig_max_offset_size;
-				max_adj += pw.w * delta_max * lambda;
-			}
-			if (min_adj < 0)
-				pc.min_offset_size = pc.orig_min_offset_size + min_adj;
-			if (max_adj > 0)
-				pc.max_offset_size = pc.orig_max_offset_size + max_adj;
-		}
-	}
+	smooth_minmax_offset_size(sdata.connections);
 	return sdata;
 }
 
@@ -539,7 +546,6 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 void write_grid_with_data (std::string filename, const Grid& surface, const SmoothingData& smoothing_data) {
 	std::vector <Vector> orig_normals, normals;
 	std::vector <double> geometric_severity, min_offset_size, max_offset_size;
-	std::vector <double> orig_min_offset_size, orig_max_offset_size;
 
 	int n_points = surface.points.size();
 
@@ -548,8 +554,6 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 	geometric_severity.reserve(n_points);
 	min_offset_size.reserve(n_points);
 	max_offset_size.reserve(n_points);
-	orig_min_offset_size.reserve(n_points);
-	orig_max_offset_size.reserve(n_points);
 
 	for (const PointConnection& pc : smoothing_data.connections) {
 		orig_normals.push_back(pc.orig_normal);
@@ -557,8 +561,6 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 		geometric_severity.push_back(pc.geometric_severity);
 		min_offset_size.push_back(pc.min_offset_size);
 		max_offset_size.push_back(pc.max_offset_size);
-		orig_min_offset_size.push_back(pc.orig_min_offset_size);
-		orig_max_offset_size.push_back(pc.orig_max_offset_size);
 	}
 
 	write_grid(filename,surface);
@@ -566,8 +568,6 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 	vtk_write_data(filename,"orig_normals",orig_normals);
 	vtk_write_data(filename,"normals",normals);
 	vtk_write_data(filename,"geometric_severity",geometric_severity);
-	vtk_write_data(filename,"orig_min_offset_size",orig_min_offset_size);
-	vtk_write_data(filename,"orig_max_offset_size",orig_max_offset_size);
 	vtk_write_data(filename,"min_offset_size",min_offset_size);
 	vtk_write_data(filename,"max_offset_size",max_offset_size);
 }
