@@ -13,4 +13,4 @@ This is a work in progress tool for generating prismatic boundary layers of a 3D
 ## Build Instructions
 This project can be built using make or [CMake](http://www.cmake.org). The Makefile is more basic and mainly is useful for building the project one time. Run `make` in the top level directory to build the executables, which are placed in bin.
 
-If you are changing any files, building using cmake works better because it properly handles dependencies particularly if header files change. Run `./cmake_build.sh` in the top level directory to build the executables using cmake.
+If you are changing any files, building using cmake works better because it properly handles dependencies particularly if header files change. Run `./cmake_build` in the top level directory to build the executables using cmake.
