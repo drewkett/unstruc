@@ -16,7 +16,8 @@ namespace unstruc {
 
 		static Intersections find(const Grid& grid);
 		static Intersections find_with_octree(const Grid& grid);
-		static PointPairList find_future_intersections(const Grid& surface, Grid offset, double factor);
+		static PointPairList find_future(const Grid& surface, Grid offset);
+		static double get_scale_factor(double distance);
 	};
 }
 

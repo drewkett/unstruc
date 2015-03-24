@@ -17,6 +17,7 @@
 #include <memory>
 #include <bitset>
 #include <iostream>
+#include <utility>
 
 namespace unstruc {
 
@@ -561,6 +562,79 @@ void _find_with_tree(const Grid& grid, const std::unique_ptr<Octree>& tree, Inte
 	}
 }
 
+struct IntersectionPair {
+	int p;
+	double dist;
+
+	IntersectionPair() : p(-1), dist(DBL_MAX) {};
+};
+typedef std::vector<IntersectionPair> IntersectionPairs;
+
+void check_intersections(const Grid& grid, const std::vector<Edge>& edges, const std::vector<Face>& faces, IntersectionPairs& intersections) {
+	for (int i = 0; i < edges.size(); ++i) {
+		const Edge& edge = edges[i];
+		double min_dist = intersections[edge.p1].dist;
+		const Point& ep1 = grid.points[edge.p1];
+		const Point& ep2 = grid.points[edge.p2];
+		Vector edge_vector = ep2 - ep1;
+		for (int j = 0; j < faces.size(); ++j) {
+			const Face& face = faces[j];
+
+			if (edge.min.x > face.max.x || edge.min.y > face.max.y || edge.min.z > face.max.z) continue;
+			if (edge.max.x < face.min.x || edge.max.y < face.min.y || edge.max.z < face.min.z) continue;
+
+			bool same = false;
+			for (int p : face.points) {
+				if (edge.p1 == p || edge.p2 == p)
+					same = true;
+				if (ep1 == grid.points[p] || ep2 == grid.points[p])
+					same = true;
+			}
+			if (same) continue;
+
+			double denom = dot(edge_vector,face.normal);
+			if (denom == 0) continue;
+			double scale = dot(ep1 - face.center,face.normal)/denom;
+
+			if (-1 <= scale && scale <= 0) {
+				Point proj = ep1 - edge_vector*scale;
+				bool intersected = true;
+				for (int k = 0; k < face.points.size(); ++k) {
+					const Point& p0 = grid.points[face.points[k]];
+					const Point& p1 = grid.points[face.points[(k+1)%face.points.size()]];
+					Vector v1 = p1 - p0;
+					Vector v2 = proj - p1;
+					Vector n = cross(v1,v2);
+					if (dot(n,face.normal) <= 0){
+						intersected = false;
+						break;
+					}
+				}
+				if (intersected) {
+					for (int _p : face.points) {
+						const Point& fp = grid.points[_p];
+						double d = (fp - ep1).length();
+						if (d < min_dist) {
+							min_dist = d;
+							intersections[edge.p1].p = _p;
+							intersections[edge.p1].dist = d;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void _find_with_tree(const Grid& grid, const std::unique_ptr<Octree>& tree, IntersectionPairs& intersections) {
+	for (int i = 0; i < 8; ++i) {
+		if (tree->children[i])
+			_find_with_tree(grid, tree->children[i],intersections);
+		else
+			check_intersections(grid, tree->edges[i], tree->faces[i],intersections);
+	}
+}
+
 Intersections Intersections::find_with_octree(const Grid& grid) {
 	std::vector <Face> faces = get_faces(grid);
 	std::vector <Edge> edges = get_edges(grid);
@@ -670,100 +744,65 @@ Intersections Intersections::find(const Grid& grid) {
 	return intersections;
 }
 
-PointPairList Intersections::find_future_intersections(const Grid& surface, Grid offset, double factor) {
+/*
+	This is based on the formula used to determine scaling factor on based on distance
+	to next surface [currently x^2/(x^2 + 50)]. The cutoff value is the point at which we 
+	scaling factor that we stop caring about intersections. We solve for the factor applied 
+	to the offset edges to check for intersections
+*/
+const double future_cutoff = 0.9;
+const double future_factor = sqrt(10*future_cutoff/(1 - future_cutoff));
+
+double Intersections::get_scale_factor(double distance) {
+	return distance*distance/(distance*distance + 50);
+}
+
+PointPairList Intersections::find_future(const Grid& surface, Grid offset) {
 
 	std::vector <Face> faces = get_faces(surface);
-	std::sort(faces.begin(),faces.end(),Face::compare_by_min_x);
+
+	auto tree = create_octree_root(surface);
+	for (const Face& face : faces)
+		put_face_in_tree(tree,face);
 
 	int n_points = surface.points.size();
-	for (int _p = 0; _p < n_points; _p++) {
-		const Point& surface_p = surface.points[_p];
-		Point& offset_p = offset.points[_p];
-		Vector n = offset_p - surface_p;
-		offset_p += factor*n;
-	}
-	Grid grid = surface + offset;
 
-	std::vector<Edge> edges;
-	edges.reserve(n_points);
+	Grid grid (surface);
+	grid.points.resize(n_points*2);
 	for (int _p = 0; _p < n_points; _p++) {
 		const Point& surface_p = surface.points[_p];
 		const Point& offset_p = offset.points[_p];
-		Vector n = offset_p - surface_p;
-		Edge edge (_p, _p + n_points);
-		edge.min.x = std::min(surface_p.x, offset_p.x);
-		edge.min.y = std::min(surface_p.y, offset_p.y);
-		edge.min.z = std::min(surface_p.z, offset_p.z);
-		edge.max.x = std::max(surface_p.x, offset_p.x);
-		edge.max.y = std::max(surface_p.y, offset_p.y);
-		edge.max.z = std::max(surface_p.z, offset_p.z);
-		edges.push_back(edge);
-	}
-	std::sort(edges.begin(),edges.end(),Edge::compare_by_min_x);
 
-	int j_current = 0;
-	PointPairList intersections;
-	for (int i = 0; i < edges.size(); ++i) {
-		double min_dist = DBL_MAX;
-		double closest_p = -1;
-		const Edge& edge = edges[i];
-		const Point& ep1 = grid.points[edge.p1];
-		const Point& ep2 = grid.points[edge.p2];
-		Vector edge_vector = ep2 - ep1;
-		for (int j = j_current; j < faces.size(); ++j) {
-			const Face& face = faces[j];
-			if (edge.min.x > face.max.x)
-				j_current++;
-			else
-				break;
-		}
-		for (int j = j_current; j < faces.size(); ++j) {
-			const Face& face = faces[j];
-			if (face.min.x > edge.max.x) break;
-			if (edge.min.x > face.max.x || edge.min.y > face.max.y || edge.min.z > face.max.z) continue;
-			if (edge.max.x < face.min.x || edge.max.y < face.min.y || edge.max.z < face.min.z) continue;
-			bool same = false;
-			for (int p : face.points) {
-				if (edge.p1 == p || edge.p2 == p) {
-					same = true;
-					break;
-				}
-			}
-			if (same) continue;
-			double denom = dot(edge_vector,face.normal);
-			if (denom == 0) continue;
-			double scale = dot(ep1 - face.center,face.normal)/denom;
-			if (-1 <= scale && scale <= 0) {
-				Point proj = ep1 - edge_vector*scale;
-				bool intersected = true;
-				for (int k = 0; k < face.points.size(); ++k) {
-					const Point& p0 = grid.points[face.points[k]];
-					const Point& p1 = grid.points[face.points[(k+1)%face.points.size()]];
-					Vector v1 = p1 - p0;
-					Vector v2 = proj - p1;
-					Vector n = cross(v1,v2);
-					if (dot(n,face.normal) <= 0){
-						intersected = false;
-						break;
-					}
-				}
-				if (intersected) {
-					for (int _p : face.points) {
-						const Point& fp = grid.points[_p];
-						double d = (fp - ep1).length();
-						if (d < min_dist) {
-							min_dist = d;
-							closest_p = _p;
-						}
-					}
-				}
-			}
-		}
-		if (closest_p != -1) {
-			intersections.push_back( std::make_pair(i,closest_p) );
+		Vector n = offset_p - surface_p;
+		Point future_p = surface_p + future_factor*n;
+		grid.points[_p + n_points] = future_p;
+
+		Edge edge (_p, _p + n_points);
+		edge.min.x = std::min(surface_p.x, future_p.x);
+		edge.min.y = std::min(surface_p.y, future_p.y);
+		edge.min.z = std::min(surface_p.z, future_p.z);
+		edge.max.x = std::max(surface_p.x, future_p.x);
+		edge.max.y = std::max(surface_p.y, future_p.y);
+		edge.max.z = std::max(surface_p.z, future_p.z);
+
+		put_edge_in_tree(tree,edge);
+	}
+
+	IntersectionPairs intersections (surface.points.size());
+	_find_with_tree(grid, tree, intersections);
+	int n_intersections = 0;
+	for (auto intersection : intersections)
+		if (intersection.p != -1)
+			n_intersections++;
+	PointPairList intersection_list;
+	intersection_list.reserve(n_intersections);
+	for (int _p = 0; _p < surface.points.size(); ++_p) {
+		int _p2 = intersections[_p].p;
+		if (_p2 != -1) {
+			intersection_list.push_back( std::make_pair (_p,_p2) );
 		}
 	}
-	return intersections;
+	return intersection_list;
 }
 
 } // namespace unstruc
