@@ -140,6 +140,73 @@ std::vector<double> normalize(std::vector <double> vec) {
 	return vec;
 }
 
+std::vector<double> laplace_smooth_up(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+	std::vector<double> correction (data.size());
+	for (int j = 0; j < n; ++j) {
+		for (int i = 0; i < connections.size(); ++i) {
+			const PointConnection& pc = connections[i];
+
+			if (use_severity)
+				lambda *= pc.geometric_severity;
+
+			correction[i] = 0;
+			for (const PointWeight& pw : pc.pointweights) {
+				const PointConnection& other_pc = connections[pw.p];
+				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+			}
+			if (correction[i] < 0)
+				correction[i] = 0;
+		}
+		for (int i = 0; i < connections.size(); ++i)
+			data[i] += correction[i];
+	}
+	return data;
+}
+
+std::vector<double> laplace_smooth_down(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+	std::vector<double> correction (data.size());
+	for (int j = 0; j < n; ++j) {
+		for (int i = 0; i < connections.size(); ++i) {
+			const PointConnection& pc = connections[i];
+
+			if (use_severity)
+				lambda *= pc.geometric_severity;
+
+			correction[i] = 0;
+			for (const PointWeight& pw : pc.pointweights) {
+				const PointConnection& other_pc = connections[pw.p];
+				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+			}
+			if (correction[i] > 0)
+				correction[i] = 0;
+		}
+		for (int i = 0; i < connections.size(); ++i)
+			data[i] += correction[i];
+	}
+	return data;
+}
+
+std::vector<double> laplace_smooth(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+	std::vector<double> correction (data.size());
+	for (int j = 0; j < n; ++j) {
+		for (int i = 0; i < connections.size(); ++i) {
+			const PointConnection& pc = connections[i];
+
+			if (use_severity)
+				lambda *= pc.geometric_severity;
+
+			correction[i] = 0;
+			for (const PointWeight& pw : pc.pointweights) {
+				const PointConnection& other_pc = connections[pw.p];
+				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+			}
+		}
+		for (int i = 0; i < connections.size(); ++i)
+			data[i] += correction[i];
+	}
+	return data;
+}
+
 void smooth_minmax_offset_size(std::vector <PointConnection>& connections) {
 	std::vector <double> orig_min_offset_size, orig_max_offset_size;
 	orig_min_offset_size.reserve(connections.size());
