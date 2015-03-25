@@ -1026,7 +1026,8 @@ int main(int argc, char* argv[]) {
 
 	Grid volume;
 	if (offset_size != 0) {
-		write_grid(output_filename+".0.offset.stl",surface);
+		if (write_intermediate)
+			write_grid(output_filename+".0.offset.stl",surface);
 
 		Grid offset_volume (3);
 		Grid offset_surface (3);
