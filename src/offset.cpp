@@ -11,7 +11,7 @@
 
 using namespace unstruc;
 
-bool write_intermediate = true;
+bool write_intermediate = false;
 
 bool use_tangents = true;
 bool use_sqrt_length = false;
@@ -923,7 +923,7 @@ void print_usage () {
 "-g growth_rate                    Set target growth rate between layers (Default = 1.5)\n"
 "-n number_of_layers               Set target number of layers to add (Default = 1)\n"
 "-s offset_size                    Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
-"--no-intermediate-files           Don't write intermediate files\n"
+"--write-intermediate-files        Don't write intermediate files\n"
 "--use-future-intersections-check  Slow down growth rate where future intersections might occur"
 "--max-lambda max_lambda           Set max lambda to be used on smoothing updates (Default=0.5)\n"
 "--use-offset-skew-fix             Use offset skew fix (Experimental)\n"
@@ -993,7 +993,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--use-initial-offset") use_original_offset = true;
 			else if (arg == "--use-taubin") use_taubin = true;
 			else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
-			else if (arg == "--no-intermediate-files") write_intermediate = false;
+			else if (arg == "--write-intermediate-files") write_intermediate = true;
 			else if (arg == "--use-future-intersections-check") use_future_intersections = true;
 			else {
 				return parse_failed("Unknown option passed '"+arg+"'");
