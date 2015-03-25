@@ -758,7 +758,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 				scale_factors[_p1] = s;
 			}
-			scale_factors = laplace_smooth_down(smoothing_data.connections, scale_factors, 10, 0.9, true);
+			scale_factors = laplace_smooth_down(smoothing_data.connections, scale_factors, 10, 1.0, true);
 			for (int i = 0; i < surface.points.size(); ++i) {
 				PointConnection& pc = smoothing_data.connections[i];
 				double s = scale_factors[i];
