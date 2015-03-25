@@ -732,13 +732,6 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 	if (write_intermediate)
 		write_grid(filename+".presmooth.stl",presmooth);
 
-	for (int i = 0; i < 10; ++i)
-		smooth_normals(surface,smoothing_data);
-	if (write_intermediate)
-		write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
-	for (PointConnection& pc : smoothing_data.connections)
-		pc.orig_normal = pc.normal;
-
 	if (use_future_intersections) {
 		fprintf(stderr,"Checking for future intersections\n");
 		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
@@ -771,6 +764,13 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 			}
 		}
 	}
+
+	for (int i = 0; i < 10; ++i)
+		smooth_normals(surface,smoothing_data);
+	if (write_intermediate)
+		write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
+	for (PointConnection& pc : smoothing_data.connections)
+		pc.orig_normal = pc.normal;
 
 	if (use_taubin) {
 		for (int i = 0; i < taubin::n; ++i) {
