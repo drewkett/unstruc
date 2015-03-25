@@ -181,7 +181,7 @@ void stl_write_ascii(const std::string& filename, const Grid& grid) {
 	f.precision(DBL_DIG);
 	f << "solid" << std::endl;
 	for (const Element& e : grid.elements) {
-		f << "  face normal 0.0 0.0 0.0" << std::endl;
+		f << "  facet normal 0.0 0.0 0.0" << std::endl;
 		f << "    outer loop" << std::endl;
 		for (int _p : e.points) {
 			const Point& p = grid.points[_p];
