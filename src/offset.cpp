@@ -147,13 +147,16 @@ std::vector<double> laplace_smooth_up(const std::vector<PointConnection>& connec
 		for (int i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
+			double fac;
 			if (use_severity)
-				lambda *= pc.geometric_severity;
+				fac = pc.geometric_severity;
+			else
+				fac = 1;
 
 			correction[i] = 0;
 			for (const PointWeight& pw : pc.pointweights) {
 				const PointConnection& other_pc = connections[pw.p];
-				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+				correction[i] += fac * lambda * pw.w * (data[pw.p] - data[i]);
 			}
 			if (correction[i] < 0)
 				correction[i] = 0;
@@ -170,13 +173,16 @@ std::vector<double> laplace_smooth_down(const std::vector<PointConnection>& conn
 		for (int i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
+			double fac;
 			if (use_severity)
-				lambda *= pc.geometric_severity;
+				fac = pc.geometric_severity;
+			else
+				fac = 1;
 
 			correction[i] = 0;
 			for (const PointWeight& pw : pc.pointweights) {
 				const PointConnection& other_pc = connections[pw.p];
-				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+				correction[i] += fac * lambda * pw.w * (data[pw.p] - data[i]);
 			}
 			if (correction[i] > 0)
 				correction[i] = 0;
@@ -193,13 +199,16 @@ std::vector<double> laplace_smooth(const std::vector<PointConnection>& connectio
 		for (int i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
+			double fac;
 			if (use_severity)
-				lambda *= pc.geometric_severity;
+				fac = pc.geometric_severity;
+			else
+				fac = 1;
 
 			correction[i] = 0;
 			for (const PointWeight& pw : pc.pointweights) {
 				const PointConnection& other_pc = connections[pw.p];
-				correction[i] += lambda * pw.w * (data[pw.p] - data[i]);
+				correction[i] += fac * lambda * pw.w * (data[pw.p] - data[i]);
 			}
 		}
 		for (int i = 0; i < connections.size(); ++i)
