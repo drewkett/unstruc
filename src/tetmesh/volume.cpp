@@ -122,7 +122,7 @@ Point find_point_inside_surface(const Grid& surface) {
 	else 
 		fatal("Not sure what to do");
 
-	return NullPoint;
+	return Point { 0, 0, 0 };
 }
 
 Point orient_surface(Grid& surface) {
@@ -159,6 +159,6 @@ Point orient_surface(Grid& surface) {
 		}
 	}
 	fatal("Neither guessed point is inside surface. Hmmm");
-	return NullPoint;
+	return Point { 0, 0, 0 };
 }
 }

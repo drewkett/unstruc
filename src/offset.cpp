@@ -368,8 +368,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			}
 		}
 		if (bad_vector) {
-			pc.normal = NullVector;
-			pc.orig_normal = NullVector;
+			pc.normal = Vector { 0, 0, 0 };
+			pc.orig_normal = Vector { 0, 0, 0 };
 			continue;
 		}
 

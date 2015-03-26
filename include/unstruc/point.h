@@ -27,8 +27,6 @@ namespace unstruc {
 		return vec *= value;
 	}
 
-	const Vector NullVector {};
-
 	struct Point
 	{
 		double x, y, z;
@@ -63,8 +61,6 @@ namespace unstruc {
 	double angle_between(const Vector&, const Vector&);
 	double dot(const Vector&, const Vector&);
 	Vector cross(const Vector&, const Vector&);
-
-	const Point NullPoint {0, 0, 0};
 }
 
 #endif
