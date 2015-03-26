@@ -108,12 +108,10 @@ Grid su2_read(const std::string& inputfile) {
 		ss >> token;
 		if (token.substr(0,6) == "NDIME=") {
 			read_dime = true;
-			if (token.size() > 6) {
+			if (token.size() > 6)
 				grid.dim = std::atoi(token.substr(6).c_str());
-			} else {
-				ss >> token;
-				grid.dim = std::atoi(token.c_str());
-			}
+			else
+				ss >> grid.dim;
 			std::cerr << grid.dim << " Dimensions" << std::endl;
 
 			//Create default named block to be assigned to all elements
@@ -124,26 +122,24 @@ Grid su2_read(const std::string& inputfile) {
 		} else if (token.substr(0,6) == "NELEM=") {
 			read_elem = true;
 			int n_elems = 0;
-			if (token.size() > 6) {
+			if (token.size() > 6)
 				n_elems = std::atoi(token.substr(6).c_str());
-			} else {
-				ss >> token;
-				n_elems = std::atoi(token.c_str());
-			}
+			else
+				ss >> n_elems;
 			std::cerr << n_elems << " Elements" << std::endl;
 			grid.elements.reserve(n_elems);
 			for (int i = 0; i < n_elems; ++i) {
 				getline(f,line);
 				std::stringstream ss(line);
-				ss >> token;
-				Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
+				int vtk_id;
+				ss >> vtk_id;
+				Shape::Type type = type_from_vtk_id(vtk_id);
 				if (type == Shape::Undefined) fatal("Unrecognized shape type");
 				Element elem = Element(type);
 				//Assign to default name block
 				elem.name_i = 0;
 				for (j = 0; j < elem.points.size(); ++j) {
-					ss >> token;
-					ipoint = std::atoi(token.c_str());
+					ss >> ipoint;
 					elem.points[j] = ipoint;
 				}
 				grid.elements.push_back(elem);
@@ -151,15 +147,13 @@ Grid su2_read(const std::string& inputfile) {
 		} else if (token.substr(0,6) == "NPOIN=") {
 			read_poin = true;
 			int n_points = 0;
-			if (token.size() > 6) {
+			if (token.size() > 6)
 				n_points = std::atoi(token.substr(6).c_str());
-			} else {
-				ss >> token;
-				n_points = std::atoi(token.c_str());
-			}
+			else
+				ss >> n_points;
+
 			grid.points.resize(n_points);
-			if (ss >> token && !ss.eof())
-				n_points = std::atoi(token.c_str());
+			ss >> n_points;
 
 			if (n_points > grid.points.size())
 				grid.points.resize(n_points);
@@ -170,19 +164,15 @@ Grid su2_read(const std::string& inputfile) {
 				getline(f,line);
 				std::stringstream ss(line);
 				Point point;
-				ss >> token;
-				point.x = std::atof(token.c_str());
-				ss >> token;
-				point.y = std::atof(token.c_str());
+				ss >> point.x;
+				ss >> point.y;
 				if (!grid.dim)
 					fatal("Dimension (NDIME) not defined");
-				if (grid.dim == 3) {
-					ss >> token;
-					point.z = std::atof(token.c_str());
-				}
+				if (grid.dim == 3)
+					ss >> point.z;
+
 				if (!ss.eof()) {
-					ss >> token;
-					ipoint = std::atoi(token.c_str());
+					ss >> ipoint;
 					use_point_map = true;
 				} else {
 					ipoint = i;
@@ -192,12 +182,11 @@ Grid su2_read(const std::string& inputfile) {
 			}
 		} else if (token.substr(0,6) == "NMARK=") {
 			int nmark;
-			if (token.size() > 6) {
+			if (token.size() > 6)
 				nmark = std::atoi(token.substr(6).c_str());
-			} else {
-				ss >> token;
-				nmark = std::atoi(token.c_str());
-			}
+			else
+				ss >> nmark;
+
 			std::cerr << nmark << " Markers" << std::endl;
 			for (i = 0; i < nmark; i++) {
 				name = Name();
@@ -226,23 +215,21 @@ Grid su2_read(const std::string& inputfile) {
 				ss >> token;
 				if (token.substr(0,13) != "MARKER_ELEMS=") 
 					fatal("Invalid Marker Definition: Expected MARKER_ELEMS=");
-				if (token.size() > 13) {
+				if (token.size() > 13)
 					nelem = std::atoi(token.substr(13).c_str());
-				} else {
-					ss >> token;
-					nelem = std::atoi(token.c_str());
-				}
+				else
+					ss >> nelem;
 				for (j = 0; j < nelem; j++) {
 					getline(f,line);
 					ss.clear();
 					ss.str(line);
-					ss >> token;
-					Shape::Type type = type_from_vtk_id(atoi(token.c_str()));
+					int vtk_id;
+					ss >> vtk_id;
+					Shape::Type type = type_from_vtk_id(vtk_id);
 					if (type == Shape::Undefined) fatal("Unrecognized shape type");
 					Element elem = Element(type);
 					for (k=0; k<elem.points.size(); k++) {
-						ss >> token;
-						ipoint = std::atoi(token.c_str());
+						ss >> ipoint;
 						if (ipoint >= grid.points.size()) fatal("Error Marker Element");
 						elem.points[k] = ipoint;
 					}

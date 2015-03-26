@@ -34,7 +34,6 @@ FileType filetype_from_filename(const std::string& filename) {
 Grid read_grid(const std::string& filename) {
 	FileType type = filetype_from_filename(filename);
 
-	Grid grid;
 	switch (type) {
 		case FileType::Plot3D:
 			return plot3d_read(filename);
@@ -49,7 +48,7 @@ Grid read_grid(const std::string& filename) {
 		default:
 			fatal("Unsupported filetype for reading");
 	}
-	return grid;
+	return Grid();
 }
 
 void write_grid(const std::string& filename,const Grid& grid) {

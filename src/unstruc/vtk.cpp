@@ -12,10 +12,9 @@
 
 namespace unstruc {
 
-bool vtk_write(const std::string& outputfile, const Grid &grid) {
-	std::cerr << "Writing " << outputfile << std::endl;
-	std::fstream f;
-	f.open(outputfile.c_str(),std::ios::out);
+bool vtk_write(const std::string& filename, const Grid &grid) {
+	std::cerr << "Writing " << filename << std::endl;
+	std::ofstream f (filename);
 	if (!f.is_open()) fatal("Could not open file");
 	f.precision(15);
 	f << "# vtk DataFile Version 2.0" << std::endl;
@@ -55,22 +54,19 @@ bool vtk_write(const std::string& outputfile, const Grid &grid) {
 }
 
 void vtk_write_point_data_header(const std::string& filename, const Grid& grid) {
-	std::fstream f;
-	f.open(filename.c_str(),std::ios::app);
+	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f << std::endl << "POINT_DATA " << grid.points.size() << std::endl;
 }
 
 void vtk_write_cell_data_header(const std::string& filename, const Grid& grid) {
-	std::fstream f;
-	f.open(filename.c_str(),std::ios::app);
+	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f << std::endl << "CELL_DATA " << grid.points.size() << std::endl;
 }
 
 void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <int>& scalars) {
-	std::fstream f;
-	f.open(filename.c_str(),std::ios::app);
+	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f << "SCALARS " << name << " int 1" << std::endl;
 	f << "LOOKUP_TABLE" << std::endl;
@@ -81,8 +77,7 @@ void vtk_write_data(const std::string& filename, const std::string& name, const 
 }
 
 void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <double>& scalars) {
-	std::fstream f;
-	f.open(filename.c_str(),std::ios::app);
+	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f.precision(15);
 	f << "SCALARS " << name << " double 1" << std::endl;
@@ -94,8 +89,7 @@ void vtk_write_data(const std::string& filename, const std::string& name, const 
 }
 
 void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <Vector>& vectors) {
-	std::fstream f;
-	f.open(filename.c_str(),std::ios::app);
+	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f.precision(15);
 	f << "Vectors " << name << " double" << std::endl;
