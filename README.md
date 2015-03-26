@@ -10,6 +10,10 @@ This tool is a CFD mesh conversion tool. It currently supports reading in [SU2](
 
 This is a work in progress tool for generating prismatic boundary layers of a 3D surface mesh by creating a complete offset surface 
 
+##unstruc-quality
+
+This tool prints out some quality metrics for a given mesh. It also is capable of saving the badly formed elements to another file.
+
 ## Build Instructions
 This project can be built using make or [CMake](http://www.cmake.org). The Makefile is more basic and mainly is useful for building the project one time. Run `make` in the top level directory to build the executables, which are placed in bin.
 
