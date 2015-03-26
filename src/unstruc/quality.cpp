@@ -228,9 +228,10 @@ MeshQuality get_mesh_quality(const Grid& grid, double threshold) {
 		quality.face_angle.update(f);
 
 		MinMax d = get_minmax_dihedral_angle(grid,e);
-		if (d.min < threshold || d.max > 180 - threshold)
-			quality.bad_elements.push_back(i);
 		quality.dihedral_angle.update(d);
+
+		if (d.min < threshold || d.max > 180 - threshold || f.min < threshold || f.max > 180 - threshold)
+			quality.bad_elements.push_back(i);
 	}
 	return quality;
 }
