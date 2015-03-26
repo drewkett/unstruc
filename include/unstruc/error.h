@@ -5,10 +5,9 @@
 
 namespace unstruc {
 	void fatal();
-	void fatal(std::string s);
+	void fatal(const std::string& s);
 	void not_implemented();
-	void not_implemented(std::string s);
-	void error(std::string s);
+	void not_implemented(const std::string& s);
 }
 
 #endif

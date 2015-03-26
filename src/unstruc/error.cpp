@@ -11,7 +11,7 @@ void fatal() {
 	exit(1);
 }
 
-void fatal(std::string s) {
+void fatal(const std::string& s) {
 	std::cerr << s << std::endl << "Fatal Error" << std::endl;
 	exit(1);
 }
@@ -21,7 +21,7 @@ void not_implemented() {
 	exit(1);
 }
 
-void not_implemented(std::string s) {
+void not_implemented(const std::string& s) {
 	std::cerr << "Not Implemented Yet : " << s << std::endl;
 	exit(1);
 }
