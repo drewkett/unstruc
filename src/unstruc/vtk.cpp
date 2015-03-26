@@ -180,6 +180,7 @@ Grid vtk_read_ascii(std::ifstream& f) {
 }
 
 Grid vtk_read(const std::string& filename) {
+	std::cerr << "Reading " << filename << std::endl;
 	std::ifstream f (filename);
 	if (!f.is_open()) fatal("Could not open file");
 
