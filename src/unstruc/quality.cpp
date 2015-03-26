@@ -11,7 +11,7 @@
 namespace unstruc {
 
 MinMax get_minmax_face_angle(const Grid& grid, const Element& e) {
-	MinMax minmax { 360, 0 };
+	MinMax minmax { 180, 0 };
 	switch (e.type) {
 		case Shape::Triangle:
 			{
@@ -131,7 +131,7 @@ MinMax get_minmax_face_angle(const Grid& grid, const Element& e) {
 }
 
 MinMax get_minmax_dihedral_angle(const Grid& grid, const Element& e) {
-	MinMax minmax { 360, 0 };
+	MinMax minmax { 180, 0 };
 	switch (e.type) {
 		case Shape::Triangle:
 		case Shape::Quad:
@@ -215,25 +215,23 @@ MinMax get_minmax_dihedral_angle(const Grid& grid, const Element& e) {
 	return minmax;
 }
 
-MeshQuality get_mesh_quality(const Grid& grid) {
+MeshQuality get_mesh_quality(const Grid& grid, double threshold) {
 	MeshQuality quality;
-	quality.face_angle.min = 360;
+	quality.face_angle.min = 180;
 	quality.face_angle.max = 0;
-	quality.dihedral_angle.min = 360;
+	quality.dihedral_angle.min = 180;
 	quality.dihedral_angle.max = 0;
-	Grid bad_elements (3);
-	bad_elements.points = grid.points;
-	for (const Element& e : grid.elements) {
+	for (int i = 0; i < grid.elements.size(); ++i) {
+		const Element& e = grid.elements[i];
+
 		MinMax f = get_minmax_face_angle(grid,e);
 		quality.face_angle.update(f);
 
 		MinMax d = get_minmax_dihedral_angle(grid,e);
-		if (d.min < 1.0 || d.max > 179.0)
-			bad_elements.elements.push_back(e);
+		if (d.min < threshold || d.max > 180 - threshold)
+			quality.bad_elements.push_back(i);
 		quality.dihedral_angle.update(d);
 	}
-	if (bad_elements.elements.size())
-		write_grid("bad_elements.vtk",bad_elements);
 	return quality;
 }
 

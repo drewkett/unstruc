@@ -1,4 +1,7 @@
+#ifndef QUALITY_H_C8106684_0039_4CFA_B712_5B9457E0509C
+#define QUALITY_H_C8106684_0039_4CFA_B712_5B9457E0509C
 
+#include <vector>
 
 namespace unstruc {
 	struct Grid;
@@ -20,7 +23,11 @@ namespace unstruc {
 	struct MeshQuality {
 		MinMax face_angle;
 		MinMax dihedral_angle;
+
+		std::vector<int> bad_elements;
 	};
 
-	MeshQuality get_mesh_quality(const Grid& grid);
+	MeshQuality get_mesh_quality(const Grid& grid, double threshold);
 }
+
+#endif
