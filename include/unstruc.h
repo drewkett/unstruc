@@ -8,5 +8,6 @@
 #include "unstruc/vtk.h"
 #include "unstruc/point.h"
 #include "unstruc/intersections.h"
+#include "unstruc/quality.h"
 
 #endif
