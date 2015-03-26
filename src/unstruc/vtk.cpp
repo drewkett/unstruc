@@ -5,6 +5,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -102,6 +103,108 @@ void vtk_write_data(const std::string& filename, const std::string& name, const 
 		f << v.x << " " << v.y << " " << v.z << std::endl;
 	}
 	f << std::endl;
+}
+
+static Grid NullGrid;
+Grid vtk_read_ascii(std::ifstream& f) {
+	Grid grid (3);
+	std::string token;
+	f >> token;
+	if (token != "DATASET") return NullGrid;
+
+	f >> token;
+	if (token != "UNSTRUCTURED_GRID") return NullGrid;
+
+	f >> token;
+	if (token != "POINTS") return NullGrid;
+
+	int n_points;
+	f >> n_points;
+	if (!f) return NullGrid;
+
+	f >> token;
+	if (token != "double") return NullGrid;
+
+	grid.points.reserve(n_points);
+	for (int i = 0; i < n_points; ++i) {
+		Point p;
+		f >> p.x;
+		f >> p.y;
+		f >> p.z;
+		grid.points.push_back(p);
+	}
+	if (!f) return NullGrid;
+
+	f >> token;
+	if (token != "CELLS") return NullGrid;
+
+	int n_cells, n_cells_size;
+	f >> n_cells;
+	f >> n_cells_size;
+	if (!f) return NullGrid;
+
+	std::vector<int> cells (n_cells_size);
+	for (int i = 0; i < n_cells_size; ++i) {
+		f >> cells[i];
+	}
+
+	f >> token;
+	if (token != "CELL_TYPES") return NullGrid;
+
+	int n_cells2;
+	f >> n_cells2;
+	if (!f || n_cells != n_cells2) return NullGrid;
+
+	grid.elements.reserve(n_cells);
+
+	int cj = 0;
+	for (int i = 0; i < n_cells; ++i) {
+		int vtk_id;
+		f >> vtk_id;
+		Shape::Type type = type_from_vtk_id(vtk_id);
+
+		int n_elem_points = cells[cj];
+		cj++;
+
+		if (Shape::Info[type].n_points && Shape::Info[type].n_points != n_elem_points)
+			return NullGrid;
+
+		Element e (type);
+		if (Shape::Info[type].n_points == 0)
+			e.points.resize(n_elem_points);
+
+		for (int j = 0; j < n_elem_points; ++j) {
+			e.points[j] = cells[cj];
+			cj++;
+		}
+		grid.elements.push_back(e);
+	}
+	if (!f) return NullGrid;
+	if (cj != n_cells_size) return NullGrid;
+
+	return grid;
+}
+
+Grid vtk_read(const std::string& filename) {
+	std::ifstream f (filename);
+	if (!f.is_open()) fatal("Could not open file");
+
+	char line[256];
+	f.getline(line,256);
+	if (strncmp(line,"# vtk DataFile Version 2.0",256) != 0)
+		fatal("Invalid VTK File : " + filename);
+	f.getline(line,256);
+	std::string type;
+	f >> type;
+	Grid grid = NullGrid;
+	if (type == "ASCII")
+		grid = vtk_read_ascii(f);
+	else if (type == "BINARY")
+		not_implemented("Currently don't support binary vtk files");
+
+	if (&grid == &NullGrid)
+		fatal("Error reading VTK file : "+filename);
+	return grid;
 }
 
 } // namespace unstruc

@@ -9,6 +9,7 @@ namespace unstruc {
 	struct Vector;
 
 	bool vtk_write(const std::string& filename, const Grid &grid);
+	Grid vtk_read(const std::string& filename);
 
 	void vtk_write_point_data_header(const std::string& filename, const Grid &grid);
 	void vtk_write_cell_data_header(const std::string& filename, const Grid &grid);

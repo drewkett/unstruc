@@ -44,6 +44,8 @@ Grid read_grid(const std::string& filename) {
 			return stl_read(filename);
 		case FileType::STLB:
 			return stl_read_binary(filename);
+		case FileType::VTK:
+			return vtk_read(filename);
 		default:
 			fatal("Unsupported filetype for reading");
 	}
