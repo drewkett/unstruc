@@ -34,7 +34,7 @@ namespace unstruc {
 		bool check_integrity() const;
 		Point get_bounding_min() const;
 		Point get_bounding_max() const;
-		Grid extract_from_element_index(const std::vector <int>& element_index) const;
+		Grid grid_from_element_index(const std::vector <int>& element_index) const;
 	};
 }
 

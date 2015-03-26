@@ -342,7 +342,7 @@ Point Grid::get_bounding_max() const {
 	return max;
 }
 
-Grid Grid::extract_from_element_index(const std::vector <int>& element_index) const {
+Grid Grid::grid_from_element_index(const std::vector <int>& element_index) const {
 	Grid extracted;
 	extracted.points = points;
 	extracted.names = names;
