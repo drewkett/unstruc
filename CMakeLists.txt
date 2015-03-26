@@ -20,3 +20,6 @@ target_link_libraries(unstruc-convert unstruc)
 
 add_executable(unstruc-offset src/offset.cpp)
 target_link_libraries(unstruc-offset unstruc tet tetmesh)
+
+add_executable(unstruc-quality src/quality.cpp)
+target_link_libraries(unstruc-quality unstruc)
