@@ -15,6 +15,7 @@ bool write_intermediate = false;
 
 bool use_tangents = true;
 bool use_sqrt_length = false;
+bool use_inverse_angle = false;
 bool use_sqrt_angle = false;
 bool use_original_offset = false;
 bool use_offset_skew_fix = false;
@@ -412,6 +413,21 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 				w = sqrt(pw1.w + pw2.w);
 			else
 				w = pw1.w + pw2.w;
+
+			if (use_inverse_angle) {
+				if (use_tangents) {
+					if (w < tan(M_PI/180))
+						w = 1/tan(M_PI/180);
+					else
+						w = 1/w;
+				} else {
+					if (w < 1)
+						w = 1;
+					else
+						w = 1/w;
+				}
+			}
+
 			if (use_sqrt_length)
 				w /= sqrt(d.length());
 			else
@@ -989,6 +1005,7 @@ int main(int argc, char* argv[]) {
 			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
 			else if (arg == "--use-absolute-angle") use_tangents = false;
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
+			else if (arg == "--use-inverse-angle") use_inverse_angle = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--use-initial-offset") use_original_offset = true;
 			else if (arg == "--use-taubin") use_taubin = true;
