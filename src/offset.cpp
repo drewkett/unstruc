@@ -15,7 +15,7 @@ bool write_intermediate = false;
 
 bool use_tangents = true;
 bool use_length = true;
-bool use_cube_root_length = false;
+bool use_inverse_length = false;
 bool use_sqrt_length = false;
 bool use_inverse_angle = false;
 bool use_sqrt_angle = false;
@@ -431,12 +431,16 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			}
 
 			if (use_length) {
-				if (use_cube_root_length)
-					w /= pow(d.length(),1/3);
-				else if (use_sqrt_length)
-					w /= sqrt(d.length());
+				double f;
+				if (use_sqrt_length)
+					f = sqrt(d.length());
 				else
-					w /= d.length();
+					f = d.length();
+
+				if (use_inverse_length)
+					w *= f;
+				else
+					w /= f;
 			}
 
 			total_weight += w;
@@ -952,7 +956,6 @@ void print_usage () {
 
 "--disable-length                  Don't use length in edge weighting\n"
 "--use-sqrt-length                 Use sqrt of length in edge weighting\n"
-"--use-cube-root-length             Use cube root of length in edge weighting\n"
 
 "--use-absolute-angle              Use absolute angle instead of tangent in edge weighting\n"
 "--use-sqrt-angle                  Use sqrt of angle in edge weighting\n"
@@ -1016,8 +1019,8 @@ int main(int argc, char* argv[]) {
 			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
 			else if (arg == "--use-absolute-angle") use_tangents = false;
 			else if (arg == "--disable-length") use_length = false;
+			else if (arg == "--use-inverse-length") use_inverse_length = true;
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
-			else if (arg == "--use-cube-root-length") use_cube_root_length = true;
 			else if (arg == "--use-inverse-angle") use_inverse_angle = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--use-initial-offset") use_original_offset = true;
