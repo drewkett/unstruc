@@ -5,6 +5,7 @@
 #include "point.h"
 #include "error.h"
 
+#include <memory>
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -99,43 +100,42 @@ void vtk_write_data(const std::string& filename, const std::string& name, const 
 	f << std::endl;
 }
 
-static Grid NullGrid;
-Grid vtk_read_ascii(std::ifstream& f) {
-	Grid grid (3);
+std::unique_ptr<Grid> vtk_read_ascii(std::ifstream& f) {
+	std::unique_ptr<Grid> grid (new Grid (3));
 	std::string token;
 	f >> token;
-	if (token != "DATASET") return NullGrid;
+	if (token != "DATASET") return nullptr;
 
 	f >> token;
-	if (token != "UNSTRUCTURED_GRID") return NullGrid;
+	if (token != "UNSTRUCTURED_GRID") return nullptr;
 
 	f >> token;
-	if (token != "POINTS") return NullGrid;
+	if (token != "POINTS") return nullptr;
 
 	int n_points;
 	f >> n_points;
-	if (!f) return NullGrid;
+	if (!f) return nullptr;
 
 	f >> token;
-	if (token != "double") return NullGrid;
+	if (token != "double") return nullptr;
 
-	grid.points.reserve(n_points);
+	grid->points.reserve(n_points);
 	for (int i = 0; i < n_points; ++i) {
 		Point p;
 		f >> p.x;
 		f >> p.y;
 		f >> p.z;
-		grid.points.push_back(p);
+		grid->points.push_back(p);
 	}
-	if (!f) return NullGrid;
+	if (!f) return nullptr;
 
 	f >> token;
-	if (token != "CELLS") return NullGrid;
+	if (token != "CELLS") return nullptr;
 
 	int n_cells, n_cells_size;
 	f >> n_cells;
 	f >> n_cells_size;
-	if (!f) return NullGrid;
+	if (!f) return nullptr;
 
 	std::vector<int> cells (n_cells_size);
 	for (int i = 0; i < n_cells_size; ++i) {
@@ -143,13 +143,13 @@ Grid vtk_read_ascii(std::ifstream& f) {
 	}
 
 	f >> token;
-	if (token != "CELL_TYPES") return NullGrid;
+	if (token != "CELL_TYPES") return nullptr;
 
 	int n_cells2;
 	f >> n_cells2;
-	if (!f || n_cells != n_cells2) return NullGrid;
+	if (!f || n_cells != n_cells2) return nullptr;
 
-	grid.elements.reserve(n_cells);
+	grid->elements.reserve(n_cells);
 
 	int cj = 0;
 	for (int i = 0; i < n_cells; ++i) {
@@ -161,7 +161,7 @@ Grid vtk_read_ascii(std::ifstream& f) {
 		cj++;
 
 		if (Shape::Info[type].n_points && Shape::Info[type].n_points != n_elem_points)
-			return NullGrid;
+			return nullptr;
 
 		Element e (type);
 		if (Shape::Info[type].n_points == 0)
@@ -171,12 +171,12 @@ Grid vtk_read_ascii(std::ifstream& f) {
 			e.points[j] = cells[cj];
 			cj++;
 		}
-		grid.elements.push_back(e);
+		grid->elements.push_back(e);
 	}
-	if (!f) return NullGrid;
-	if (cj != n_cells_size) return NullGrid;
+	if (!f) return nullptr;
+	if (cj != n_cells_size) return nullptr;
 
-	return grid;
+	return std::move(grid);
 }
 
 Grid vtk_read(const std::string& filename) {
@@ -191,15 +191,15 @@ Grid vtk_read(const std::string& filename) {
 	f.getline(line,256);
 	std::string type;
 	f >> type;
-	Grid grid = NullGrid;
+	std::unique_ptr<Grid> grid;
 	if (type == "ASCII")
 		grid = vtk_read_ascii(f);
 	else if (type == "BINARY")
 		not_implemented("Currently don't support binary vtk files");
 
-	if (&grid == &NullGrid)
+	if (!grid)
 		fatal("Error reading VTK file : "+filename);
-	return grid;
+	return *grid;
 }
 
 } // namespace unstruc
