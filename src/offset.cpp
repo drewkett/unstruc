@@ -14,6 +14,8 @@ using namespace unstruc;
 bool write_intermediate = false;
 
 bool use_tangents = true;
+bool use_length = true;
+bool use_cube_root_length = false;
 bool use_sqrt_length = false;
 bool use_inverse_angle = false;
 bool use_sqrt_angle = false;
@@ -428,10 +430,14 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 				}
 			}
 
-			if (use_sqrt_length)
-				w /= sqrt(d.length());
-			else
-				w /= d.length();
+			if (use_length) {
+				if (use_cube_root_length)
+					w /= pow(d.length(),1/3);
+				else if (use_sqrt_length)
+					w /= sqrt(d.length());
+				else
+					w /= d.length();
+			}
 
 			total_weight += w;
 
@@ -943,9 +949,14 @@ void print_usage () {
 "--use-future-intersections-check  Slow down growth rate where future intersections might occur"
 "--max-lambda max_lambda           Set max lambda to be used on smoothing updates (Default=0.5)\n"
 "--use-offset-skew-fix             Use offset skew fix (Experimental)\n"
-"--use-absolute-angle              Use absolute angle instead of tangent in edge weighting\n"
+
+"--disable-length                  Don't use length in edge weighting\n"
 "--use-sqrt-length                 Use sqrt of length in edge weighting\n"
+"--use-cube-root-length             Use cube root of length in edge weighting\n"
+
+"--use-absolute-angle              Use absolute angle instead of tangent in edge weighting\n"
 "--use-sqrt-angle                  Use sqrt of angle in edge weighting\n"
+"--use-inverse-angle               Use inverse of angle in edge weighting\n"
 "--use-initial-offset              Always smooth from initial offset point\n"
 "--max-normals-skew-angle angle    Max skew angle for initial normals smoothings (Default=30)\n"
 "--use-taubin                      Use Taubin smoothing\n"
@@ -1004,7 +1015,9 @@ int main(int argc, char* argv[]) {
 				return 0;
 			} else if (arg == "--use-offset-skew-fix") use_offset_skew_fix = true;
 			else if (arg == "--use-absolute-angle") use_tangents = false;
+			else if (arg == "--disable-length") use_length = false;
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
+			else if (arg == "--use-cube-root-length") use_cube_root_length = true;
 			else if (arg == "--use-inverse-angle") use_inverse_angle = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--use-initial-offset") use_original_offset = true;
