@@ -17,6 +17,7 @@ bool use_tangents = true;
 bool use_length = true;
 bool use_inverse_length = false;
 bool use_sqrt_length = false;
+bool use_angle = true;
 bool use_inverse_angle = false;
 bool use_sqrt_angle = false;
 bool use_original_offset = false;
@@ -411,7 +412,9 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			if (d.length()== 0)
 				fatal("Coincedent points found");
 			double w;
-			if (use_sqrt_angle)
+			if (!use_angle)
+				w = 1;
+			else if (use_sqrt_angle)
 				w = sqrt(pw1.w + pw2.w);
 			else
 				w = pw1.w + pw2.w;
@@ -956,10 +959,13 @@ void print_usage () {
 
 "--disable-length                  Don't use length in edge weighting\n"
 "--use-sqrt-length                 Use sqrt of length in edge weighting\n"
+"--use-inverse-angle               Use inverse of length in edge weighting\n"
 
+"--disable-angle                   Don't use angle in edge weighting\n"
 "--use-absolute-angle              Use absolute angle instead of tangent in edge weighting\n"
 "--use-sqrt-angle                  Use sqrt of angle in edge weighting\n"
 "--use-inverse-angle               Use inverse of angle in edge weighting\n"
+
 "--use-initial-offset              Always smooth from initial offset point\n"
 "--max-normals-skew-angle angle    Max skew angle for initial normals smoothings (Default=30)\n"
 "--use-taubin                      Use Taubin smoothing\n"
@@ -1021,6 +1027,7 @@ int main(int argc, char* argv[]) {
 			else if (arg == "--disable-length") use_length = false;
 			else if (arg == "--use-inverse-length") use_inverse_length = true;
 			else if (arg == "--use-sqrt-length") use_sqrt_length = true;
+			else if (arg == "--disable-angle") use_angle = false;
 			else if (arg == "--use-inverse-angle") use_inverse_angle = true;
 			else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
 			else if (arg == "--use-initial-offset") use_original_offset = true;
