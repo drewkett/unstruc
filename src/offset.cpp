@@ -950,7 +950,7 @@ void print_usage () {
 "-n number_of_layers               Set target number of layers to add (Default = 1)\n"
 "-s offset_size                    Set offset size for first layer. No layers generated if option not set (Default = 0)\n"
 "--write-intermediate-files        Don't write intermediate files\n"
-"--use-future-intersections-check  Slow down growth rate where future intersections might occur"
+"--use-future-intersections-check  Slow down growth rate where future intersections might occur\n"
 "--max-lambda max_lambda           Set max lambda to be used on smoothing updates (Default=0.5)\n"
 "--use-offset-skew-fix             Use offset skew fix (Experimental)\n"
 
