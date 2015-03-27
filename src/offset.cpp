@@ -478,7 +478,6 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 
 		Vector smoothed_normal (curr_normal);
 		for (const PointWeight& pw : pc.pointweights) {
-			const Point& p = surface.points[pw.p];
 			const Vector& n = data.connections[pw.p].normal;
 			double w = pw.w * lambda;
 			Vector delta = n - curr_normal;
