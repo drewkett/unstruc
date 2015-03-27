@@ -53,10 +53,11 @@ int main(int argc, char* argv[]) {
 	printf("Face Angle     : %7.3f %7.3f\n",quality.face_angle.min,quality.face_angle.max);
 	if (quality.dihedral_angle.min != 180 || quality.dihedral_angle.max != 0)
 		printf("Dihedral Angle : %7.3f %7.3f\n",quality.dihedral_angle.min,quality.dihedral_angle.max);
-	if (quality.bad_elements.size())
+	if (quality.bad_elements.size()) {
 		printf("%lu Bad Elements\n",quality.bad_elements.size());
-	if (!bad_elements_filename.empty()) {
-		Grid bad = mesh.grid_from_element_index(quality.bad_elements);
-		write_grid(bad_elements_filename, bad);
+		if (!bad_elements_filename.empty()) {
+			Grid bad = mesh.grid_from_element_index(quality.bad_elements);
+			write_grid(bad_elements_filename, bad);
+		}
 	}
 }
