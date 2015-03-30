@@ -106,6 +106,7 @@ Grid su2_read(const std::string& inputfile) {
 	while (getline(f,line)) {
 		std::stringstream ss(line);
 		ss >> token;
+		if (!ss) continue;
 		if (token.substr(0,6) == "NDIME=") {
 			read_dime = true;
 			if (token.size() > 6)
