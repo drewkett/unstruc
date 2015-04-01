@@ -31,7 +31,7 @@ bool use_skew_restriction = true;
 double max_skew_angle = 30;
 double max_relaxed_skew_angle = 45;
 
-const static double tetgen_min_ratio = 1.03;
+double tetgen_min_ratio = 1.03;
 
 bool use_taubin = false;
 namespace taubin {
@@ -972,6 +972,9 @@ void print_usage () {
 "--disable-skew-restriction        Disable skew angle restriction of offset normal\n"
 "--max-skew-angle angle            Max skew angle for restriction (Default=30)\n"
 "--max-relaxed-skew-angle angle    Max skew angle for restriction when relaxed due to intersections (Default=60)\n"
+"\n"
+"--tetgen-ratio ratio              Tetgen growth ratio (Default=1.03)\n" 
+"\n"
 "-h                                Print Usage\n");
 }
 
@@ -1018,6 +1021,10 @@ int main(int argc, char* argv[]) {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to --max-normals-skew-angle");
 				max_normals_skew_angle = atof(argv[i]);
+			} else if (arg == "--tetgen-ratio") {
+				++i;
+				if (i == argc) return parse_failed("Must pass float to --tetgen-ratio");
+				tetgen_min_ratio = atof(argv[i]);
 			} else if (arg == "-h") {
 				print_usage();
 				return 0;
