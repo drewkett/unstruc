@@ -387,7 +387,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			pc.geometric_stretch_factor = pc.geometric_severity;
 			pc.min_offset_size = offset_size*pc.geometric_severity;
 			pc.max_offset_size = offset_size*2;
-		} else { 
+		} else {
 			pc.geometric_stretch_factor = 1/pc.geometric_severity;
 			pc.min_offset_size = offset_size;
 			pc.max_offset_size = offset_size/pc.geometric_severity*2;
@@ -973,7 +973,7 @@ void print_usage () {
 "--max-skew-angle angle            Max skew angle for restriction (Default=30)\n"
 "--max-relaxed-skew-angle angle    Max skew angle for restriction when relaxed due to intersections (Default=60)\n"
 "\n"
-"--tetgen-ratio ratio              Tetgen growth ratio (Default=1.03)\n" 
+"--tetgen-ratio ratio              Tetgen growth ratio (Default=1.03)\n"
 "\n"
 "-h                                Print Usage\n");
 }
