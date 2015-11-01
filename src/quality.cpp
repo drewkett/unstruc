@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 			} else if (arg == "-t") {
 				++i;
 				if (i == argc) return parse_failed("Must pass float to -t");
-				angle_threshold = atof(argv[i]);
+        angle_threshold = std::stof(argv[i]);
 			} else {
 				return parse_failed("Unknown option passed '"+arg+"'");
 			}
