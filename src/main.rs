@@ -6,15 +6,15 @@ extern crate clap;
 #[macro_use]
 extern crate nom;
 
-use cgmath::Point3;
 use clap::{Arg, App, SubCommand};
-use nom::{multispace,space,alphanumeric,IResult};
 
 use std::str;
 use std::io;
 use std::path::Path;
 use std::io::Read;
 use std::fs::File;
+
+mod stl;
 
 enum ShapeType {
     Undefined,
@@ -76,103 +76,14 @@ fn filetype_from_filename(filename : &str) -> Option<FileType> {
     }
 }
 
-named!(read_solid< &[u8],Option<String> >,
-       chain!(
-           tag!("solid")~
-               space~
-               name:map!(map_res!(alphanumeric,str::from_utf8),str::to_string)?,
-           ||{name}
-       )
-);
-
-named!(parse_float<f64>,map_res!(map_res!(is_a!("0123456789eE-+."),str::from_utf8),str::parse::<f64>));
-
-named!(read_vector< &[u8],Point3<f64> >,
-       chain!(
-           x:parse_float~
-               space~
-               y:parse_float~
-               space~
-               z:parse_float,
-           ||Point3{x:x,y:y,z:z}));
-
-named!(read_facet< &[u8],STLFacet >,
-       chain!(
-           multispace~
-               tag!("facet")~
-               space~
-               tag!("normal")~
-              space~ normal:read_vector~
-               multispace~
-               tag!("outer loop")~
-               multispace~
-               tag!("vertex")~
-               space~
-               p1:read_vector~
-               multispace~
-               tag!("vertex")~
-               space~
-               p2:read_vector~
-               multispace~
-               tag!("vertex")~
-               space~
-               p3:read_vector~
-               multispace~
-               tag!("endloop")~
-               multispace~
-               tag!("endfacet"),
-           ||STLFacet{normal:normal,p1:p1,p2:p2,p3:p3}));
-
-#[derive(Debug)]
-struct STLFacet {
-    normal : Point3<f64>,
-    p1 : Point3<f64>,
-    p2 : Point3<f64>,
-    p3 : Point3<f64>
-}
-
-#[derive(Debug)]
-struct STL {
-    name : Option<String>,
-    facets : Vec<STLFacet>
-}
-
 // Temporary until i set up functioning Grid functions
 #[derive(Debug)]
 struct Grid {
-    stl : STL
+    stl : stl::STL
 }
-
-named!(parse_stl< &[u8],STL >,
-       chain!(
-           name:read_solid~
-               facets:many0!(read_facet)~
-               multispace~ tag!("endsolid"),
-           ||{STL{name:name,facets:facets}}
-       ));
 
 fn read_su2(filename : &str) -> io::Result<Grid> {
     return Err(io::Error::new(io::ErrorKind::NotFound,"SU2 Reader Not Implemented"));
-}
-
-fn read_stl(filename : &str) -> io::Result<Grid> {
-    let mut f = try!(File::open(filename));
-    let mut buffer = Vec::new();
-    // Ideally this wouldn't need to read in whole file
-    let res = f.read_to_end(&mut buffer);
-    match res {
-        Ok(_) => (),
-        Err(e) => return Err(e)
-    }
-    let s = buffer.as_slice();
-    println!("Reading STL");
-    let res = parse_stl(s);
-    println!("Finished Reading");
-    match res {
-        IResult::Done(_,stl) => return Ok(Grid{stl:stl}),
-        IResult::Error(_) => return Err(io::Error::new(io::ErrorKind::NotFound,format!("Error Parse STL file {:?}",filename))),
-        IResult::Incomplete(_) => return Err(io::Error::new(io::ErrorKind::NotFound,format!("STL file truncated {:?}",filename)))
-    }
 }
 
 fn read_stl_binary(filename : &str) -> io::Result<Grid> {
@@ -183,7 +94,7 @@ fn read_grid(surface_file : &str) -> io::Result<Grid> {
     let filetype = filetype_from_filename(surface_file);
     match filetype {
         Some(FileType::SU2) => read_su2(surface_file),
-        Some(FileType::STL) => read_stl(surface_file),
+        Some(FileType::STL) => stl::read_grid(surface_file).map(|g| Grid{stl:g}),
         Some(FileType::STLBinary) => read_stl_binary(surface_file),
         Some(_) => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type")),
         None => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type"))
