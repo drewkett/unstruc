@@ -8,6 +8,7 @@ extern crate nom;
 
 use clap::{Arg, App, SubCommand};
 
+use std::fmt;
 use std::str;
 use std::io;
 use std::path::Path;
@@ -77,9 +78,13 @@ fn filetype_from_filename(filename : &str) -> Option<FileType> {
 }
 
 // Temporary until i set up functioning Grid functions
-#[derive(Debug)]
 struct Grid {
     stl : stl::STL
+}
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{}",self.stl)
+    }
 }
 
 fn read_su2(filename : &str) -> io::Result<Grid> {
@@ -94,7 +99,7 @@ fn read_grid(surface_file : &str) -> io::Result<Grid> {
     let filetype = filetype_from_filename(surface_file);
     match filetype {
         Some(FileType::SU2) => read_su2(surface_file),
-        Some(FileType::STL) => stl::read_grid(surface_file).map(|g| Grid{stl:g}),
+        Some(FileType::STL) => stl::read_file(surface_file).map(|g| Grid{stl:g}),
         Some(FileType::STLBinary) => read_stl_binary(surface_file),
         Some(_) => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type")),
         None => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type"))
@@ -138,7 +143,7 @@ fn main() {
         let number_of_layers = value_t!(sub_m.value_of("number_of_layers"),u32).unwrap_or_else(|e| e.exit());
         let offset_size = value_t!(sub_m.value_of("offset_size"),f64).unwrap_or_else(|e| e.exit());
         match read_grid(surface_file) {
-            Ok(g) => println!("{:?}",surface_file),
+            Ok(g) => println!("{}",g),
             Err(e) => println!("{}",e),
         }
     }

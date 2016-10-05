@@ -6,8 +6,8 @@ use std::io;
 use std::path::Path;
 use std::io::Read;
 use std::fs::File;
+use std::fmt;
 
-#[derive(Debug)]
 struct Facet {
     normal : Point3<f64>,
     p1 : Point3<f64>,
@@ -15,10 +15,18 @@ struct Facet {
     p3 : Point3<f64>
 }
 
-#[derive(Debug)]
 pub struct STL {
     name : Option<String>,
     facets : Vec<Facet>
+}
+impl fmt::Display for STL {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(ref name) = self.name {
+            write!(f,"STL(name={},facets={})",name,self.facets.len())
+        } else {
+            write!(f,"STL(facets={})",self.facets.len())
+        }
+    }
 }
 
 named!(read_solid< &[u8],Option<String> >,
@@ -72,7 +80,7 @@ named!(parse_stl< &[u8],STL >,
            ||{STL{name:name,facets:facets}}
        ));
 
-pub fn read_grid(filename : &str) -> io::Result<STL> {
+pub fn read_file(filename : &str) -> io::Result<STL> {
     let mut f = try!(File::open(filename));
     let mut buffer = Vec::new();
     // Ideally this wouldn't need to read in whole file
