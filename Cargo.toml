@@ -6,3 +6,4 @@ authors = ["Andrew Burkett <burkett.andrew@gmail.com>"]
 [dependencies]
 cgmath = "0.12.0"
 clap = "2"
+nom = "1.2"
