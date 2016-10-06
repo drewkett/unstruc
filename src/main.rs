@@ -99,8 +99,8 @@ impl Grid {
             }
         }
         // println!("{} merged",n_merged)
-        for mut e in self.elements.iter_mut() {
-            for mut p in e.points.iter_mut() {
+        for e in self.elements.iter_mut() {
+            for p in e.points.iter_mut() {
                 *p = v[*p].i
             }
         }
@@ -111,16 +111,18 @@ impl Grid {
         let n = self.points.len();
         let mut seen = vec![false; n];
         for e in self.elements.iter() {
-            for p in e.points.iter() {
-                seen[*p] = true;
+            for &p in e.points.iter() {
+                seen[p] = true;
             }
         }
+        let n_seen_points = seen.iter().fold(0, |acc, &b| acc + b as usize);
+
         let mut new_index : Vec<usize> = (0..n).collect();
-        let mut new_points = Vec::<Point3<f64>>::with_capacity(n);
+        let mut new_points = Vec::<Point3<f64>>::with_capacity(n_seen_points);
         let mut j = 0;
         let mut dead_points = 0;
-        for (i,b) in seen.iter().enumerate() {
-            if *b {
+        for (i,&b) in seen.iter().enumerate() {
+            if b {
                 new_index[i] = j;
                 new_points.push(self.points[i]);
                 j += 1;
@@ -128,7 +130,7 @@ impl Grid {
                 dead_points += 1;
             }
         }
-        // println!("{} dead points",dead_points);
+        // println!("{} {} dead points",n_seen_points,dead_points);
         for mut e in self.elements.iter_mut() {
             for p in e.points.iter_mut() {
                 *p = new_index[*p];
@@ -141,8 +143,8 @@ impl Grid {
     fn check(&self) -> bool {
         let n = self.points.len();
         for e in self.elements.iter() {
-            for p in e.points.iter() {
-                if *p >= n {
+            for &p in e.points.iter() {
+                if p >= n {
                     return false;
                 }
             }
