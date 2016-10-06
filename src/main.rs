@@ -6,14 +6,13 @@ extern crate clap;
 #[macro_use]
 extern crate nom;
 
+use cgmath::Point3;
 use clap::{Arg, App, SubCommand};
 
 use std::fmt;
 use std::str;
 use std::io;
 use std::path::Path;
-use std::io::Read;
-use std::fs::File;
 
 mod stl;
 
@@ -35,10 +34,19 @@ enum Dimension {
     Three,
 }
 
+impl fmt::Display for Dimension {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Dimension::Two => write!(f,"2"),
+            Dimension::Three => write!(f,"3")
+        }
+    }
+}
+
 struct Element {
     shape_type : ShapeType,
     name_i : i16,
-    points : Vec<u32>,
+    points : Vec<usize>,
 }
 
 struct Name {
@@ -46,12 +54,22 @@ struct Name {
     name : String,
 }
 
-// struct Grid {
-//     points : Vec<Point3<f64>>,
-//     elements : Vec<Element>,
-//     names : Vec<Name>,
-//     dim : Dimension,
-// }
+struct Grid {
+    points : Vec<Point3<f64>>,
+    elements : Vec<Element>,
+    names : Vec<Name>,
+    dim : Dimension,
+}
+
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "Grid(points={},elements={},dim={})",
+               self.points.len(),
+               self.elements.len(),
+               self.dim)
+    }
+}
 
 enum FileType {
     SU2,
@@ -77,16 +95,6 @@ fn filetype_from_filename(filename : &str) -> Option<FileType> {
     }
 }
 
-// Temporary until i set up functioning Grid functions
-struct Grid {
-    stl : stl::STL
-}
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{}",self.stl)
-    }
-}
-
 fn read_su2(filename : &str) -> io::Result<Grid> {
     return Err(io::Error::new(io::ErrorKind::NotFound,"SU2 Reader Not Implemented"));
 }
@@ -95,11 +103,34 @@ fn read_stl_binary(filename : &str) -> io::Result<Grid> {
     return Err(io::Error::new(io::ErrorKind::NotFound,"STL Binary Reader Not Implemented"));
 }
 
+fn stl_to_grid(s : stl::STL) -> Grid {
+    let mut points = vec![];
+    let mut elements = vec![];
+    let mut names = vec![];
+    if let Some(name) = s.name {
+        names.push(Name{dim:Dimension::Two,name:name});
+    }
+    for f in s.facets {
+        let i = elements.len();
+        elements.push(
+            Element{
+                shape_type:ShapeType::Triangle,
+                name_i:0,
+                points:vec![i,i+1,i+2]
+            }
+        );
+        points.push(f.p1);
+        points.push(f.p2);
+        points.push(f.p3);
+    }
+    return Grid{points:points,elements:elements,names:names,dim:Dimension::Three}
+}
+
 fn read_grid(surface_file : &str) -> io::Result<Grid> {
     let filetype = filetype_from_filename(surface_file);
     match filetype {
         Some(FileType::SU2) => read_su2(surface_file),
-        Some(FileType::STL) => stl::read_file(surface_file).map(|g| Grid{stl:g}),
+        Some(FileType::STL) => stl::read_file(surface_file).map(stl_to_grid),
         Some(FileType::STLBinary) => read_stl_binary(surface_file),
         Some(_) => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type")),
         None => Err(io::Error::new(io::ErrorKind::NotFound,"Unknown File Type"))

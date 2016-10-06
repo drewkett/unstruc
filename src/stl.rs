@@ -8,16 +8,16 @@ use std::io::Read;
 use std::fs::File;
 use std::fmt;
 
-struct Facet {
-    normal : Point3<f64>,
-    p1 : Point3<f64>,
-    p2 : Point3<f64>,
-    p3 : Point3<f64>
+pub struct Facet {
+    pub normal : Point3<f64>,
+    pub p1 : Point3<f64>,
+    pub p2 : Point3<f64>,
+    pub p3 : Point3<f64>
 }
 
 pub struct STL {
-    name : Option<String>,
-    facets : Vec<Facet>
+    pub name : Option<String>,
+    pub facets : Vec<Facet>
 }
 impl fmt::Display for STL {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
