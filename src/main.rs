@@ -111,7 +111,7 @@ fn stl_to_grid(s : stl::STL) -> Grid {
         names.push(Name{dim:Dimension::Two,name:name});
     }
     for f in s.facets {
-        let i = elements.len();
+        let i = points.len();
         elements.push(
             Element{
                 shape_type:ShapeType::Triangle,
