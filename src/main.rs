@@ -13,6 +13,7 @@ use std::fmt;
 use std::str;
 use std::io;
 use std::path::Path;
+use std::cmp::Ordering;
 
 mod stl;
 
@@ -71,6 +72,86 @@ impl fmt::Display for Grid {
     }
 }
 
+impl Grid {
+    fn merge_duplicates(&mut self, tol : f64) -> &mut Grid {
+        let mut v = Vec::<PointSorter>::with_capacity(self.points.len());
+        for (i,p) in self.points.iter().enumerate() {
+            let l = p.x + p.y + p.z;
+            v.push(PointSorter{l:l,x:p.x,y:p.y,z:p.z,i:i});
+        }
+        v.sort_by(|a,b| a.partial_cmp(b).unwrap_or(Ordering::Less));
+
+        let mut n_merged = 0;
+        for i in 0..v.len() {
+            for j in (i+1)..v.len() {
+                if v[j].i == v[i].i {
+                    continue;
+                }
+                if v[j].l - v[i].l > 3.*tol {
+                    break;
+                }
+                if (v[i].x - v[j].x).abs() < tol &&
+                    (v[i].y - v[j].y).abs() < tol &&
+                    (v[i].z - v[j].z).abs() < tol {
+                        v[j].i = v[i].i;
+                        n_merged += 1;
+                    }
+            }
+        }
+        // println!("{} merged",n_merged)
+        for mut e in self.elements.iter_mut() {
+            for mut p in e.points.iter_mut() {
+                *p = v[*p].i
+            }
+        }
+        return self
+    }
+
+    fn delete_dead_points(&mut self) -> &mut Grid {
+        let n = self.points.len();
+        let mut seen = vec![false; n];
+        for e in self.elements.iter() {
+            for p in e.points.iter() {
+                seen[*p] = true;
+            }
+        }
+        let mut new_index : Vec<usize> = (0..n).collect();
+        let mut new_points = Vec::<Point3<f64>>::with_capacity(n);
+        let mut j = 0;
+        let mut dead_points = 0;
+        for (i,b) in seen.iter().enumerate() {
+            if *b {
+                new_index[i] = j;
+                new_points.push(self.points[i]);
+                j += 1;
+            } else {
+                dead_points += 1;
+            }
+        }
+        // println!("{} dead points",dead_points);
+        for mut e in self.elements.iter_mut() {
+            for p in e.points.iter_mut() {
+                *p = new_index[*p];
+            }
+        }
+        self.points = new_points;
+        return self;
+    }
+
+    fn check(&self) -> bool {
+        let n = self.points.len();
+        for e in self.elements.iter() {
+            for p in e.points.iter() {
+                if *p >= n {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+}
+
+
 enum FileType {
     SU2,
     STL,
@@ -126,6 +207,15 @@ fn stl_to_grid(s : stl::STL) -> Grid {
     return Grid{points:points,elements:elements,names:names,dim:Dimension::Three}
 }
 
+#[derive(PartialEq,PartialOrd,Debug)]
+struct PointSorter {
+    l : f64,
+    x : f64,
+    y : f64,
+    z : f64,
+    i : usize
+}
+
 fn read_grid(surface_file : &str) -> io::Result<Grid> {
     let filetype = filetype_from_filename(surface_file);
     match filetype {
@@ -173,9 +263,12 @@ fn main() {
         let growth_rate = value_t!(sub_m.value_of("growth_rate"),f64).unwrap_or_else(|e| e.exit());
         let number_of_layers = value_t!(sub_m.value_of("number_of_layers"),u32).unwrap_or_else(|e| e.exit());
         let offset_size = value_t!(sub_m.value_of("offset_size"),f64).unwrap_or_else(|e| e.exit());
-        match read_grid(surface_file) {
-            Ok(g) => println!("{}",g),
-            Err(e) => println!("{}",e),
+        let mut g = read_grid(surface_file).unwrap();
+        println!("{}",g);
+        let valid = g.merge_duplicates(1e-5).delete_dead_points().check();
+        println!("{}",g);
+        if valid {
+            println!("Valid");
         }
     }
 }
