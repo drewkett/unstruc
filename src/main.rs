@@ -44,10 +44,25 @@ impl fmt::Display for Dimension {
     }
 }
 
-struct Element {
-    shape_type : ShapeType,
-    name_i : i16,
-    points : Vec<usize>,
+enum Element {
+    Triangle(usize,[usize;3]),
+    Quad(usize,[usize;4]),
+}
+
+impl <'a> Element {
+    fn iter_points(&'a self) -> std::slice::Iter<'a,usize> {
+        return match self {
+            &Element::Triangle(_,ref points) => points.iter(),
+            &Element::Quad(_,ref points) => points.iter()
+        }
+    }
+
+    fn iter_points_mut(&'a mut self) -> std::slice::IterMut<'a,usize> {
+        return match self {
+            &mut Element::Triangle(_,ref mut points) => points.iter_mut(),
+            &mut Element::Quad(_,ref mut points) => points.iter_mut()
+        }
+    }
 }
 
 struct Name {
@@ -57,7 +72,7 @@ struct Name {
 
 struct Grid {
     points : Vec<Point3<f64>>,
-    elements : Vec<Element>,
+    elements : Vec<Box<Element>>,
     names : Vec<Name>,
     dim : Dimension,
 }
@@ -98,9 +113,8 @@ impl Grid {
                     }
             }
         }
-        // println!("{} merged",n_merged)
         for e in self.elements.iter_mut() {
-            for p in e.points.iter_mut() {
+            for p in e.iter_points_mut() {
                 *p = v[*p].i
             }
         }
@@ -111,7 +125,7 @@ impl Grid {
         let n = self.points.len();
         let mut seen = vec![false; n];
         for e in self.elements.iter() {
-            for &p in e.points.iter() {
+            for &p in e.iter_points() {
                 seen[p] = true;
             }
         }
@@ -130,9 +144,8 @@ impl Grid {
                 dead_points += 1;
             }
         }
-        // println!("{} {} dead points",n_seen_points,dead_points);
         for mut e in self.elements.iter_mut() {
-            for p in e.points.iter_mut() {
+            for p in e.iter_points_mut() {
                 *p = new_index[*p];
             }
         }
@@ -143,7 +156,7 @@ impl Grid {
     fn check(&self) -> bool {
         let n = self.points.len();
         for e in self.elements.iter() {
-            for &p in e.points.iter() {
+            for &p in e.iter_points() {
                 if p >= n {
                     return false;
                 }
@@ -196,11 +209,7 @@ fn stl_to_grid(s : stl::STL) -> Grid {
     for f in s.facets {
         let i = points.len();
         elements.push(
-            Element{
-                shape_type:ShapeType::Triangle,
-                name_i:0,
-                points:vec![i,i+1,i+2]
-            }
+            Box::new(Element::Triangle(0,[i,i+1,i+2]))
         );
         points.push(f.p1);
         points.push(f.p2);
