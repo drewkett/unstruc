@@ -17,19 +17,6 @@ use std::cmp::Ordering;
 
 mod stl;
 
-enum ShapeType {
-    Undefined,
-    Line,
-    Triangle,
-    Quad,
-    Polygon,
-    Tetra,
-    Hexa,
-    Wedge,
-    Pyramid,
-    NShapes,
-}
-
 enum Dimension {
     Two,
     Three,
@@ -72,7 +59,7 @@ struct Name {
 
 struct Grid {
     points : Vec<Point3<f64>>,
-    elements : Vec<Box<Element>>,
+    elements : Vec<Element>,
     names : Vec<Name>,
     dim : Dimension,
 }
@@ -209,7 +196,7 @@ fn stl_to_grid(s : stl::STL) -> Grid {
     for f in s.facets {
         let i = points.len();
         elements.push(
-            Box::new(Element::Triangle(0,[i,i+1,i+2]))
+            Element::Triangle(0,[i,i+1,i+2])
         );
         points.push(f.p1);
         points.push(f.p2);
