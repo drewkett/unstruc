@@ -16,6 +16,7 @@ use std::path::Path;
 use std::cmp::Ordering;
 
 mod stl;
+mod tetgen;
 
 enum Dimension {
     Two,
@@ -268,5 +269,6 @@ fn main() {
         if valid {
             println!("Valid");
         }
+        let tg = tetgen::TetGenIO::new();
     }
 }
