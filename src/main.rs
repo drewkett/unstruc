@@ -18,7 +18,7 @@ use std::cmp::Ordering;
 mod stl;
 mod tetgen;
 
-enum Dimension {
+pub enum Dimension {
     Two,
     Three,
 }
@@ -32,7 +32,7 @@ impl fmt::Display for Dimension {
     }
 }
 
-enum Element {
+pub enum Element {
     Triangle(usize,[usize;3]),
     Quad(usize,[usize;4]),
 }
@@ -53,12 +53,12 @@ impl <'a> Element {
     }
 }
 
-struct Name {
+pub struct Name {
     dim : Dimension,
     name : String,
 }
 
-struct Grid {
+pub struct Grid {
     points : Vec<Point3<f64>>,
     elements : Vec<Element>,
     names : Vec<Name>,
@@ -269,6 +269,6 @@ fn main() {
         if valid {
             println!("Valid");
         }
-        let tg = tetgen::TetGenIO::new();
+        let tg = tetgen::TetGenIO::new(g);
     }
 }
