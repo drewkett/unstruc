@@ -1,4 +1,5 @@
 *.dSYM
 build
+build_win
 bin
 lib
