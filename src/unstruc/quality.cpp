@@ -221,7 +221,7 @@ MeshQuality get_mesh_quality(const Grid& grid, double threshold) {
 	quality.face_angle.max = 0;
 	quality.dihedral_angle.min = 180;
 	quality.dihedral_angle.max = 0;
-	for (int i = 0; i < grid.elements.size(); ++i) {
+	for (size_t i = 0; i < grid.elements.size(); ++i) {
 		const Element& e = grid.elements[i];
 
 		MinMax f = get_minmax_face_angle(grid,e);

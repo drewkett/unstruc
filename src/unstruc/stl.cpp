@@ -37,7 +37,7 @@ Grid stl_read_ascii(const std::string& filename) {
 	std::string solid_name;
 	while (f >> token) {
 		if (token == "solid") {
-			int curr = f.tellg();
+			std::streamoff curr = f.tellg();
 			f >> solid_name;
 			if (solid_name == "facet") {
 				solid_name.clear();
@@ -46,7 +46,7 @@ Grid stl_read_ascii(const std::string& filename) {
 			in_solid = true;
 			continue;
 		} else if (token == "endsolid") {
-			int curr = f.tellg();
+			std::streamoff curr = f.tellg();
 			std::string temp;
 			f >> temp;
 			if (temp != solid_name) {
@@ -67,7 +67,7 @@ Grid stl_read_ascii(const std::string& filename) {
 			f >> token;
 			if (token != "loop") fatal("Expected loop after outer");
 			
-			int i = grid.points.size();
+			size_t i = grid.points.size();
 			grid.points.push_back(stl_read_vertex_ascii(f));
 			grid.points.push_back(stl_read_vertex_ascii(f));
 			grid.points.push_back(stl_read_vertex_ascii(f));
@@ -131,7 +131,7 @@ Grid stl_read_binary(const std::string& filename) {
 	uint32_t n_triangles = read_uint32(f);
 	fprintf(stderr,"Reading %d Triangles\n",n_triangles);
 
-	for (int i = 0; i < n_triangles; ++i) {
+	for (size_t i = 0; i < n_triangles; ++i) {
 		Point normal = stl_read_vertex_binary(f);
 		grid.points.push_back(stl_read_vertex_binary(f));
 		grid.points.push_back(stl_read_vertex_binary(f));
@@ -183,7 +183,7 @@ void stl_write_ascii(const std::string& filename, const Grid& grid) {
 	for (const Element& e : grid.elements) {
 		f << "  facet normal 0.0 0.0 0.0" << std::endl;
 		f << "    outer loop" << std::endl;
-		for (int _p : e.points) {
+		for (size_t _p : e.points) {
 			const Point& p = grid.points[_p];
 			f << "      vertex " << p.x << " " << p.y << " " << p.z << std::endl;
 		}
@@ -206,15 +206,15 @@ void write_uint16(std::ofstream& f, uint16_t v) {
 }
 
 void stl_write_binary_vertex(std::ofstream& f, const Point& p) {
-	write_float(f,p.x);
-	write_float(f,p.y);
-	write_float(f,p.z);
+	write_float(f,float(p.x));
+	write_float(f,float(p.y));
+	write_float(f,float(p.z));
 }
 
 void stl_write_binary_vertex(std::ofstream& f, const Vector& v) {
-	write_float(f,v.x);
-	write_float(f,v.y);
-	write_float(f,v.z);
+	write_float(f,float(v.x));
+	write_float(f,float(v.y));
+	write_float(f,float(v.z));
 }
 
 void stl_write_binary(const std::string& filename, const Grid& grid) {
@@ -233,7 +233,7 @@ void stl_write_binary(const std::string& filename, const Grid& grid) {
 	for (const Element& e : grid.elements) {
 		Vector normal {0, 0, 1};
 		stl_write_binary_vertex(f,normal);
-		for (int _p : e.points) {
+		for (size_t _p : e.points) {
 			const Point& p = grid.points[_p];
 			stl_write_binary_vertex(f,p);
 		}

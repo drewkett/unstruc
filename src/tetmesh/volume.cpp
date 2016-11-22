@@ -38,7 +38,7 @@ Grid volgrid_from_surface(Grid const& surface, const std::vector<Point>& holes, 
 
 	in.numberofpoints = surface.points.size();
 	in.pointlist  = new REAL[surface.points.size()*3];
-	int i = 0;
+	size_t i = 0;
 	for (Point const& p : surface.points) {
 		in.pointlist[i] = p.x;
 		in.pointlist[i+1] = p.y;
@@ -50,7 +50,7 @@ Grid volgrid_from_surface(Grid const& surface, const std::vector<Point>& holes, 
 	in.facetlist = new tetgenio::facet[in.numberoffacets];
 	in.facetmarkerlist = new int[in.numberoffacets];
 
-	for (int i = 0; i < surface.elements.size(); ++i) {
+	for (size_t i = 0; i < surface.elements.size(); ++i) {
 		Element const& e = surface.elements[i];
 		tetgenio::facet& f = in.facetlist[i];
 		tetgenio::init(&f);
@@ -73,7 +73,7 @@ Grid volgrid_from_surface(Grid const& surface, const std::vector<Point>& holes, 
 
 	in.numberofholes = holes.size();
 	in.holelist = new REAL[in.numberofholes*3];
-	for (int i = 0; i < holes.size(); ++i) {
+	for (size_t i = 0; i < holes.size(); ++i) {
 		const Point& hole = holes[i];
 		in.holelist[3*i]   = hole.x;
 		in.holelist[3*i+1] = hole.y;

@@ -9,13 +9,13 @@ namespace unstruc {
 	struct Grid;
 
 	struct Block {
-		int size1, size2, size3;
+		size_t size1, size2, size3;
 		std::vector <Point> points;
 
-		Block(int s1, int s2, int s3);
-		Point at(int i, int j, int k);
-		double * at_ref(int i, int j, int k, int l);
-		int index(int i, int j, int k);
+		Block(size_t s1, size_t s2, size_t s3);
+		Point at(size_t i, size_t j, size_t k);
+		double * at_ref(size_t i, size_t j, size_t k, size_t l);
+		size_t index(size_t i, size_t j, size_t k);
 	};
 
 	struct MultiBlock {

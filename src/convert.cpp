@@ -12,8 +12,9 @@ using namespace unstruc;
 
 struct TranslationTable {
 	std::vector <Name> names;
-	std::vector <int> index;
-	TranslationTable(int n) : names(0), index(n,-1) {};
+	std::vector <bool> translate;
+	std::vector <size_t> index;
+	TranslationTable(size_t n) : names(0), index(n), translate(n) {};
 };
 
 void ReadTranslationFile(std::string &filename, TranslationTable &tt) {
@@ -32,7 +33,9 @@ void ReadTranslationFile(std::string &filename, TranslationTable &tt) {
 		while (! iss.eof()) {
 			iss >> s;
 			std::cerr << " " << s;
-			tt.index[atoi(s.c_str())] = tt.names.size()-1;
+      size_t i = atoi(s.c_str());
+			tt.index[i] = tt.names.size()-1;
+      tt.translate[i] = true;
 		}
 		std::cerr << std::endl;
 	}
@@ -40,20 +43,18 @@ void ReadTranslationFile(std::string &filename, TranslationTable &tt) {
 }
 
 void applyTranslation(Grid &grid, TranslationTable &transt) {
-	int offset = grid.names.size();
-	for (int i=0; i < transt.names.size(); i++) {
+	size_t offset = grid.names.size();
+	for (size_t i=0; i < transt.names.size(); i++) {
 		grid.names.push_back(transt.names[i]);
 	}
-	for (int i=0; i < transt.index.size(); i++) {
-		if (transt.index[i] == -1) {
-			transt.index[i] = i;
-		} else {
+	for (size_t i=0; i < transt.index.size(); i++) {
+    if (transt.translate[i]) {
 			transt.index[i] += offset;
-		}
+    }
 	}
-	for (int i = 0; i < grid.elements.size(); i++) {
+	for (size_t i = 0; i < grid.elements.size(); i++) {
 		Element &e = grid.elements[i];
-		if (e.name_i != -1) e.name_i = transt.index[e.name_i];
+		if (e.name_i != -1 && transt.translate[e.name_i]) e.name_i = transt.index[e.name_i];
 	}
 }
 
@@ -115,7 +116,7 @@ int main (int argc, char* argv[])
 	}
 	std::string outputfile (c_outputfile);
 	Grid grid;
-	for (int i = 0; i < inputfiles.size(); ++i) {
+	for (size_t i = 0; i < inputfiles.size(); ++i) {
 		grid = read_grid(inputfiles[i]);
 	}
 	if (scale_factor != 1)

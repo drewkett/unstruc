@@ -32,8 +32,8 @@ bool vtk_write(const std::string& filename, const Grid &grid) {
 			f << " 0.0" << std::endl;
 	}
 	//std::cerr << "Writing Cells" << std::endl;
-	int n_volume_elements = 0;
-	int n_elvals = 0;
+	size_t n_volume_elements = 0;
+	size_t n_elvals = 0;
 	for (const Element& e : grid.elements) {
 		n_volume_elements++;
 		n_elvals += e.points.size()+1;
@@ -41,7 +41,7 @@ bool vtk_write(const std::string& filename, const Grid &grid) {
 	f << "CELLS " << n_volume_elements << " " << n_elvals << std::endl;
 	for (const Element& e : grid.elements) {
 		f << e.points.size();
-		for (int p : e.points) {
+		for (size_t p : e.points) {
 			f << " " << p;
 		}
 		f << std::endl;
@@ -66,12 +66,12 @@ void vtk_write_cell_data_header(const std::string& filename, const Grid& grid) {
 	f << std::endl << "CELL_DATA " << grid.points.size() << std::endl;
 }
 
-void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <int>& scalars) {
+void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <size_t>& scalars) {
 	std::ofstream f (filename, std::ios::app);
 	if (!f.is_open()) fatal("Could not open file");
 	f << "SCALARS " << name << " int 1" << std::endl;
 	f << "LOOKUP_TABLE" << std::endl;
-	for (int s : scalars) {
+	for (size_t s : scalars) {
 		f << s << std::endl;
 	}
 	f << std::endl;
@@ -112,7 +112,7 @@ std::unique_ptr<Grid> vtk_read_ascii(std::ifstream& f) {
 	f >> token;
 	if (token != "POINTS") return nullptr;
 
-	int n_points;
+	size_t n_points;
 	f >> n_points;
 	if (!f) return nullptr;
 
@@ -120,7 +120,7 @@ std::unique_ptr<Grid> vtk_read_ascii(std::ifstream& f) {
 	if (token != "double") return nullptr;
 
 	grid->points.reserve(n_points);
-	for (int i = 0; i < n_points; ++i) {
+	for (size_t i = 0; i < n_points; ++i) {
 		Point p;
 		f >> p.x;
 		f >> p.y;
@@ -132,32 +132,32 @@ std::unique_ptr<Grid> vtk_read_ascii(std::ifstream& f) {
 	f >> token;
 	if (token != "CELLS") return nullptr;
 
-	int n_cells, n_cells_size;
+	size_t n_cells, n_cells_size;
 	f >> n_cells;
 	f >> n_cells_size;
 	if (!f) return nullptr;
 
-	std::vector<int> cells (n_cells_size);
-	for (int i = 0; i < n_cells_size; ++i) {
+	std::vector<size_t> cells (n_cells_size);
+	for (size_t i = 0; i < n_cells_size; ++i) {
 		f >> cells[i];
 	}
 
 	f >> token;
 	if (token != "CELL_TYPES") return nullptr;
 
-	int n_cells2;
+	size_t n_cells2;
 	f >> n_cells2;
 	if (!f || n_cells != n_cells2) return nullptr;
 
 	grid->elements.reserve(n_cells);
 
-	int cj = 0;
-	for (int i = 0; i < n_cells; ++i) {
-		int vtk_id;
+	size_t cj = 0;
+	for (size_t i = 0; i < n_cells; ++i) {
+		size_t vtk_id;
 		f >> vtk_id;
 		Shape::Type type = type_from_vtk_id(vtk_id);
 
-		int n_elem_points = cells[cj];
+		size_t n_elem_points = cells[cj];
 		cj++;
 
 		if (Shape::Info[type].n_points && Shape::Info[type].n_points != n_elem_points)
@@ -167,7 +167,7 @@ std::unique_ptr<Grid> vtk_read_ascii(std::ifstream& f) {
 		if (Shape::Info[type].n_points == 0)
 			e.points.resize(n_elem_points);
 
-		for (int j = 0; j < n_elem_points; ++j) {
+		for (size_t j = 0; j < n_elem_points; ++j) {
 			e.points[j] = cells[cj];
 			cj++;
 		}

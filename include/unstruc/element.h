@@ -11,7 +11,7 @@ namespace unstruc {
 
 	struct Shape {
 		std::string name;
-		int dim, n_points, n_edges, n_faces, vtk_id;
+		size_t dim, n_points, n_edges, n_faces, vtk_id;
 
 		static const Shape Info[];
 
@@ -29,14 +29,14 @@ namespace unstruc {
 		};
 	};
 
-	Shape::Type type_from_vtk_id(int vtk_id);
+	Shape::Type type_from_vtk_id(size_t vtk_id);
 
 
 	struct Element
 	{
 		Shape::Type type;
 		int name_i;
-		std::vector<int> points;
+		std::vector<size_t> points;
 
 		Element() : type(Shape::Type::Undefined), name_i(0) {};
 		Element(Shape::Type T);

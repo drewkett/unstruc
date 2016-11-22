@@ -13,7 +13,7 @@ namespace unstruc {
 
 	void vtk_write_point_data_header(const std::string& filename, const Grid &grid);
 	void vtk_write_cell_data_header(const std::string& filename, const Grid &grid);
-	void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <int>& scalars);
+	void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <size_t>& scalars);
 	void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <double>& scalars);
 	void vtk_write_data(const std::string& filename, const std::string& name, const std::vector <Vector>& vectors);
 }

@@ -24,8 +24,8 @@ const Shape Shape::Info[Shape::NShapes] {
 	{ "Pyramid"  , 3, 5, 8,  5, 14 }
 };
 
-Shape::Type type_from_vtk_id(int vtk_id) {
-	for (int i = 0; i < Shape::NShapes; ++i) {
+Shape::Type type_from_vtk_id(size_t vtk_id) {
+	for (size_t i = 0; i < Shape::NShapes; ++i) {
 		if (Shape::Info[i].vtk_id == vtk_id)
 			return static_cast<Shape::Type>(i);
 	}
@@ -46,14 +46,14 @@ Element::Element(Shape::Type T) : type(T) {
 
 void dump(const Element &e) {
 	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
-	for (int p : e.points) {
+	for (size_t p : e.points) {
 		printf("Point %d\n",p);
 	}
 };
 
 void dump(const Element &e, const Grid &grid) {
 	std::cerr << "Element " << Shape::Info[e.type].name << std::endl;
-	for (int p : e.points) {
+	for (size_t p : e.points) {
 		printf("Point %d : ",p);
 		dump(grid.points[p]);
 	}
@@ -79,8 +79,8 @@ double Element::calc_volume(const Grid& grid) const {
 
 				Point face_center1 { 0, 0, 0};
 				double total_length1 = 0;
-				for (int i = 0; i < 4; ++i) {
-					int j = (i + 1)%4;
+				for (size_t i = 0; i < 4; ++i) {
+					size_t j = (i + 1)%4;
 					const Point& pi = grid.points[points[i]];
 					const Point& pj = grid.points[points[j]];
 					double l = (pj - pi).length();
@@ -92,8 +92,8 @@ double Element::calc_volume(const Grid& grid) const {
 
 				Point face_center2 { 0, 0, 0 };
 				double total_length2 = 0;
-				for (int i = 4; i < 8; ++i) {
-					int j = 4 + (i + 1)%4;
+				for (size_t i = 4; i < 8; ++i) {
+					size_t j = 4 + (i + 1)%4;
 					const Point& pi = grid.points[points[i]];
 					const Point& pj = grid.points[points[j]];
 					double l = (pj - pi).length();
@@ -172,7 +172,7 @@ bool same(Element e1, Element e2) {
 	if (e1.type != e2.type) return false;
 	std::sort(e1.points.begin(),e1.points.end());
 	std::sort(e2.points.begin(),e2.points.end());
-	for (int i = 0; i < e1.points.size(); i++) {
+	for (size_t i = 0; i < e1.points.size(); i++) {
 		if (e1.points[i] != e2.points[i])
 			return false;
 	}
@@ -180,8 +180,8 @@ bool same(Element e1, Element e2) {
 };
 
 bool can_collapse(const Element& e) {
-	for (int i = 0; i < e.points.size()-1; i++)
-		for (int j = i+1; j < e.points.size(); j++)
+	for (size_t i = 0; i < e.points.size()-1; i++)
+		for (size_t j = i+1; j < e.points.size(); j++)
 			if (e.points[i] == e.points[j]) return true;
 	return false;
 }
@@ -191,7 +191,7 @@ bool collapse_tri(Element& e) {
 	return can_collapse(e);
 }
 
-void tri_from_quad(Element& e,int i1, int i2, int i3) {
+void tri_from_quad(Element& e,size_t i1, size_t i2, size_t i3) {
 	if (e.type != Shape::Quad) WrongElement(e.type,Shape::Quad);
 	Element e_new = Element(Shape::Triangle);
 	e_new.points[0] = e.points[i1];
@@ -221,7 +221,7 @@ bool collapse_quad(Element& e, std::vector<Element>& new_elements) {
 	}
 }
 
-void tetra_from_pyramid(Element& e,int i1, int i2, int i3, int i4) {
+void tetra_from_pyramid(Element& e,size_t i1, size_t i2, size_t i3, size_t i4) {
 	if (e.type != Shape::Pyramid) WrongElement(e.type,Shape::Pyramid);
 	Element e_new = Element(Shape::Tetra);
 	e_new.points[0] = e.points[i1];
@@ -232,7 +232,7 @@ void tetra_from_pyramid(Element& e,int i1, int i2, int i3, int i4) {
 	e = e_new;
 }
 
-void pyramid_from_wedge(Element &e,int i1, int i2, int i3, int i4, int i5) {
+void pyramid_from_wedge(Element &e,size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) {
 	if (e.type != Shape::Wedge) WrongElement(e.type,Shape::Wedge);
 	Element e_new = Element(Shape::Pyramid);
 	e_new.points[0] = e.points[i1];
@@ -244,7 +244,7 @@ void pyramid_from_wedge(Element &e,int i1, int i2, int i3, int i4, int i5) {
 	e = e_new;
 }
 
-void pyramid_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5) {
+void pyramid_from_hexa(Element& e,size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) {
 	if (e.type != Shape::Hexa) WrongElement(e.type,Shape::Hexa);
 	Element e_new = Element(Shape::Pyramid);
 	e_new.points[0] = e.points[i1];
@@ -256,7 +256,7 @@ void pyramid_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5) {
 	e = e_new;
 }
 
-void wedge_from_hexa(Element& e,int i1, int i2, int i3, int i4, int i5, int i6) {
+void wedge_from_hexa(Element& e,size_t i1, size_t i2, size_t i3, size_t i4, size_t i5, size_t i6) {
 	if (e.type != Shape::Hexa) WrongElement(e.type,Shape::Hexa);
 	Element e_new = Element(Shape::Wedge);
 	e_new.points[0] = e.points[i1];

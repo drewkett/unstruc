@@ -42,9 +42,9 @@ namespace taubin {
 	const double n = 20;
 };
 
-std::vector <int> find_negative_volumes(Grid& grid) {
-	std::vector <int> negative_volumes;
-	for (int i = 0; i < grid.elements.size(); ++i) {
+std::vector <size_t> find_negative_volumes(Grid& grid) {
+	std::vector <size_t> negative_volumes;
+	for (size_t i = 0; i < grid.elements.size(); ++i) {
 		Element& e = grid.elements[i];
 		if (e.calc_volume(grid) < 0)
 			negative_volumes.push_back(i);
@@ -52,21 +52,21 @@ std::vector <int> find_negative_volumes(Grid& grid) {
 	return negative_volumes;
 }
 
-void write_reduced_file(const Grid& grid, std::vector <int> elements, const std::string& filename) {
+void write_reduced_file(const Grid& grid, std::vector <size_t> elements, const std::string& filename) {
 	Grid reduced_grid (3);
 	reduced_grid.points = grid.points;
-	for (int _e : elements)
+	for (size_t _e : elements)
 		reduced_grid.elements.push_back(grid.elements[_e]);
 	write_grid(filename,reduced_grid);
 }
 
-void write_reduced_file_from_points(const Grid& grid, std::vector <int> points, const std::string& filename) {
+void write_reduced_file_from_points(const Grid& grid, std::vector <size_t> points, const std::string& filename) {
 	Grid reduced_grid (3);
 	reduced_grid.points = grid.points;
 	std::sort(points.begin(),points.end());
 	for (const Element& e : grid.elements) {
 		bool add = false;
-		for (int _p : e.points) {
+		for (size_t _p : e.points) {
 			if (std::binary_search(points.begin(),points.end(),_p)) {
 				add = true;
 				break;
@@ -81,20 +81,20 @@ void write_reduced_file_from_points(const Grid& grid, std::vector <int> points, 
 Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 	if (surface1.elements.size() != surface2.elements.size())
 		fatal("surfaces don't match");
-	int npoints1 = surface1.points.size();
+	size_t npoints1 = surface1.points.size();
 
 	Grid volume (3);
 	volume.points = surface1.points;
 	volume.points.insert(volume.points.end(),surface2.points.begin(),surface2.points.end());
-	int n_negative = 0;
-	for (int i = 0; i < surface1.elements.size(); ++i) {
+	size_t n_negative = 0;
+	for (size_t i = 0; i < surface1.elements.size(); ++i) {
 		const Element& e1 = surface1.elements[i];
 		const Element& e2 = surface2.elements[i];
 		if (e1.type != e2.type)
 			fatal("elements in surfaces don't match");
 		if (e1.type == Shape::Triangle) {
 			Element e (Shape::Wedge);
-			for (int j = 0; j < 3; ++j) {
+			for (size_t j = 0; j < 3; ++j) {
 				e.points[2-j] = e1.points[j];
 				e.points[5-j] = e2.points[j] + npoints1;
 			}
@@ -109,16 +109,16 @@ Grid volume_from_surfaces (const Grid& surface1, const Grid& surface2) {
 }
 
 struct PointWeight {
-	int p;
+	size_t p;
 	double w;
 	PointWeight() : p(-1), w(-1) {};
-	PointWeight(int p, double w) : p(p), w(w) {};
+	PointWeight(size_t p, double w) : p(p), w(w) {};
 	bool operator<(const PointWeight& other) const { return p < other.p; };
 };
 
 struct PointConnection {
 	std::vector <PointWeight> pointweights;
-	std::vector <int> elements;
+	std::vector <size_t> elements;
 	Vector normal;
 	Vector orig_normal;
 	double current_adjustment;
@@ -146,10 +146,10 @@ std::vector<double> normalize(std::vector <double> vec) {
 	return vec;
 }
 
-std::vector<double> laplace_smooth_up(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+std::vector<double> laplace_smooth_up(const std::vector<PointConnection>& connections, std::vector <double> data, size_t n, double lambda, bool use_severity) {
 	std::vector<double> correction (data.size());
-	for (int j = 0; j < n; ++j) {
-		for (int i = 0; i < connections.size(); ++i) {
+	for (size_t j = 0; j < n; ++j) {
+		for (size_t i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
 			double fac;
@@ -166,16 +166,16 @@ std::vector<double> laplace_smooth_up(const std::vector<PointConnection>& connec
 			if (correction[i] < 0)
 				correction[i] = 0;
 		}
-		for (int i = 0; i < connections.size(); ++i)
+		for (size_t i = 0; i < connections.size(); ++i)
 			data[i] += correction[i];
 	}
 	return data;
 }
 
-std::vector<double> laplace_smooth_down(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+std::vector<double> laplace_smooth_down(const std::vector<PointConnection>& connections, std::vector <double> data, size_t n, double lambda, bool use_severity) {
 	std::vector<double> correction (data.size());
-	for (int j = 0; j < n; ++j) {
-		for (int i = 0; i < connections.size(); ++i) {
+	for (size_t j = 0; j < n; ++j) {
+		for (size_t i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
 			double fac;
@@ -192,16 +192,16 @@ std::vector<double> laplace_smooth_down(const std::vector<PointConnection>& conn
 			if (correction[i] > 0)
 				correction[i] = 0;
 		}
-		for (int i = 0; i < connections.size(); ++i)
+		for (size_t i = 0; i < connections.size(); ++i)
 			data[i] += correction[i];
 	}
 	return data;
 }
 
-std::vector<double> laplace_smooth(const std::vector<PointConnection>& connections, std::vector <double> data, int n, double lambda, bool use_severity) {
+std::vector<double> laplace_smooth(const std::vector<PointConnection>& connections, std::vector <double> data, size_t n, double lambda, bool use_severity) {
 	std::vector<double> correction (data.size());
-	for (int j = 0; j < n; ++j) {
-		for (int i = 0; i < connections.size(); ++i) {
+	for (size_t j = 0; j < n; ++j) {
+		for (size_t i = 0; i < connections.size(); ++i) {
 			const PointConnection& pc = connections[i];
 
 			double fac;
@@ -216,7 +216,7 @@ std::vector<double> laplace_smooth(const std::vector<PointConnection>& connectio
 				correction[i] += fac * lambda * pw.w * (data[pw.p] - data[i]);
 			}
 		}
-		for (int i = 0; i < connections.size(); ++i)
+		for (size_t i = 0; i < connections.size(); ++i)
 			data[i] += correction[i];
 	}
 	return data;
@@ -231,8 +231,8 @@ void smooth_minmax_offset_size(std::vector <PointConnection>& connections) {
 		orig_max_offset_size.push_back(pc.max_offset_size);
 	}
 
-	for (int j = 0; j < 100; ++j) {
-		for (int i = 0; i < connections.size(); ++i) {
+	for (size_t j = 0; j < 100; ++j) {
+		for (size_t i = 0; i < connections.size(); ++i) {
 			PointConnection& pc = connections[i];
 
 			double lambda = 0.9*pc.geometric_severity;
@@ -257,7 +257,7 @@ void smooth_minmax_offset_size(std::vector <PointConnection>& connections) {
 }
 
 SmoothingData calculate_point_connections(const Grid& surface, double offset_size) {
-	std::vector< std::vector <int> > point_elements (surface.points.size());
+	std::vector< std::vector <size_t> > point_elements (surface.points.size());
 	std::vector< std::vector <double> > point_elements_angle (surface.points.size());
 	std::vector< std::vector <Vector> > point_bisect_vectors (surface.points.size());
 
@@ -265,7 +265,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 	sdata.connections = std::vector <PointConnection> (surface.points.size());
 	sdata.element_normals = std::vector <Vector> (surface.elements.size());
 
-	for (int i = 0; i < surface.elements.size(); ++i) {
+	for (size_t i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
 
 		if (e.type != Shape::Triangle)
@@ -280,15 +280,15 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			fatal("Bad Element. Has no normal");
 		sdata.element_normals[i] = cross(v1,v2).normalized();
 
-		for (int j = 0; j < e.points.size(); ++j) {
-			int _p = e.points[j];
+		for (size_t j = 0; j < e.points.size(); ++j) {
+			size_t _p = e.points[j];
 			point_elements[_p].push_back(i);
 
-			int jm = (j - 1 + e.points.size()) % e.points.size();
-			int jp = (j + 1) % e.points.size();
+			size_t jm = (j - 1 + e.points.size()) % e.points.size();
+			size_t jp = (j + 1) % e.points.size();
 
-			int _pm = e.points[jm];
-			int _pp = e.points[jp];
+			size_t _pm = e.points[jm];
+			size_t _pp = e.points[jp];
 
 			const Point &pm = surface.points[_pm];
 			const Point &p = surface.points[_p];
@@ -315,22 +315,22 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		}
 	}
 
-	for (int i = 0; i < surface.points.size(); ++i) {
+	for (size_t i = 0; i < surface.points.size(); ++i) {
 		PointConnection& pc = sdata.connections[i];
 
 		pc.max_skew_angle = max_skew_angle;
 		pc.current_adjustment = 1;
 
 		const Point& p = surface.points[i];
-		const std::vector<int>& elements = point_elements[i];
+		const std::vector<size_t>& elements = point_elements[i];
 
 		const std::vector <double>& angle_factors = normalize(point_elements_angle[i]);
 		const std::vector <Vector>& bisect_vectors = point_bisect_vectors[i];
 
 		Vector point_norm { 0, 0, 0 };
 		Vector point_bisect { 0, 0, 0 };
-		for (int j = 0; j < elements.size(); ++j) {
-			int _e = elements[j];
+		for (size_t j = 0; j < elements.size(); ++j) {
+			size_t _e = elements[j];
 			double fac = angle_factors[j];
 
 			const Vector& n = sdata.element_normals[_e];
@@ -347,9 +347,9 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 		pc.convex = convex_test < 0;
 
 		// Correct normals that will cause self intersections
-		for (int j = 0; j < 100; ++j) {
+		for (size_t j = 0; j < 100; ++j) {
 			bool all_positive = true;
-			for (int _e : elements) {
+			for (size_t _e : elements) {
 				const Vector& n = sdata.element_normals[_e];
 				double d = dot(point_norm,n);
 				if (d <= 0) {
@@ -360,7 +360,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 			if (all_positive) break;
 		}
 		bool bad_vector = false;
-		for (int _e : elements) {
+		for (size_t _e : elements) {
 			const Vector& n = sdata.element_normals[_e];
 			double d = dot(point_norm,n);
 			if (d <= 0) {
@@ -401,8 +401,8 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 
 		std::sort(pc.pointweights.begin(),pc.pointweights.end());
 		double total_weight = 0;
-		int new_size = pc.pointweights.size()/2;
-		for (int j = 0; j < new_size; ++j) {
+		size_t new_size = pc.pointweights.size()/2;
+		for (size_t j = 0; j < new_size; ++j) {
 			const PointWeight& pw1 = pc.pointweights[2*j];
 			const PointWeight& pw2 = pc.pointweights[2*j+1];
 
@@ -465,7 +465,7 @@ SmoothingData calculate_point_connections(const Grid& surface, double offset_siz
 void smooth_normals(const Grid& surface, SmoothingData& data) {
 	std::vector <PointConnection> smoothed_connections (data.connections);
 
-	for (int i = 0; i < surface.points.size(); ++i) {
+	for (size_t i = 0; i < surface.points.size(); ++i) {
 		const Point& surface_p = surface.points[i];
 		const PointConnection& pc = data.connections[i];
 		PointConnection& smoothed_pc = smoothed_connections[i];
@@ -500,7 +500,7 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 		smoothed_normal = smoothed_lateral + smoothed_perp;
 
 		smoothed_pc.normal = smoothed_normal.normalized()*orig_normal.length();
-		for (int _e : pc.elements) {
+		for (size_t _e : pc.elements) {
 			const Vector& n = data.element_normals[_e];
 			if (dot(smoothed_pc.normal,n) <= 0) {
 				// Use old normal if self intersections created
@@ -515,7 +515,7 @@ void smooth_normals(const Grid& surface, SmoothingData& data) {
 void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 	std::vector <PointConnection> smoothed_connections (data.connections);
 
-	for (int i = 0; i < surface.points.size(); ++i) {
+	for (size_t i = 0; i < surface.points.size(); ++i) {
 		const Point& surface_p = surface.points[i];
 		const PointConnection& pc = data.connections[i];
 		PointConnection& smoothed_pc = smoothed_connections[i];
@@ -561,7 +561,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 		smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 
 		// Check for creation of self intersection elements
-		for (int _e : pc.elements) {
+		for (size_t _e : pc.elements) {
 			const Vector& n = data.element_normals[_e];
 			if (dot(smoothed_pc.normal,n) <= 0) {
 				// Use old normal if self intersections created
@@ -576,7 +576,7 @@ void smooth_point_connections(const Grid& surface, SmoothingData& data) {
 void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, double gamma) {
 	std::vector <PointConnection> smoothed_connections (data.connections);
 
-	for (int i = 0; i < surface.points.size(); ++i) {
+	for (size_t i = 0; i < surface.points.size(); ++i) {
 		const Point& surface_p = surface.points[i];
 		const PointConnection& pc = data.connections[i];
 		PointConnection& smoothed_pc = smoothed_connections[i];
@@ -622,7 +622,7 @@ void smooth_point_connections_taubin(const Grid& surface, SmoothingData& data, d
 			smoothed_pc.normal = smoothed_lateral + smoothed_perp;
 
 			// Check for creation of self intersection elements
-			for (int _e : pc.elements) {
+			for (size_t _e : pc.elements) {
 				const Vector& n = data.element_normals[_e];
 				if (dot(smoothed_pc.normal,n) <= 0) {
 					// Use old normal if self intersections created
@@ -640,7 +640,7 @@ Grid offset_surface_with_point_connections(const Grid& surface, std::vector <Poi
 	offset.elements = surface.elements;
 	offset.names = surface.names;
 	offset.points = surface.points;
-	for (int i = 0; i < surface.points.size(); ++i) {
+	for (size_t i = 0; i < surface.points.size(); ++i) {
 		Point& p = offset.points[i];
 		PointConnection& pc = point_connections[i];
 		const Vector& n = pc.normal;
@@ -653,7 +653,7 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 	std::vector <Vector> orig_normals, normals;
 	std::vector <double> geometric_severity, min_offset_size, max_offset_size;
 
-	int n_points = surface.points.size();
+	size_t n_points = surface.points.size();
 
 	orig_normals.reserve(n_points);
 	normals.reserve(n_points);
@@ -680,7 +680,7 @@ void write_grid_with_data (std::string filename, const Grid& surface, const Smoo
 
 void fix_offset_skew ( const Grid& surface, Grid& offset ) {
 	std::vector <Vector> surface_normals (surface.elements.size());
-	for (int _e = 0; _e < surface.elements.size(); ++_e) {
+	for (size_t _e = 0; _e < surface.elements.size(); ++_e) {
 		const Element& e = surface.elements[_e];
 		if (e.type != Shape::Triangle) fatal();
 
@@ -690,11 +690,11 @@ void fix_offset_skew ( const Grid& surface, Grid& offset ) {
 
 		surface_normals[_e] = cross(p1 - p0, p2 - p1).normalized();
 	}
-	int total_fixed = 0;
-	int fixed = 1;
+	size_t total_fixed = 0;
+	size_t fixed = 1;
 	while (fixed > 0) {
 		fixed = 0;
-		for (int _e = 0; _e < surface.elements.size(); ++_e) {
+		for (size_t _e = 0; _e < surface.elements.size(); ++_e) {
 			const Vector& surface_normal = surface_normals[_e];
 
 			const Element& e = offset.elements[_e];
@@ -713,7 +713,7 @@ void fix_offset_skew ( const Grid& surface, Grid& offset ) {
 				Point surface_center = (sp0 + sp1 + sp2)/3;
 				
 				double min_off = DBL_MAX;
-				for (int i = 0; i < 3; ++i) {
+				for (size_t i = 0; i < 3; ++i) {
 					const Point& sp = surface.points[e.points[i]];
 					const Point& op = offset.points[e.points[i]];
 					double off;
@@ -727,7 +727,7 @@ void fix_offset_skew ( const Grid& surface, Grid& offset ) {
 						min_off = off;
 				}
 				if (min_off < 0) fatal("Shouldn't be possible");
-				for (int i = 0; i < 3; ++i) {
+				for (size_t i = 0; i < 3; ++i) {
 					const Point& sp = surface.points[e.points[i]];
 					const Point& op = offset.points[e.points[i]];
 					Vector n = (op - sp);
@@ -768,9 +768,9 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		if (intersections.size()) {
 			fprintf(stderr,"%lu Normals scaled due to future intersections\n",intersections.size());
 			std::vector <double> scale_factors (surface.points.size(),1);
-			for (const std::pair <int,int>& pp : intersections) {
-				int _p1 = pp.first;
-				int _p2 = pp.second;
+			for (const std::pair <size_t,size_t>& pp : intersections) {
+				size_t _p1 = pp.first;
+				size_t _p2 = pp.second;
 
 				const Point& p1 = surface.points[_p1];
 				const Point& p2 = surface.points[_p2];
@@ -781,7 +781,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				scale_factors[_p1] = s;
 			}
 			scale_factors = laplace_smooth_down(smoothing_data.connections, scale_factors, 10, 1.0, true);
-			for (int i = 0; i < surface.points.size(); ++i) {
+			for (size_t i = 0; i < surface.points.size(); ++i) {
 				PointConnection& pc = smoothing_data.connections[i];
 				double s = scale_factors[i];
 				if (s < 0.2)
@@ -794,7 +794,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 	}
 
-	for (int i = 0; i < 10; ++i)
+	for (size_t i = 0; i < 10; ++i)
 		smooth_normals(surface,smoothing_data);
 	if (write_intermediate)
 		write_grid_with_data(filename+".data.vtk",surface,smoothing_data);
@@ -802,12 +802,12 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		pc.orig_normal = pc.normal;
 
 	if (use_taubin) {
-		for (int i = 0; i < taubin::n; ++i) {
+		for (size_t i = 0; i < taubin::n; ++i) {
 			smooth_point_connections_taubin(surface,smoothing_data,taubin::gamma);
 			smooth_point_connections_taubin(surface,smoothing_data,taubin::mu);
 		}
 	} else {
-		for (int i = 0; i < 100; ++i)
+		for (size_t i = 0; i < 100; ++i)
 			smooth_point_connections(surface,smoothing_data);
 	}
 
@@ -819,19 +819,19 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 
 	Grid offset_volume = volume_from_surfaces(surface,offset);
 
-	int n_surface_points = surface.points.size();
-	int last_n_intersected = INT_MAX;
-	int last_n_negative = INT_MAX;
+	size_t n_surface_points = surface.points.size();
+	size_t last_n_intersected = INT_MAX;
+	size_t last_n_negative = INT_MAX;
 	bool needs_radical_improvement = false;
-	int failed_steps = 0;
+	size_t failed_steps = 0;
 	bool successful;
-	std::vector <int> intersected_elements;
-	int n_full_iterations = 0;
-	for (int i = 1; i < 1000; ++i) {
+	std::vector <size_t> intersected_elements;
+	size_t n_full_iterations = 0;
+	for (size_t i = 1; i < 1000; ++i) {
 		if (n_full_iterations > 100) break;
 
 		successful = true;
-		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
+		std::vector <size_t> negative_volumes = find_negative_volumes(offset_volume);
 
 		if (negative_volumes.size() > 0) {
 			fprintf(stderr,"%lu Negative Volumes\n",negative_volumes.size());
@@ -884,20 +884,20 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		printf("Iteration %d\n",i);
 		std::vector <bool> poisoned_points (offset_volume.points.size(),false);
 
-		for (int _e : negative_volumes) {
+		for (size_t _e : negative_volumes) {
 			Element& e = offset_volume.elements[_e];
-			for (int p : e.points)
+			for (size_t p : e.points)
 				poisoned_points[p] = true;
 		}
 
-		for (int _p : intersections.points)
+		for (size_t _p : intersections.points)
 			poisoned_points[_p] = true;
 
 		for (Element& e : offset_volume.elements) {
 			assert (e.points.size() == 6);
-			for (int j = 3; j < 6; ++j) {
-				int _p0 = e.points[j-3];
-				int _p = e.points[j];
+			for (size_t j = 3; j < 6; ++j) {
+				size_t _p0 = e.points[j-3];
+				size_t _p = e.points[j];
 				if (poisoned_points[_p]) {
 					PointConnection& pc = smoothing_data.connections[_p-n_surface_points];
 					if (needs_radical_improvement) {
@@ -914,17 +914,17 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 				}
 			}
 		}
-		for (int j = 0; j < 20; ++j)
+		for (size_t j = 0; j < 20; ++j)
 			smooth_point_connections(surface,smoothing_data);
 
 		Grid offset = offset_surface_with_point_connections(surface,smoothing_data.connections);
 
-		for (int j = 0; j < n_surface_points; ++j)
+		for (size_t j = 0; j < n_surface_points; ++j)
 			offset_volume.points[j+n_surface_points] = offset.points[j];
 	}
 
 	if (!successful) {
-		std::vector <int> negative_volumes = find_negative_volumes(offset_volume);
+		std::vector <size_t> negative_volumes = find_negative_volumes(offset_volume);
 		if (negative_volumes.size() > 0) {
 			printf("%lu Negative Volumes\n",negative_volumes.size());
 			fatal("Still Negative Volumes");
@@ -938,7 +938,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 	}
 
-	for (int i = 0; i < n_surface_points; ++i)
+	for (size_t i = 0; i < n_surface_points; ++i)
 		offset.points[i] = offset_volume.points[i+n_surface_points];
 
 	if (use_offset_skew_fix)
@@ -990,7 +990,7 @@ int main(int argc, char* argv[]) {
 	std::string input_filename, output_filename;
 	double offset_size = 0;
 	double growth_rate = 1.5;
-	int nlayers = 1;
+	size_t nlayers = 1;
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i][0] == '-') {
 			std::string arg (argv[i]);
@@ -1080,7 +1080,7 @@ int main(int argc, char* argv[]) {
 		Grid offset_surface (3);
 		Grid last_offset_surface (surface);
 		double current_offset_size = offset_size;
-		for (int i = 0; i < nlayers; ++i) {
+		for (size_t i = 0; i < nlayers; ++i) {
 			std::ostringstream f;
 			f << output_filename << "." << i+1;
 			std::string filename (f.str());

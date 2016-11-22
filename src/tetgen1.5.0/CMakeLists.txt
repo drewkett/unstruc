@@ -8,6 +8,7 @@ add_executable(tetgen tetgen.cxx predicates.cxx)
 # In Linux/Unix, it will creates the libtet.a
 add_library(tet STATIC tetgen.cxx predicates.cxx)
 
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 #Set properties on a target. 
 #We use this here to set -DTETLIBRARY for when compiling the
 #library

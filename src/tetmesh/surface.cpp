@@ -45,7 +45,7 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 
 	in.numberofpoints = surface.points.size();
 	in.pointlist  = new REAL[surface.points.size()*3];
-	int i = 0;
+	size_t i = 0;
 	for (Point const& p : surface.points) {
 		in.pointlist[i] = p.x;
 		in.pointlist[i+1] = p.y;
@@ -57,7 +57,7 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 	in.facetlist = new tetgenio::facet[in.numberoffacets];
 	in.facetmarkerlist = new int[in.numberoffacets];
 
-	for (int i = 0; i < surface.elements.size(); ++i) {
+	for (size_t i = 0; i < surface.elements.size(); ++i) {
 		Element const& e = surface.elements[i];
 		tetgenio::facet& f = in.facetlist[i];
 		tetgenio::init(&f);
@@ -72,7 +72,7 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 
 		p.numberofvertices = e.points.size();
 		p.vertexlist = new int[e.points.size()];
-		for (int j = 0; j < e.points.size(); ++j)
+		for (size_t j = 0; j < e.points.size(); ++j)
 			p.vertexlist[j] = e.points[j];
 	}
 
@@ -96,64 +96,71 @@ Grid tetrahedralize_surface(Grid const& surface, double max_area) {
 }
 
 struct Edge {
-	std::pair <int,int> points;
-	std::pair <int,int> elements;
+	std::pair <size_t,size_t> points;
+	std::pair <size_t,size_t> elements;
 	Edge() {};
-	Edge(int p1, int p2, int element1, int element2) : points(p1,p2), elements(element1,element2) {};
+	Edge(size_t p1, size_t p2, size_t element1, size_t element2) : points(p1,p2), elements(element1,element2) {};
 	bool operator<(const Edge& other) const { return points < other.points; };
 };
 
+struct PartialEdge {
+  std::pair <size_t,size_t> points;
+  size_t element;
+  PartialEdge() {};
+  PartialEdge(size_t p1, size_t p2, size_t element) : points(p1,p2), element(element) {};
+  bool operator<(const PartialEdge& other) const { return points < other.points; };
+};
+
 void verify_complete_surfaces(const Grid& surface) {
-	std::vector < Edge > edges;
-	std::vector < std::vector<Edge> > edges_per_point (surface.points.size());
-	for (int i = 0; i < surface.elements.size(); ++i) {
+	std::vector < PartialEdge > edges;
+	std::vector < std::vector<PartialEdge> > edges_per_point (surface.points.size());
+	for (size_t i = 0; i < surface.elements.size(); ++i) {
 		const Element& e = surface.elements[i];
 		if (Shape::Info[e.type].dim != 2)
 			fatal("Not a surface. Has non-surface elements");
-		for (int j = 0; j < e.points.size(); ++j) {
-			int j2 = (j + 1)%e.points.size();
-			int p = e.points[j];
-			int p2 = e.points[j2];
+		for (size_t j = 0; j < e.points.size(); ++j) {
+			size_t j2 = (j + 1)%e.points.size();
+			size_t p = e.points[j];
+			size_t p2 = e.points[j2];
 			if (p < p2) {
-				edges.push_back( Edge(p,p2,-1,-1) );
-				edges_per_point[p].push_back( Edge(p,p2,i,-1) );
-				edges_per_point[p2].push_back( Edge(p,p2,i,-1) );
+				edges.push_back( PartialEdge(p,p2,i) );
+				edges_per_point[p].push_back( PartialEdge(p,p2,i) );
+				edges_per_point[p2].push_back( PartialEdge(p,p2,i) );
 			} else {
-				edges.push_back( Edge(p2,p,-1,-1) );
-				edges_per_point[p].push_back( Edge(p2,p,i,-1) );
-				edges_per_point[p2].push_back( Edge(p2,p,i,-1) );
+				edges.push_back( PartialEdge(p2,p,i) );
+				edges_per_point[p].push_back( PartialEdge(p2,p,i) );
+				edges_per_point[p2].push_back( PartialEdge(p2,p,i) );
 			}
 		}
 	}
 	std::sort(edges.begin(),edges.end());
-	for (int i = 0; i < edges.size(); ++i) {
+	for (size_t i = 0; i < edges.size(); i+=2) {
 		if (i == edges.size()-1)
 			fatal("Boundary Edge found (1)");
-		int i2 = i + 1;
+		size_t i2 = i + 1;
 		if (edges[i].points != edges[i2].points)
 			fatal("Boundary Edge found (2)");
 		if (i + 2 < edges.size()) {
-			int i3 = i + 2;
+			size_t i3 = i + 2;
 			if (edges[i2].points == edges[i3].points)
 				fatal("Non-Manifold Edge Found");
 		}
-		++i;
 	}
-	for (std::vector <Edge> edges : edges_per_point) {
+	for (std::vector <PartialEdge> edges : edges_per_point) {
 		if (edges.size()%2 != 0)
 			fatal("Boundary Edge found (3)");
 		std::sort(edges.begin(),edges.end());
 		std::list <Edge> edge_list;
-		for (int i = 0; i < edges.size()/2; ++i) {
-			const Edge& ee1 = edges[2*i];
-			const Edge& ee2 = edges[2*i+1];
+		for (size_t i = 0; i < edges.size()/2; ++i) {
+			const PartialEdge& ee1 = edges[2*i];
+			const PartialEdge& ee2 = edges[2*i+1];
 			if (ee1.points != ee2.points)
 				fatal("Boundary Edge found (4)");
-			edge_list.push_back( Edge(ee1.points.first,ee2.points.second,ee1.elements.first,ee2.elements.first) );
+			edge_list.push_back( Edge(ee1.points.first,ee1.points.second,ee1.element,ee2.element) );
 		}
-		std::list <int> surface_list;
-		int initial_size = edge_list.size();
-		for (int i = 0; i < initial_size; ++i) {
+		std::list <size_t> surface_list;
+		size_t initial_size = edge_list.size();
+		for (size_t i = 0; i < initial_size; ++i) {
 			if (edge_list.size() == 0) break;
 			auto it = edge_list.begin();
 			while (it != edge_list.end()) {
@@ -219,21 +226,21 @@ std::vector <Point> orient_surfaces(Grid& surface) {
 			surface_map.push_back(s);
 		}
 	}
-	int n_surfaces = 0;
-	for (int i = 0; i < surface_map.size(); ++i) {
+	size_t n_surfaces = 0;
+	for (size_t i = 0; i < surface_map.size(); ++i) {
 		std::vector<bool>& s1 = surface_map[i];
 		bool deleted = false;
-		for (int j = i+1; j < surface_map.size(); ++j) {
+		for (size_t j = i+1; j < surface_map.size(); ++j) {
 			std::vector<bool>& s2 = surface_map[j];
 			bool match = false;
-			for (int k = 0; k < s1.size(); ++k) {
+			for (size_t k = 0; k < s1.size(); ++k) {
 				if (s1[k] && s2[k]) {
 					match = true;
 					break;
 				}
 			}
 			if (match) {
-				for (int k = 0; k < s1.size(); ++k) {
+				for (size_t k = 0; k < s1.size(); ++k) {
 					if (s1[k]) s2[k] = true;
 				}
 				deleted = true;

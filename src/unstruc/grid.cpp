@@ -13,36 +13,36 @@
 
 namespace unstruc {
 
-Grid::Grid(int _dim) : dim(_dim) {
+Grid::Grid(size_t _dim) : dim(_dim) {
 	names.push_back( Name(dim, "default") );
 }
 
 void Grid::merge_points(double tol) {
 	std::cerr << "Merging Points" << std::endl;
-	int n_merged = 0;
-	int n_points = points.size();
+	size_t n_merged = 0;
+  size_t n_points = points.size();
 
 	std::cerr << "Sorting Points By Location" << std::endl;
-	std::vector< std::pair<double,int> > s (n_points);
-	for (int i = 0; i < n_points; ++i) {
+	std::vector< std::pair<double,size_t> > s (n_points);
+	for (size_t i = 0; i < n_points; ++i) {
 		Point& p = points[i];
 		s[i] = std::make_pair(p.x+p.y+p.z,i);
 	}
 
 	sort(s.begin(),s.end());
 
-	std::vector<int> merged_index (n_points);
-	for (int i = 0; i < n_points; i++)
+	std::vector<size_t> merged_index (n_points);
+	for (size_t i = 0; i < n_points; i++)
 		merged_index[i] = i;
 
 	std::cerr << "Comparing Points" << std::endl;
-	for (int _i = 0; _i < n_points; _i++) {
+	for (size_t _i = 0; _i < n_points; _i++) {
 		double si = s[_i].first;
-		int i = s[_i].second;
+		size_t i = s[_i].second;
 		Point& p1 = points[i];
-		for (int _j = _i+1; _j < n_points; _j++) {
+		for (size_t _j = _i+1; _j < n_points; _j++) {
 			double sj = s[_j].first;
-			int j = s[_j].second;
+			size_t j = s[_j].second;
 			// Check if point has already been merged
 			if (merged_index[j] != j) continue;
 
@@ -57,15 +57,15 @@ void Grid::merge_points(double tol) {
 
 	std::vector <bool> seen_points (n_points,false);
 	for (Element& e : elements)
-		for (int& p : e.points)
+		for (size_t& p : e.points)
 			seen_points[p] = true;
 
 	std::cerr << "Assembling Final Index" << std::endl;
-	std::vector<int> new_index (n_points);
-	for (int i = 0; i < n_points; ++i)
+	std::vector<size_t> new_index (n_points);
+	for (size_t i = 0; i < n_points; ++i)
 		new_index[i] = -1;
-	int new_i = 0;
-	for (int i = 0; i < n_points; ++i) {
+	size_t new_i = 0;
+	for (size_t i = 0; i < n_points; ++i) {
 		if (merged_index[i] == i && seen_points[i]) {
 			points[new_i] = points[i];
 			new_index[i] = new_i;
@@ -73,27 +73,27 @@ void Grid::merge_points(double tol) {
 		}
 	}
 	points.resize(new_i);
-	for (int i = 0; i < n_points; ++i) {
+	for (size_t i = 0; i < n_points; ++i) {
 		if (merged_index[i] != i)
 			new_index[i] = new_index[merged_index[i]];
 	}
 	std::cerr << n_merged << " Points Merged" << std::endl;
 	std::cerr << "Updating Elements" << std::endl;
 	for (Element& e : elements)
-		for (int& p : e.points)
+		for (size_t& p : e.points)
 			p = new_index[p];
 }
 
 void Grid::delete_inner_faces() {
 	std::cerr << "Deleting Inner Faces" << std::endl;
-	int n_elements = elements.size();
-	int n_points = points.size();
+	size_t n_elements = elements.size();
+	size_t n_points = points.size();
 
 	std::cerr << "Sorting Points By Location" << std::endl;
-	std::vector< std::pair<int,int> > s (n_elements);
-	for (int i = 0; i < n_elements; ++i) {
-		int min_p = n_points;
-		for (int p : elements[i].points)
+	std::vector< std::pair<size_t,size_t> > s (n_elements);
+	for (size_t i = 0; i < n_elements; ++i) {
+		size_t min_p = n_points;
+		for (size_t p : elements[i].points)
 			if (p < min_p)
 				min_p = p;
 		s[i] = std::make_pair(min_p,i);
@@ -102,18 +102,18 @@ void Grid::delete_inner_faces() {
 	sort(s.begin(),s.end());
 
 	std::vector<bool> deleted_index (n_elements);
-	for (int i = 0; i < n_elements; i++)
+	for (size_t i = 0; i < n_elements; i++)
 		deleted_index[i] = false;
 
 	fprintf(stderr,"Comparing Points\n");
-	for (int _i = 0; _i < n_elements; _i++) {
-		int si = s[_i].first;
-		int i = s[_i].second;
+	for (size_t _i = 0; _i < n_elements; _i++) {
+		size_t si = s[_i].first;
+		size_t i = s[_i].second;
 		Element &ei = elements[i];
 		if (Shape::Info[ei.type].dim == dim) continue;
-		for (int _j = _i+1; _j < n_elements; _j++) {
-			int sj = s[_j].first;
-			int j = s[_j].second;
+		for (size_t _j = _i+1; _j < n_elements; _j++) {
+			size_t sj = s[_j].first;
+			size_t j = s[_j].second;
 			Element &ej = elements[j];
 			if (Shape::Info[ej.type].dim == dim) continue;
 			if (deleted_index[j]) continue;
@@ -124,9 +124,9 @@ void Grid::delete_inner_faces() {
 			}
 		}
 	}
-	int n_deleted = 0;
-	int new_i = 0;
-	for (int i = 0; i < n_elements; ++i) {
+	size_t n_deleted = 0;
+	size_t new_i = 0;
+	for (size_t i = 0; i < n_elements; ++i) {
 		if (deleted_index[i]) {
 			n_deleted++;
 		} else {
@@ -139,13 +139,13 @@ void Grid::delete_inner_faces() {
 }
 
 void Grid::collapse_elements(bool split) {
-	int n_elements = elements.size();
+	size_t n_elements = elements.size();
 
 	std::vector<Element> new_elements;
-	int n_collapsed = 0;
-	int n_deleted = 0;
+	size_t n_collapsed = 0;
+	size_t n_deleted = 0;
 	std::vector<bool> deleted_elements (n_elements,false);
-	for (int i = 0; i < n_elements; ++i) {
+	for (size_t i = 0; i < n_elements; ++i) {
 		Element& e = elements[i];
 		if (split) {
 			if (can_collapse(e)) {
@@ -170,8 +170,8 @@ void Grid::collapse_elements(bool split) {
 	}
 	std::cerr << n_collapsed << " Elements Collapsed" << std::endl;
 	std::cerr << n_deleted << " Elements Deleted On Collapse" << std::endl;
-	int new_i = 0;
-	for (int i = 0; i < n_elements; ++i) {
+	size_t new_i = 0;
+	for (size_t i = 0; i < n_elements; ++i) {
 		if (!deleted_elements[i]) {
 			elements[new_i] = elements[i];
 			new_i++;
@@ -180,43 +180,22 @@ void Grid::collapse_elements(bool split) {
 	elements.resize(new_i);
 
 	if (split) {
-		int n_added = new_elements.size();
+		size_t n_added = new_elements.size();
 		elements.insert(elements.end(),new_elements.begin(),new_elements.end());
 		std::cerr << n_added << " Elements Created On Collapse" << std::endl;
 	}
 };
 
-Grid Grid::grid_from_elements(std::vector<Element>& elements) {
-	Grid g (3);
-	std::vector<int> index (points.size(),-1);
-	int n_points = 0;
-	for (Element &e_orig : elements) {
-		Element e (e_orig.type);
-		e.points.resize(e_orig.points.size());
-		for (int i = 0; i < e_orig.points.size(); ++i) {
-			int p = e_orig.points[i];
-			if (index[p] == -1) {
-				index[p] = n_points;
-				g.points.push_back(points[p]);
-				n_points++;
-			}
-			e.points[i] = index[p];
-		}
-		g.elements.push_back(e);
-	}
-	return g;
-}
-
 Grid& Grid::operator+=(const Grid& other) {
 	if (dim != other.dim)
 		fatal("Dimensions must match");
-	int point_offset = points.size();
-	int name_offset = names.size();
+	size_t point_offset = points.size();
+	size_t name_offset = names.size();
 	points.insert(points.end(),other.points.begin(),other.points.end());
 	names.insert(names.end(),other.names.begin(),other.names.end());
 	elements.reserve(elements.size() + other.elements.size());
 	for (Element e : other.elements) {
-		for (int i = 0; i < e.points.size(); ++i) {
+		for (size_t i = 0; i < e.points.size(); ++i) {
 			e.points[i] += point_offset;
 		}
 		e.name_i += name_offset;
@@ -227,7 +206,7 @@ Grid& Grid::operator+=(const Grid& other) {
 
 void Grid::delete_empty_names() {
 	std::vector<bool> name_exists(names.size());
-	for (int i = 0; i < names.size(); ++i)
+	for (size_t i = 0; i < names.size(); ++i)
 		name_exists[i] = false;
 
 	for (Element& e: elements) {
@@ -235,8 +214,8 @@ void Grid::delete_empty_names() {
 	}
 
 	std::vector<int> name_map(names.size());
-	int i = 0;
-	for (int _i = 0; _i < names.size(); ++_i)  {
+	size_t i = 0;
+	for (size_t _i = 0; _i < names.size(); ++_i)  {
 		if (name_exists[_i]) {
 			name_map[_i] = i;
 			names[i] = names[_i];
@@ -292,7 +271,7 @@ bool Grid::check_integrity() const {
 		fprintf(stderr,"Grid dim incorrectly set\n");
 		return false;
 	}
-	int n_points = points.size();
+	size_t n_points = points.size();
 	for (const Element& e : elements) {
 		if (e.type == Shape::Undefined) {
 			fprintf(stderr,"Undefined shape\n");
@@ -307,7 +286,7 @@ bool Grid::check_integrity() const {
 			fprintf(stderr,"Element has invalid name (%d >= %lu)\n",e.name_i,names.size());
 			return false;
 		}
-		for (int p : e.points)
+		for (size_t p : e.points)
 			if (p >= n_points) {
 				fprintf(stderr,"Element uses non existent point\n");
 				return false;
@@ -342,13 +321,13 @@ Point Grid::get_bounding_max() const {
 	return max;
 }
 
-Grid Grid::grid_from_element_index(const std::vector <int>& element_index) const {
+Grid Grid::grid_from_element_index(const std::vector <size_t>& element_index) const {
 	Grid extracted (dim);
 	extracted.points = points;
 	extracted.names = names;
 
 	extracted.elements.reserve(element_index.size());
-	for (int _e : element_index) {
+	for (size_t _e : element_index) {
 		if (_e >= elements.size())
 			fatal("Non-existent element referenced");
 		extracted.elements.push_back(elements[_e]);

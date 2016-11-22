@@ -24,7 +24,7 @@ namespace unstruc {
 		MinMax face_angle;
 		MinMax dihedral_angle;
 
-		std::vector<int> bad_elements;
+		std::vector<size_t> bad_elements;
 	};
 
 	MeshQuality get_mesh_quality(const Grid& grid, double threshold);

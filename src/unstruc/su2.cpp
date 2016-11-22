@@ -17,7 +17,7 @@
 namespace unstruc {
 
 bool su2_write(const std::string& outputfile, const Grid& grid) {
-	int i, j;
+	size_t i, j;
 
 	FILE * f;
 	f = fopen(outputfile.c_str(),"w");
@@ -25,7 +25,7 @@ bool su2_write(const std::string& outputfile, const Grid& grid) {
 	std::cerr << "Outputting SU2" << std::endl;
 	std::cerr << "Writing Elements" << std::endl;
 	fprintf(f,"NDIME= %d\n\n",grid.dim);
-	int n_volume_elements = 0;
+	size_t n_volume_elements = 0;
 	for (const Element& e : grid.elements)
 		if (Shape::Info[e.type].dim == grid.dim)
 			n_volume_elements++;
@@ -34,7 +34,7 @@ bool su2_write(const std::string& outputfile, const Grid& grid) {
 	for (const Element& e : grid.elements) {
 		if (Shape::Info[e.type].dim != grid.dim) continue;
 		fprintf(f,"%d",Shape::Info[e.type].vtk_id);
-		for (int p : e.points) {
+		for (size_t p : e.points) {
 			assert (p < grid.points.size());
 			fprintf(f," %d",p);
 		}
@@ -51,14 +51,14 @@ bool su2_write(const std::string& outputfile, const Grid& grid) {
 			fprintf(f,"%.17g %.17g %.17g %d\n",p.x,p.y,p.z,i);
 	}
 	fprintf(f,"\n");
-	std::vector<int> name_count(grid.names.size(),0);
+	std::vector<size_t> name_count(grid.names.size(),0);
 	for (i = 0; i < grid.elements.size(); i++) {
 		const Element &e = grid.elements[i];
 		if (Shape::Info[e.type].dim != (grid.dim-1)) continue;
-		if (e.name_i < 0) continue;
+		if (e.name_i == -1) continue;
 		name_count[e.name_i]++;
 	}
-	int n_names = 0;
+	size_t n_names = 0;
 	for (i = 0; i < grid.names.size(); i++) {
 		if (name_count[i] > 0)
 			n_names++;
@@ -75,9 +75,9 @@ bool su2_write(const std::string& outputfile, const Grid& grid) {
 		for (j = 0; j < grid.elements.size(); j++) {
 			const Element &e = grid.elements[j];
 			if (Shape::Info[e.type].dim != grid.dim - 1) continue;
-			if (e.name_i != i) continue;
+			if (e.name_i == -1) continue;
 			fprintf(f,"%d",Shape::Info[e.type].vtk_id);
-			for (int p : e.points) {
+			for (size_t p : e.points) {
 				assert (p < grid.points.size());
 				fprintf(f," %d",p);
 			}
@@ -91,13 +91,13 @@ bool su2_write(const std::string& outputfile, const Grid& grid) {
 
 Grid su2_read(const std::string& inputfile) {
 	Grid grid;
-	int ipoint, iname, i, j, k;
-	int nelem;
+	size_t ipoint, iname, i, j, k;
+	size_t nelem;
 	Name name;
 	std::ifstream f;
 	std::istringstream ls;
 	std::string line, token;
-	std::map<int,int> point_map;
+	std::map<size_t,size_t> point_map;
 	bool use_point_map = false;
 	f.open(inputfile.c_str(),std::ios::in);
 	std::cerr << "Opening SU2 File '" << inputfile << "'" << std::endl;
@@ -122,17 +122,17 @@ Grid su2_read(const std::string& inputfile) {
 			grid.names.push_back(name);
 		} else if (token.substr(0,6) == "NELEM=") {
 			read_elem = true;
-			int n_elems = 0;
+			size_t n_elems = 0;
 			if (token.size() > 6)
 				n_elems = std::atoi(token.substr(6).c_str());
 			else
 				ss >> n_elems;
 			std::cerr << n_elems << " Elements" << std::endl;
 			grid.elements.reserve(n_elems);
-			for (int i = 0; i < n_elems; ++i) {
+			for (size_t i = 0; i < n_elems; ++i) {
 				getline(f,line);
 				std::stringstream ss(line);
-				int vtk_id;
+				size_t vtk_id;
 				ss >> vtk_id;
 				Shape::Type type = type_from_vtk_id(vtk_id);
 				if (type == Shape::Undefined) fatal("Unrecognized shape type");
@@ -147,7 +147,7 @@ Grid su2_read(const std::string& inputfile) {
 			}
 		} else if (token.substr(0,6) == "NPOIN=") {
 			read_poin = true;
-			int n_points = 0;
+			size_t n_points = 0;
 			if (token.size() > 6)
 				n_points = std::atoi(token.substr(6).c_str());
 			else
@@ -182,7 +182,7 @@ Grid su2_read(const std::string& inputfile) {
 				grid.points[i] = point;
 			}
 		} else if (token.substr(0,6) == "NMARK=") {
-			int nmark;
+			size_t nmark;
 			if (token.size() > 6)
 				nmark = std::atoi(token.substr(6).c_str());
 			else
@@ -224,7 +224,7 @@ Grid su2_read(const std::string& inputfile) {
 					getline(f,line);
 					ss.clear();
 					ss.str(line);
-					int vtk_id;
+					size_t vtk_id;
 					ss >> vtk_id;
 					Shape::Type type = type_from_vtk_id(vtk_id);
 					if (type == Shape::Undefined) fatal("Unrecognized shape type");
@@ -243,10 +243,10 @@ Grid su2_read(const std::string& inputfile) {
 	assert (read_dime);
 	assert (read_elem);
 	assert (read_poin);
-	int n_negative = 0;
+	size_t n_negative = 0;
 	for (Element& e : grid.elements) {
 		if (use_point_map) {
-			for (int& p : e.points) {
+			for (size_t& p : e.points) {
 				assert (point_map.count(p) == 1);
 				p = point_map[p];
 			}

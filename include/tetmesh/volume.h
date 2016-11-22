@@ -2,12 +2,12 @@
 #define VOLUME_H_F7F23BA5_0307_481E_8A35_32D78739B72B
 
 #include <vector>
+#include "tetgen.h"
 
 namespace unstruc{
 	struct Grid;
 	struct Point;
 };
-struct tetgenio;
 
 namespace tetmesh {
 	unstruc::Grid grid_from_tetgenio(const tetgenio& tg);

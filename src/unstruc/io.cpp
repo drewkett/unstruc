@@ -13,7 +13,7 @@
 namespace unstruc {
 
 FileType filetype_from_filename(const std::string& filename) {
-	int n = filename.size();
+	size_t n = filename.size();
 	if (n > 4 && filename.compare(n-4,4,".su2") == 0)
 		return FileType::SU2;
 	else if (n > 4 && filename.compare(n-4,4,".stl") == 0)
