@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 
 #include <cassert>
 #include <list>
@@ -840,7 +841,7 @@ Grid create_offset_surface (const Grid& surface, double offset_size, std::string
 		}
 
 		Intersections intersections;
-		if (intersected_elements.size() and !failed_steps) {
+		if (intersected_elements.size() && !failed_steps) {
 			fprintf(stderr,"Checking for Intersections (Subselection)\n");
 			Grid intersected_volume = offset_volume.grid_from_element_index(intersected_elements);
 			intersections = Intersections::find_with_octree(intersected_volume);

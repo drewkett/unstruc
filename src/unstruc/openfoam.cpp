@@ -67,7 +67,7 @@ struct OFInfo {
 
 int removeStraightEdges(OFFace& face, Grid& grid) {
 	int n_large_angles = 0;
-	bool large_angles[face.points.size()];
+	std::vector<bool> large_angles(face.points.size());
 	for (int i = 0; i < face.points.size(); ++i) {
 		Point& p0 = grid.points[face.points[i]];
 		Point& p1 = grid.points[face.points[((i-1)+face.points.size())%face.points.size()]];
@@ -376,7 +376,7 @@ void createElementsFromFaceCenter(OFFace& face, bool faces_out, int center_id, s
 	}
 }
 bool createWedgeElementsFromSideFace(Grid& grid, OFFace* side_face, OFFace* main_face, OFFace* opp_face, bool side_faces_out, int main_face_center_id, int opp_face_center_id, std::vector<Element>& new_elements) {
-	bool pt_on_main_face [side_face->points.size()];
+	std::vector<bool> pt_on_main_face(side_face->points.size());
 	int n_on_main_face = 0;
 	for (int _p = 0; _p < side_face->points.size(); ++_p) {
 		int p = side_face->points[_p];

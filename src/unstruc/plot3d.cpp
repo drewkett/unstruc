@@ -19,7 +19,7 @@ MultiBlock plot3d_read_to_multiblock(const std::string& filename) {
 	int n_blocks;
 	float temp_f, temp_f2;
 	f.read((char *) &n_blocks,4);
-	int dim[n_blocks][3];
+	std::vector<int[3]> dim(n_blocks);
 	std::cerr << n_blocks << " blocks" << std::endl;
 	std::cerr << "Dimensions: " << std::endl;
 	for (int i = 0; i < n_blocks; i++) {

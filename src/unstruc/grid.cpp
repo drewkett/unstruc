@@ -226,7 +226,7 @@ Grid& Grid::operator+=(const Grid& other) {
 }
 
 void Grid::delete_empty_names() {
-	bool name_exists [names.size()];
+	std::vector<bool> name_exists(names.size());
 	for (int i = 0; i < names.size(); ++i)
 		name_exists[i] = false;
 
@@ -234,7 +234,7 @@ void Grid::delete_empty_names() {
 		name_exists[e.name_i] = true;
 	}
 
-	int name_map [names.size()];
+	std::vector<int> name_map(names.size());
 	int i = 0;
 	for (int _i = 0; _i < names.size(); ++_i)  {
 		if (name_exists[_i]) {

@@ -3,6 +3,8 @@
 #include "unstruc.h"
 #include "surface.h"
 
+#include <algorithm>
+
 using namespace unstruc;
 
 namespace tetmesh {
