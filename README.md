@@ -17,4 +17,6 @@ This tool prints out some quality metrics for a given mesh. It also is capable o
 ## Build Instructions
 This project can be built using make or [CMake](http://www.cmake.org). The Makefile is more basic and mainly is useful for building the project one time. Run `make` in the top level directory to build the executables, which are placed in bin.
 
+This can be built on Linux with GCC and Windows with MSVC.
+
 If you are changing any files, building using cmake works better because it properly handles dependencies particularly if header files change. Run `./cmake_build` in the top level directory to build the executables using cmake.
