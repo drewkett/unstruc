@@ -1,10 +1,12 @@
 # Set  the minimum  required version  of cmake  for a  project.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+PROJECT(unstruc)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   ADD_COMPILE_OPTIONS(--std=gnu++11)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  ADD_COMPILE_OPTIONS(--std=c++11)
 endif()
-PROJECT(unstruc)
 
 IF(DEFINED BUILD_SUFFIX)
 	set(CMAKE_EXECUTABLE_SUFFIX ${BUILD_SUFFIX})

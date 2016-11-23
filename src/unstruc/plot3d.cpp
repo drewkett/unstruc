@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <array>
 
 namespace unstruc {
 
@@ -19,7 +20,7 @@ namespace unstruc {
     size_t n_blocks;
     float temp_f, temp_f2;
     f.read((char *) &n_blocks,4);
-    std::vector<size_t[3]> dim(n_blocks);
+    std::vector<std::array<size_t,3>> dim(n_blocks);
     std::cerr << n_blocks << " blocks" << std::endl;
     std::cerr << "Dimensions: " << std::endl;
     for (size_t i = 0; i < n_blocks; i++) {
