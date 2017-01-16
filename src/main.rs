@@ -32,23 +32,38 @@ impl fmt::Display for Dimension {
     }
 }
 
-pub enum Element {
-    Triangle(usize, [usize; 3]),
-    Quad(usize, [usize; 4]),
+pub enum Shape {
+    Undefined,
+    Line([usize; 2]),
+    Triangle([usize; 3]),
+    Quad([usize; 4]),
+    // Polygon,
+    Tetra([usize; 4]),
+    Hexa([usize; 8]),
+    Wedge([usize; 6]),
+    Pyramid([usize; 5]),
+    // NShapes
+}
+
+pub struct Element {
+    name_index: usize,
+    shape: Shape
 }
 
 impl<'a> Element {
     fn iter_points(&'a self) -> std::slice::Iter<'a, usize> {
-        return match self {
-            &Element::Triangle(_, ref points) => points.iter(),
-            &Element::Quad(_, ref points) => points.iter(),
+        return match self.shape {
+            Shape::Triangle(ref points) => points.iter(),
+            Shape::Quad(ref points) => points.iter(),
+            _ => unimplemented!()
         };
     }
 
     fn iter_points_mut(&'a mut self) -> std::slice::IterMut<'a, usize> {
-        return match self {
-            &mut Element::Triangle(_, ref mut points) => points.iter_mut(),
-            &mut Element::Quad(_, ref mut points) => points.iter_mut(),
+        return match self.shape {
+            Shape::Triangle(ref mut points) => points.iter_mut(),
+            Shape::Quad(ref mut points) => points.iter_mut(),
+            _ => unimplemented!()
         };
     }
 
@@ -57,31 +72,37 @@ impl<'a> Element {
         while let Some(p1) = it.next() {
             let mut it2 = it.clone();
             while let Some(p2) = it2.next() {
-                println!("{} {}",p1,p2);
+                println!("{} {}", p1, p2);
                 if p1 == p2 {
-                    return true
+                    return true;
                 }
             }
         }
-        return false
+        return false;
     }
 
     fn can_collapse_wo_split(&'a self) -> bool {
-        match self {
-            _ => self.can_collapse()
+        // need to implement more shapes
+        match self.shape {
+            Shape::Wedge(points) => points[0] == points[3] || points[1] == points[4] || points[2] == points[5],
+            Shape::Triangle(_) => self.can_collapse(),
+            Shape::Quad(_) => self.can_collapse(),
+            Shape::Tetra(_) => self.can_collapse(),
+            Shape::Pyramid(_) => self.can_collapse(),
+            _ => unimplemented!(),
         }
     }
 
     fn collapse(&'a self, new_elements: &mut Vec<Element>) -> bool {
         match self {
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
         return false;
     }
 
     fn collapse_wo_split(&'a self) -> bool {
         match self {
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
         return false;
     }
@@ -180,14 +201,14 @@ impl Grid {
         return self;
     }
 
-    fn collapse_elements(&mut self,split: bool) -> Result<(),&'static str> {
+    fn collapse_elements(&mut self, split: bool) -> Result<(), &'static str> {
         let n_elements = self.elements.len();
         let mut new_elements = vec![];
         let mut n_collapsed = 0;
         let mut n_deleted = 0;
         let mut deleted_elements = vec![false; n_elements];
 
-        for (i,e) in self.elements.iter().enumerate() {
+        for (i, e) in self.elements.iter().enumerate() {
             if split {
                 if e.can_collapse() {
                     let deleted = e.collapse(&mut new_elements);
@@ -206,11 +227,11 @@ impl Grid {
                     }
                     n_collapsed += 1;
                 } else if e.can_collapse() {
-                    return Err("Can't collapse without splitting")
+                    return Err("Can't collapse without splitting");
                 }
             }
         }
-        return Ok(())
+        return Ok(());
     }
 
     fn check(&self) -> bool {
@@ -271,7 +292,7 @@ fn stl_to_grid(s: stl::STL) -> Grid {
     }
     for f in s.facets {
         let i = points.len();
-        elements.push(Element::Triangle(0, [i, i + 1, i + 2]));
+        elements.push(Element{ name_index:0, shape: Shape::Triangle([i, i + 1, i + 2])});
         points.push(f.p1);
         points.push(f.p2);
         points.push(f.p3);
