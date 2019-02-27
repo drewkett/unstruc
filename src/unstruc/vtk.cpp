@@ -14,22 +14,22 @@
 namespace unstruc {
 
   bool vtk_write(const std::string& filename, const Grid &grid) {
+    FILE * f;
+    f = fopen(filename.c_str(),"w");
     std::cerr << "Writing " << filename << std::endl;
-    std::ofstream f (filename);
-    if (!f.is_open()) fatal("Could not open file");
-    f.precision(15);
-    f << "# vtk DataFile Version 2.0" << std::endl;
-    f << "Description" << std::endl;
-    f << "ASCII" << std::endl;
-    f << "DATASET UNSTRUCTURED_GRID" << std::endl;
+    if (!f) fatal("Could not open file");
+    fprintf(f,"# vtk DataFile Version 2.0\n");
+    fprintf(f,"Description\n");
+    fprintf(f,"ASCII\n");
+    fprintf(f,"DATASET UNSTRUCTURED_GRID\n");
     //std::cerr << "Writing Points" << std::endl;
-    f << "POINTS " << grid.points.size() << " double" << std::endl;
+    fprintf(f,"POINTS %d double\n",grid.points.size());
     for (const Point& p : grid.points) {
-      f << p.x << " " << p.y;
+      fprintf(f,"%.17g %.17g",p.x,p.y);
       if (grid.dim == 3)
-        f << " " << p.z << std::endl;
+        fprintf(f," %.17g\n",p.z);
       else
-        f << " 0.0" << std::endl;
+        fprintf(f," 0.0\n");
     }
     //std::cerr << "Writing Cells" << std::endl;
     size_t n_volume_elements = 0;
@@ -38,19 +38,20 @@ namespace unstruc {
       n_volume_elements++;
       n_elvals += e.points.size()+1;
     }
-    f << "CELLS " << n_volume_elements << " " << n_elvals << std::endl;
+    fprintf(f,"CELLS %d %d\n",n_volume_elements,n_elvals);
     for (const Element& e : grid.elements) {
-      f << e.points.size();
+      fprintf(f,"%d",e.points.size());
       for (size_t p : e.points) {
-        f << " " << p;
+        fprintf(f," %d",p);
       }
-      f << std::endl;
+      fprintf(f,"\n");
     }
 
-    f << "CELL_TYPES " << n_volume_elements << std::endl;
+    fprintf(f,"CELL_TYPES %d\n",n_volume_elements);
     for (const Element& e : grid.elements) {
-      f << Shape::Info[e.type].vtk_id << std::endl;
+      fprintf(f,"%d\n",Shape::Info[e.type].vtk_id);
     }
+    fclose(f);
     return true;
   }
 
