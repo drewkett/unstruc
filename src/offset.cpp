@@ -1039,7 +1039,7 @@ int main(int argc, char* argv[]) {
       else if (arg == "--use-sqrt-angle") use_sqrt_angle = true;
       else if (arg == "--use-initial-offset") use_original_offset = true;
       else if (arg == "--use-taubin") use_taubin = true;
-      else if (arg == "--disable-skew-restricton") use_skew_restriction = false;
+      else if (arg == "--disable-skew-restriction") use_skew_restriction = false;
       else if (arg == "--write-intermediate-files") write_intermediate = true;
       else if (arg == "--use-future-intersections-check") use_future_intersections = true;
       else {
