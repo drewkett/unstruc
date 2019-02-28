@@ -18,14 +18,16 @@ ADD_SUBDIRECTORY(src/unstruc)
 ADD_SUBDIRECTORY(src/tetmesh)
 ADD_SUBDIRECTORY(src/tetgen1.5.0)
 
+LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib)
+
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/tetgen1.5.0)
 
 add_executable(unstruc-convert src/convert.cpp)
-target_link_libraries(unstruc-convert unstruc)
+target_link_libraries(unstruc-convert unstruc cgns)
 
 add_executable(unstruc-offset src/offset.cpp)
-target_link_libraries(unstruc-offset unstruc tet tetmesh)
+target_link_libraries(unstruc-offset unstruc tet tetmesh cgns)
 
 add_executable(unstruc-quality src/quality.cpp)
-target_link_libraries(unstruc-quality unstruc)
+target_link_libraries(unstruc-quality unstruc cgns)

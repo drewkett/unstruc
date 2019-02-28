@@ -1101,17 +1101,20 @@ int main(int argc, char* argv[]) {
     offset_volume.collapse_elements(false);
     write_grid(output_filename+".offset_volume.vtk",offset_volume);
 
+    printf("Creating Farfield Mesh\n");
     Grid farfield_surface = tetmesh::create_farfield_box(offset_surface);
     Grid farfield_volume = tetmesh::volgrid_from_surface(offset_surface+farfield_surface,holes,tetgen_min_ratio);
     if (write_intermediate)
       write_grid(output_filename+".farfield_volume.vtk",farfield_volume);
     volume = farfield_volume + offset_volume + farfield_surface + surface;
   } else {
+    printf("Creating Farfield Mesh\n");
     Grid farfield_surface = tetmesh::create_farfield_box(surface);
     volume = tetmesh::volgrid_from_surface(surface+farfield_surface,holes,tetgen_min_ratio);
     volume += farfield_surface + surface;
   }
   volume.merge_points(0);
   volume.collapse_elements(false);
+  printf("Total Elements = %d\n",volume.elements.size());
   write_grid(output_filename,volume);
 }

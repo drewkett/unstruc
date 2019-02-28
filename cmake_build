@@ -3,6 +3,13 @@
 export CC=clang
 export CXX=clang++
 
+cd src/cgnslib_2.5
+if [ ! -f ../../lib/libcgns.a ]; then
+    ./configure --prefix=../.. || exit 1
+fi
+make install || exit 1
+cd ../..
+
 mkdir -p build/debug
 cd build/debug 
 cmake -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SUFFIX=-dbg ../..

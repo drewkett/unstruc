@@ -5,6 +5,7 @@
 #include "gmsh.h"
 #include "stl.h"
 #include "vtk.h"
+#include "cgns.h"
 
 #include "grid.h"
 #include "error.h"
@@ -21,6 +22,8 @@ namespace unstruc {
       return FileType::STLB;
     else if (n > 4 && filename.compare(n-4,4,".vtk") == 0)
       return FileType::VTK;
+    else if (n > 5 && filename.compare(n-5,5,".cgns") == 0)
+      return FileType::CGNS2;
     else if (n > 4 && (filename.compare(n-4,4,".xyz") == 0 || filename.compare(n-4,4,".p3d") == 0))
       return FileType::Plot3D;
     else if ((n > 8 && filename.compare(n-8,8,"polyMesh") == 0) || (n > 9 && filename.compare(n-9,9,"polyMesh/") == 0))
@@ -71,6 +74,9 @@ namespace unstruc {
       break;
     case FileType::STLB:
       stl_write_binary(filename,grid);
+      break;
+    case FileType::CGNS2:
+      cgns_write(filename,grid);
       break;
     default:
       fatal("Unsupported filetype for writing");

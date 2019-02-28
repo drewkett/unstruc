@@ -15,6 +15,7 @@ namespace unstruc {
 		STL,
 		STLB,
 		GMSH,
+		CGNS2,
 		Count
 	};
 
