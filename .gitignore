@@ -7,3 +7,4 @@ include/cgns*
 config.log
 config.status
 make.*
+*.o
