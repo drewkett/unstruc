@@ -386,7 +386,7 @@ namespace unstruc {
     for (size_t i = 0; i < 8; ++i) {
       if (tree->children[i] || tree->points[i].size()) {
         for (size_t j = 0; j < indent; ++j) printf(" ");
-        printf("Quadrant %d -> ",i);
+        printf("Quadrant %zu -> ",i);
 
         if (tree->children[i]) {
           printf("\n");
@@ -787,7 +787,7 @@ namespace unstruc {
       put_edge_in_tree(tree,edge);
     }
 
-    IntersectionPairs intersections (surface.points.size());
+    IntersectionPairs intersections (n_points);
     _find_with_tree(grid, tree, intersections);
     size_t n_intersections = 0;
     for (auto intersection : intersections)
@@ -795,7 +795,7 @@ namespace unstruc {
         n_intersections++;
     PointPairList intersection_list;
     intersection_list.reserve(n_intersections);
-    for (size_t _p = 0; _p < surface.points.size(); ++_p) {
+    for (size_t _p = 0; _p < n_points; ++_p) {
       if (intersections[_p].intersected) {
         size_t _p2 = intersections[_p].p;
         intersection_list.push_back( std::make_pair (_p,_p2) );
