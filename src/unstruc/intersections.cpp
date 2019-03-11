@@ -564,7 +564,7 @@ namespace unstruc {
     double dist;
     bool intersected;
 
-    IntersectionPair() : dist(DBL_MAX) {};
+    IntersectionPair() : p(0),dist(DBL_MAX),intersected(0) {};
   };
   typedef std::vector<IntersectionPair> IntersectionPairs;
 

@@ -4,3 +4,6 @@ build_win
 bin
 lib
 include/cgns*
+config.log
+config.status
+make.*
