@@ -24,9 +24,13 @@ namespace unstruc {
   const size_t max_bin_size = 20;
 
   struct Edge {
+    private:
+    // Edge's have two points. p1 is always the lower index
     size_t p1, p2;
+    // These are references to element indices
     std::vector <size_t> elements;
     Point min, max;
+    public:
 
     Edge() {};
     Edge(size_t _p1,size_t _p2) {
@@ -49,6 +53,14 @@ namespace unstruc {
       }
       elements.push_back(e);
     };
+
+    size_t p1() const {
+      return p1;
+    }
+
+    size_t p2() const {
+      return p2;
+    }
 
     bool operator==(const Edge& other) const {
       return (p1 == other.p1) && (p2 == other.p2);
@@ -386,7 +398,7 @@ namespace unstruc {
     for (size_t i = 0; i < 8; ++i) {
       if (tree->children[i] || tree->points[i].size()) {
         for (size_t j = 0; j < indent; ++j) printf(" ");
-        printf("Quadrant %d -> ",i);
+        printf("Quadrant %zu -> ",i);
 
         if (tree->children[i]) {
           printf("\n");
