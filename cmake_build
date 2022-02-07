@@ -3,9 +3,10 @@
 export CC=clang
 export CXX=clang++
 
+mkdir -p lib
 cd src/cgnslib_2.5
 if [ ! -f ../../lib/libcgns.a ]; then
-    ./configure --prefix=../.. || exit 1
+    sh ./configure --prefix=../.. || exit 1
 fi
 make install || exit 1
 cd ../..
